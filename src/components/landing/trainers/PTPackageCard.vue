@@ -65,21 +65,11 @@ const formatPrice = (price: number) =>
       </ul>
 
       <!-- CTA -->
-      <!-- Original active button (kept as comment for future re-enable)
       <Button
         label="Book Now"
         class="w-full py-3 font-semibold text-base"
         style="margin-top: auto;"
         @click="$emit('book', pkg)"
-      />
-      -->
-
-      <!-- Disabled Coming Soon CTA -->
-      <Button
-        label="Coming Soon"
-        class="w-full py-3 font-semibold text-base"
-        style="margin-top: auto;"
-        :disabled="true"
       />
     </div>
   </div>

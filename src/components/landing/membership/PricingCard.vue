@@ -58,20 +58,10 @@ const formatPrice = (price: number) =>
           </div>
 
           <div class="mt-auto">
-            <!--
-            Original signup button preserved but commented out per request:
             <Button
-              label="Daftar Sekarang"
+              label="Sign Up Now"
               class="w-full py-3.5 text-base font-semibold"
               @click="$emit('signup')"
-            />
-            -->
-
-            <!-- Temporary CTA: not navigable, shows Coming Soon -->
-            <Button
-              label="Coming Soon"
-              class="w-full py-3.5 text-base font-semibold"
-              :disabled="true"
             />
           </div>
         </div>

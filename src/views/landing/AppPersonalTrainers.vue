@@ -29,7 +29,7 @@ const openDPModal = (pkg: (typeof ptPackages)[0]) => {
   showDPModal.value = true
 }
 
-const confirmDPPayment = (data: { pkg: typeof ptPackages[0]; paymentType: 'full' | 'dp'; dpAmount: number }) => {
+const confirmDPPayment = (data: any) => {
   const typeLabel = data.paymentType === 'dp' ? 'DP' : 'Full Payment'
   toast.add({
     severity: 'success',

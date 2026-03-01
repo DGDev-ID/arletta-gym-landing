@@ -166,7 +166,7 @@ const healthAnswers = ref<boolean[]>(new Array(healthQuestions.length).fill(fals
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-end gap-3 pt-5">
         <Button
           label="Batal"
           severity="secondary"
