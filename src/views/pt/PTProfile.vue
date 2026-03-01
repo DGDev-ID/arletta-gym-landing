@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import PTProfileCard from '@/components/pt/profile/PTProfileCard.vue'
-import PTMembershipCard from '@/components/pt/profile/PTMembershipCard.vue'
 import TodayScheduleCard from '@/components/pt/profile/TodayScheduleCard.vue'
 import ClientsCard from '@/components/pt/profile/ClientsCard.vue'
 
@@ -83,12 +82,6 @@ const recentClients = ref([
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
   },
 ])
-
-const membershipStatus = ref({
-  status: 'Active',
-  expiresAt: '2026-12-31',
-  daysRemaining: 338,
-})
 </script>
 
 <template>
@@ -104,13 +97,10 @@ const membershipStatus = ref({
         <!-- Profile Card -->
         <PTProfileCard :trainer="trainer" />
 
-        <!-- Membership Status -->
-        <PTMembershipCard :trainer="trainer" :membership-status="membershipStatus" />
-
         <!-- Today's Schedule -->
         <TodayScheduleCard :today-schedule="todaySchedule" />
 
-        <!-- My Clients -->
+        <!-- My Clients (spans remaining space) -->
         <ClientsCard :recent-clients="recentClients" />
       </div>
     </div>

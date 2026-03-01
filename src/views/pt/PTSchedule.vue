@@ -8,6 +8,7 @@ import TabNavigation from '@/components/member/schedule/TabNavigation.vue'
 import PTUpcomingTab from '@/components/pt/schedule/PTUpcomingTab.vue'
 import PTHistoryTab from '@/components/pt/schedule/PTHistoryTab.vue'
 import AddSessionModal from '@/components/pt/schedule/AddSessionModal.vue'
+import RescheduleModal from '@/components/pt/schedule/RescheduleModal.vue'
 
 const toast = useToast()
 
@@ -17,6 +18,16 @@ const activeTab = ref('upcoming')
 // Modal states
 const showAddSessionModal = ref(false)
 const showCancelModal = ref(false)
+const showRescheduleModal = ref(false)
+const selectedSessionForReschedule = ref<{
+  id: number
+  clientName?: string
+  className?: string
+  date: string
+  time: string
+  location: string
+  type: string
+} | null>(null)
 const selectedSessionForCancel = ref<{
   id: number
   name: string
@@ -201,6 +212,40 @@ const confirmCancel = () => {
   showCancelModal.value = false
 }
 
+// Open reschedule modal
+const openRescheduleModal = (session: {
+  id: number
+  clientName?: string
+  className?: string
+  date: string
+  time: string
+  location: string
+  type: string
+}) => {
+  selectedSessionForReschedule.value = session
+  showRescheduleModal.value = true
+}
+
+// Confirm reschedule
+const confirmReschedule = (data: { id: number; newDate: string; newStartTime: string; newEndTime: string; newLocation: string; reason: string }) => {
+  const session = upcomingSessions.value.find((s) => s.id === data.id)
+  if (session) {
+    session.date = data.newDate
+    session.time = `${data.newStartTime} - ${data.newEndTime}`
+    session.location = data.newLocation
+    const sessionName = session.type === 'pt-session'
+      ? `PT Session with ${session.clientName}`
+      : (session.className ?? 'Class')
+    toast.add({
+      severity: 'success',
+      summary: 'Jadwal Diubah',
+      detail: `${sessionName} telah di-reschedule ke ${data.newDate} ${data.newStartTime} - ${data.newEndTime}.`,
+      life: 4000,
+    })
+  }
+  showRescheduleModal.value = false
+}
+
 // Add new PT session
 const addNewSession = () => {
   if (
@@ -312,6 +357,7 @@ const tabs = [
         v-show="activeTab === 'upcoming'"
         :sessions="upcomingSessions"
         @cancel="openCancelModal"
+        @reschedule="openRescheduleModal"
       />
 
       <PTHistoryTab v-show="activeTab === 'history'" :session-history="sessionHistory" />
@@ -331,6 +377,13 @@ const tabs = [
       :booking-info="selectedSessionForCancel"
       user-role="pt"
       @confirm="confirmCancel"
+    />
+
+    <!-- Reschedule Modal -->
+    <RescheduleModal
+      v-model:visible="showRescheduleModal"
+      :session="selectedSessionForReschedule"
+      @confirm="confirmReschedule"
     />
   </div>
 </template>

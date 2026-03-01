@@ -82,10 +82,16 @@ function formatDate(dateStr: string): string {
               </div>
             </div>
 
+            <!-- Online class available badge for full classes -->
+            <div v-if="classItem.isFull || classItem.spotsLeft === 0" class="mt-1 flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <i class="pi pi-video text-blue-400 text-xs"></i>
+              <span class="text-xs text-blue-300">Kelas online via Zoom tersedia</span>
+            </div>
+
             <Button
-              :label="classItem.isFull ? 'Join Waitlist' : 'Book Now'"
-              :icon="classItem.isFull ? 'pi pi-clock' : 'pi pi-check'"
-              :class="classItem.isFull ? 'btn-outline' : 'btn'"
+              :label="classItem.isFull || classItem.spotsLeft === 0 ? 'Lihat Opsi' : 'Book Now'"
+              :icon="classItem.isFull || classItem.spotsLeft === 0 ? 'pi pi-external-link' : 'pi pi-check'"
+              :class="classItem.isFull || classItem.spotsLeft === 0 ? 'btn-outline' : 'btn'"
               class="w-full mt-4 py-2"
               @click="emit('book', classItem)"
             />

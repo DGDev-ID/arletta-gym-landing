@@ -5,6 +5,7 @@ import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 import BookingConfirmModal from '@/components/booking/BookingConfirmModal.vue'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
+import OnlineClassModal from '@/components/booking/OnlineClassModal.vue'
 import StatsSection from '@/components/member/schedule/StatsSection.vue'
 import TabNavigation from '@/components/member/schedule/TabNavigation.vue'
 import UpcomingTab from '@/components/member/schedule/UpcomingTab.vue'
@@ -30,6 +31,7 @@ const activeTab = ref('upcoming')
 // Modal states
 const showBookingModal = ref(false)
 const showCancelModal = ref(false)
+const showOnlineClassModal = ref(false)
 const selectedClassForBooking = ref<{
   id: number
   name: string
@@ -162,6 +164,13 @@ const openBookingModal = (classItem: AvailableClass) => {
     trainerAvatar: classItem.trainerAvatar,
     totalSpots: classItem.totalSpots,
   }
+
+  // If class is full, show online class option modal instead
+  if (classItem.spotsLeft === 0) {
+    showOnlineClassModal.value = true
+    return
+  }
+
   bookingHasConflict.value = hasTimeConflict(classItem.date, classItem.time)
   showBookingModal.value = true
 }
@@ -202,6 +211,25 @@ const joinWaitingList = () => {
     }
   }
   showBookingModal.value = false
+  showOnlineClassModal.value = false
+}
+
+// Join online class (Zoom)
+const joinOnlineClass = () => {
+  if (selectedClassForBooking.value) {
+    toast.add({
+      severity: 'success',
+      summary: 'Kelas Online Terdaftar',
+      detail: `Link Zoom untuk ${selectedClassForBooking.value.name} akan dikirim ke email Anda 30 menit sebelum kelas dimulai.`,
+      life: 5000,
+    })
+  }
+  showOnlineClassModal.value = false
+}
+
+// Join waitlist from online modal
+const joinWaitlistFromOnline = () => {
+  joinWaitingList()
 }
 
 // Open cancel confirmation modal
@@ -345,6 +373,14 @@ const tabs = [
       :bookingInfo="selectedBookingForCancel"
       userRole="member"
       @confirm="confirmCancel"
+    />
+
+    <!-- Online Class Modal (when class is full) -->
+    <OnlineClassModal
+      v-model:visible="showOnlineClassModal"
+      :classInfo="selectedClassForBooking"
+      @join-online="joinOnlineClass"
+      @join-waitlist="joinWaitlistFromOnline"
     />
   </div>
 </template>

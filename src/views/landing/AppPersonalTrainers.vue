@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import HeroTrainers from '@/components/landing/trainers/HeroTrainers.vue'
 import StatsBlock from '@/components/landing/trainers/StatsBlock.vue'
 import TrainersGrid from '@/components/landing/trainers/TrainersGrid.vue'
@@ -8,9 +9,36 @@ import TrainerModal from '@/components/landing/trainers/TrainerModal.vue'
 import PTPackageCard from '@/components/landing/trainers/PTPackageCard.vue'
 import TrainersCTA from '@/components/landing/trainers/TrainersCTA.vue'
 import ParticleBackground from '@/components/common/ParticleBackground.vue'
+import DPPaymentModal from '@/components/booking/DPPaymentModal.vue'
+import authState from '@/stores/auth'
 
 const router = useRouter()
+const toast = useToast()
 const goToSignUp = () => router.push('/signup')
+
+// DP Payment Modal state
+const showDPModal = ref(false)
+const selectedPackage = ref<(typeof ptPackages)[0] | null>(null)
+
+const openDPModal = (pkg: (typeof ptPackages)[0]) => {
+  if (!authState.isLoggedIn) {
+    router.push('/signup')
+    return
+  }
+  selectedPackage.value = pkg
+  showDPModal.value = true
+}
+
+const confirmDPPayment = (data: { pkg: typeof ptPackages[0]; paymentType: 'full' | 'dp'; dpAmount: number }) => {
+  const typeLabel = data.paymentType === 'dp' ? 'DP' : 'Full Payment'
+  toast.add({
+    severity: 'success',
+    summary: `${typeLabel} Berhasil`,
+    detail: `Pembayaran ${typeLabel} untuk paket ${data.pkg.name} sedang diproses.`,
+    life: 4000,
+  })
+  showDPModal.value = false
+}
 
 const trainers = [
   {
@@ -109,7 +137,7 @@ const ptPackages = [
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
-      <PTPackageCard v-for="pkg in ptPackages" :key="pkg.name" :pkg="pkg" @book="goToSignUp" />
+      <PTPackageCard v-for="pkg in ptPackages" :key="pkg.name" :pkg="pkg" @book="openDPModal" />
     </div>
   </div>
 </section>
@@ -128,5 +156,12 @@ const ptPackages = [
 
     <!-- CTA Section -->
     <TrainersCTA @signup="goToSignUp" />
+
+    <!-- DP Payment Modal -->
+    <DPPaymentModal
+      v-model:visible="showDPModal"
+      :pkg="selectedPackage"
+      @confirm="confirmDPPayment"
+    />
   </div>
 </template>

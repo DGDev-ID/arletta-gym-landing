@@ -11,6 +11,8 @@ interface Props {
     status: string
     expiresAt: string
     daysRemaining: number
+    startDate?: string
+    duration?: string
   }
 }
 
@@ -71,6 +73,19 @@ defineProps<Props>()
             />
           </div>
           <div class="mt-3 text-xs text-(--text-muted)">ID: {{ member.memberId }}</div>
+
+          <!-- Start Duration Info -->
+          <div v-if="membershipStatus.startDate || membershipStatus.duration" class="mt-3 pt-3 border-t border-white/10">
+            <div v-if="membershipStatus.startDate" class="flex items-center justify-center gap-2 text-xs text-(--text-secondary) mb-1">
+              <i class="pi pi-calendar text-(--primary)"></i>
+              <span>Mulai: {{ new Date(membershipStatus.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+            </div>
+            <div v-if="membershipStatus.duration" class="flex items-center justify-center gap-2 text-xs text-(--text-secondary)">
+              <i class="pi pi-clock text-(--primary)"></i>
+              <span>Durasi: {{ membershipStatus.duration }}</span>
+            </div>
+          </div>
+
           <p class="text-xs text-(--text-secondary) mt-2">Scan at gym entrance for check-in</p>
         </div>
       </div>

@@ -19,6 +19,8 @@ const membershipStatus = ref({
   status: 'Active',
   expiresAt: '2026-02-15',
   daysRemaining: 20,
+  startDate: '2025-02-15',
+  duration: '12 Bulan',
 })
 
 const upcomingClasses = ref([

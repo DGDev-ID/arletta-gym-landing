@@ -12,18 +12,26 @@ import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import AdditionalPerks from '@/components/landing/membership/AdditionalPerks.vue'
 import FAQSection from '@/components/landing/membership/FAQSection.vue'
 import MembershipCTA from '@/components/landing/membership/MembershipCTA.vue'
+import SignatureVerificationModal from '@/components/booking/SignatureVerificationModal.vue'
 
 const router = useRouter()
 const toast = useToast()
 const showPaymentModal = ref(false)
+const showSignatureModal = ref(false)
 
 const goToSignUp = () => {
-  // If user already logged in, open payment selection modal instead
+  // If user already logged in, show signature verification first
   if (authState.isLoggedIn) {
-    showPaymentModal.value = true
+    showSignatureModal.value = true
     return
   }
   router.push('/signup')
+}
+
+// After signature verification, show payment modal
+const onSignatureConfirmed = () => {
+  showSignatureModal.value = false
+  showPaymentModal.value = true
 }
 
 const proceedToPayment = (method: string) => {
@@ -273,5 +281,13 @@ const benefits = [
         </div>
       </div>
     </Dialog>
+
+    <!-- Signature Verification Modal (shown before payment) -->
+    <SignatureVerificationModal
+      v-model:visible="showSignatureModal"
+      :member-name="authState.user?.name"
+      membership-plan="Premium Membership"
+      @confirmed="onSignatureConfirmed"
+    />
   </div>
 </template>

@@ -66,22 +66,95 @@ const goToForgotPassword = () => {
 </script>
 
 <template>
-  <!--
-  Login Form (commented out - showing Coming Soon instead)
+  <!-- Login Form -->
   <form
     @submit.prevent="handleLogin"
     v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
     class="space-y-6 animate-fadeinup"
     style="animation-delay: 0.08s"
   >
-    ...form markup preserved...
-  </form>
-  -->
+    <!-- Email -->
+    <div class="space-y-2">
+      <label for="email" class="block text-sm font-medium text-(--text-secondary)">
+        Email Address
+      </label>
+      <div class="relative">
+        <i
+          class="pi pi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+        ></i>
+        <InputText
+          id="email"
+          v-model="email"
+          type="email"
+          placeholder="you@example.com"
+          class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all"
+        />
+      </div>
+    </div>
 
-  <div class="py-12 text-center">
-    <h3 class="text-2xl font-bold text-white">Coming Soon</h3>
-    <p class="text-(--text-secondary) mt-2">Login functionality will be available shortly.</p>
-  </div>
+    <!-- Password -->
+    <div class="space-y-2">
+      <div class="flex justify-between">
+        <label for="password" class="block text-sm font-medium text-(--text-secondary)">
+          Password
+        </label>
+        <a
+          @click="goToForgotPassword"
+          class="text-sm text-(--primary) hover:underline cursor-pointer"
+        >
+          Forgot password?
+        </a>
+      </div>
+      <div class="relative">
+        <i
+          class="pi pi-lock absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+        ></i>
+        <Password
+          id="password"
+          v-model="password"
+          placeholder="Enter your password"
+          :feedback="false"
+          toggleMask
+          :pt="{
+            root: { class: 'w-full' },
+            pcInput: {
+              root: {
+                class:
+                  'w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all',
+              },
+            },
+            maskIcon: { class: 'text-(--text-muted) right-4' },
+            unmaskIcon: { class: 'text-(--text-muted) right-4' },
+          }"
+        />
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <Button
+      type="submit"
+      :label="isLoading ? 'Signing in...' : 'Sign In'"
+      :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-sign-in'"
+      iconPos="right"
+      :disabled="isLoading || !email || !password"
+      class="btn w-full py-3.5 text-base font-semibold"
+    />
+
+    <!-- Divider -->
+    <div class="flex items-center gap-4 my-8">
+      <div class="flex-1 h-px bg-white/10"></div>
+      <span class="text-(--text-muted) text-sm">or</span>
+      <div class="flex-1 h-px bg-white/10"></div>
+    </div>
+
+    <!-- Sign Up Link -->
+    <p class="text-center text-(--text-secondary)">
+      Don't have an account?
+      <button class="text-(--primary) font-medium hover:underline ml-1" @click="goToSignUp">
+        Sign up for free
+      </button>
+    </p>
+  </form>
 </template>
 
 <style scoped>

@@ -22,6 +22,7 @@ interface Props {
 
 interface Emits {
   (e: 'cancel', session: Session): void
+  (e: 'reschedule', session: Session): void
 }
 
 defineProps<Props>()
@@ -141,8 +142,17 @@ const formatDate = (dateStr: string) => {
             </div>
           </div>
 
-          <!-- Right: Actions (only PT sessions are cancellable by PT) -->
+          <!-- Right: Actions (only PT sessions are cancellable/reschedulable by PT) -->
           <div class="flex items-center gap-2 ml-auto">
+            <Button
+              v-if="session.type === 'pt-session'"
+              icon="pi pi-calendar-plus"
+              severity="info"
+              text
+              rounded
+              v-tooltip.top="'Reschedule'"
+              @click="emit('reschedule', session)"
+            />
             <Button
               v-if="session.type === 'pt-session'"
               icon="pi pi-times"

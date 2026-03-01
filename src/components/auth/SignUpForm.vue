@@ -8,8 +8,13 @@ import Textarea from 'primevue/textarea'
 import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import EmailVerificationModal from '@/components/auth/EmailVerificationModal.vue'
+import HealthPolicyModal from '@/components/auth/HealthPolicyModal.vue'
 
 const router = useRouter()
+
+// Health policy agreement state
+const showHealthPolicy = ref(false)
+const healthPolicyAccepted = ref(false)
 
 const name = ref('')
 const email = ref('')
@@ -41,7 +46,24 @@ const genderOptions = [
   { label: 'Perempuan', value: 'Perempuan' },
 ]
 
+// Step 1: Show health policy first before allowing registration
+const startSignUp = () => {
+  showHealthPolicy.value = true
+}
+
+// Step 2: After health policy is accepted, proceed with registration
+const onHealthPolicyAccepted = () => {
+  healthPolicyAccepted.value = true
+  showHealthPolicy.value = false
+}
+
 const handleSignUp = async () => {
+  // Must accept health policy first
+  if (!healthPolicyAccepted.value) {
+    showHealthPolicy.value = true
+    return
+  }
+
   // Basic validation
   if (!name.value || !email.value || !password.value || !confirmPassword.value) return
   if (password.value !== confirmPassword.value) return
@@ -84,7 +106,30 @@ const goToLogin = () => {
   <div class="py-12 text-center">
     <h3 class="text-2xl font-bold text-white">Coming Soon</h3>
     <p class="text-(--text-secondary) mt-2">Sign up will be available shortly.</p>
+
+    <!-- Health Policy Agreement Status -->
+    <div v-if="healthPolicyAccepted" class="mt-6 p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+      <div class="flex items-center justify-center gap-2">
+        <i class="pi pi-check-circle text-green-400"></i>
+        <span class="text-green-300 text-sm font-medium">Syarat & Ketentuan Kesehatan telah disetujui</span>
+      </div>
+    </div>
+    <div v-else class="mt-6">
+      <p class="text-(--text-muted) text-sm mb-3">Sebelum mendaftar, Anda harus menyetujui syarat & ketentuan kesehatan</p>
+      <Button
+        label="Baca Syarat & Ketentuan Kesehatan"
+        icon="pi pi-shield"
+        class="btn"
+        @click="startSignUp"
+      />
+    </div>
   </div>
+
+  <!-- Health Policy Agreement Modal -->
+  <HealthPolicyModal
+    v-model:visible="showHealthPolicy"
+    @accepted="onHealthPolicyAccepted"
+  />
 </template>
 
 <style scoped>
