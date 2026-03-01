@@ -229,7 +229,7 @@ const allMembers = ref([
 ])
 
 const activeClients = computed(() => clients.value.filter((c) => c.status === 'active').length)
-const inactiveClients = computed(() => clients.value.filter((c) => c.status === 'inactive').length)
+// inactiveClients count is not used in the UI; remove to avoid unused-variable errors
 const totalSessions = computed(() => clients.value.reduce((sum, c) => sum + c.totalSessions, 0))
 
 const avgProgress = computed(() => {

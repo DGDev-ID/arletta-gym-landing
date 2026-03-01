@@ -37,10 +37,7 @@ defineProps<Props>()
       </div>
 
       <div class="space-y-4">
-        <div class="p-4 rounded-lg bg-white/5">
-          <div class="text-sm text-(--text-muted) mb-1">Membership Type</div>
-          <div class="text-white font-semibold">{{ member.membershipType }}</div>
-        </div>
+
 
         <div class="p-4 rounded-lg bg-white/5">
           <div class="text-sm text-(--text-muted) mb-1">Expires On</div>

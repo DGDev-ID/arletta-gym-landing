@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
 export function useCountUp(target: number, duration: number = 2000) {
   const count = ref(0)
@@ -6,7 +6,7 @@ export function useCountUp(target: number, duration: number = 2000) {
   let animationFrame: number | null = null
   let hasAnimated = false
 
-  const animate = (element: Element) => {
+  const animate = (_element?: Element) => {
     if (hasAnimated) return
     hasAnimated = true
 

@@ -2,7 +2,7 @@
 import Button from 'primevue/button'
 import authState from '@/stores/auth'
 
-const props = defineProps({
+defineProps({
   pkg: { type: Object, required: true },
 })
 

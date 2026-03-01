@@ -42,7 +42,7 @@ const healthQuestions = [
   'Apakah Anda pernah mengalami pingsan atau pusing saat berolahraga?',
 ]
 
-const healthAnswers = ref<boolean[]>(new Array(healthQuestions.length).fill(false))
+const healthAnswers = ref<boolean[]>(Array.from({ length: healthQuestions.length }, () => false))
 </script>
 
 <template>

@@ -32,11 +32,7 @@ defineProps<Props>()
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div
-          v-for="client in recentClients"
-          :key="client.name"
-          class="p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-        >
+        <div v-for="client in recentClients" :key="client.name" class="p-4 rounded-lg bg-white/5 transition-colors">
           <div class="flex items-center gap-4 mb-4">
             <img :src="client.avatar" :alt="client.name" class="w-12 h-12 rounded-full" />
             <div>

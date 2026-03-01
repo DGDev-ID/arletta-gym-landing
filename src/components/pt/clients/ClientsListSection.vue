@@ -23,7 +23,7 @@ interface Emits {
 }
 
 defineProps<Props>()
-const emit = defineEmits<Emits>()
+defineEmits<Emits>()
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -47,13 +47,12 @@ const getStatusColor = (status: string) => {
       <Card
         v-for="client in clients"
         :key="client.id"
-        class="glass-card hover:scale-101 transition-transform cursor-pointer"
+        class="glass-card transition-transform"
         :pt="{
           root: { class: 'bg-transparent border-0 h-full' },
           body: { class: 'p-6' },
           content: { class: 'p-0' },
         }"
-        @click="emit('view-profile', client.id)"
       >
         <template #content>
           <div class="flex items-start gap-4 mb-4">
@@ -100,7 +99,7 @@ const getStatusColor = (status: string) => {
             <div v-else class="text-sm text-(--text-muted) italic">No upcoming sessions</div>
           </div>
 
-          <!-- 'View Profile' button removed as requested -->
+          <!-- Cards intentionally not clickable -->
         </template>
       </Card>
     </div>

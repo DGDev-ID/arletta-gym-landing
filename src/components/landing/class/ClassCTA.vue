@@ -3,7 +3,7 @@ import Button from 'primevue/button'
 import { useRouter } from 'vue-router'
 import authState from '@/stores/auth'
 
-const props = defineProps<{ title?: string; subtitle?: string; image?: string }>()
+defineProps<{ title?: string; subtitle?: string; image?: string }>()
 const router = useRouter()
 
 const handleCTA = () => {

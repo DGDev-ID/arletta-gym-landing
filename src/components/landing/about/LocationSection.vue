@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{}>()
+// No props required for this section
 </script>
 
 <template>

@@ -297,21 +297,12 @@ const addNewSession = () => {
 }
 
 // Stats
-const todaySessions = computed(() => {
-  // In real app, compare with actual today's date
-  return upcomingSessions.value.filter((s) => s.date === '2026-01-28').length
-})
-
 const weekSessions = computed(() => upcomingSessions.value.length)
 
 const totalClients = computed(() => {
   const clientSessions = upcomingSessions.value.filter((s) => s.type === 'pt-session')
   const uniqueClients = new Set(clientSessions.map((s) => s.clientName))
   return uniqueClients.size
-})
-
-const classesThisWeek = computed(() => {
-  return upcomingSessions.value.filter((s) => s.type === 'class').length
 })
 
 const completedThisMonth = computed(() => {

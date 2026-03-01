@@ -20,6 +20,7 @@ interface Props {
 interface Emits {
   (e: 'cancel', session: Session): void
   (e: 'confirm-pt', session: Session): void
+  (e: 'check-in', session: Session): void
 }
 
 defineProps<Props>()
@@ -59,6 +60,30 @@ const formatDate = (dateStr: string) => {
   } else {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
   }
+}
+
+const isCheckInAvailable = (session: Session) => {
+  const today = new Date()
+  const sessionDate = new Date(session.date)
+  if (sessionDate.toDateString() !== today.toDateString()) return false
+  const parts = session.time.split(' - ')
+  if (!parts || parts.length < 2) return false
+  const start = String(parts[0] ?? '')
+  const end = String(parts[1] ?? '')
+  const [sh, sm] = start.split(':').map((v) => Number(v || 0))
+  const [eh, em] = end.split(':').map((v) => Number(v || 0))
+  const startDt = new Date(
+    session.date + 'T' + `${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}:00`,
+  )
+  const endDt = new Date(
+    session.date + 'T' + `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}:00`,
+  )
+
+  // Allow check-in from start..end + 15 minutes
+  const windowStart = startDt.getTime()
+  const windowEnd = endDt.getTime() + 15 * 60 * 1000
+  const now = Date.now()
+  return now >= windowStart && now <= windowEnd
 }
 </script>
 
@@ -139,14 +164,23 @@ const formatDate = (dateStr: string) => {
               />
             </template>
             <template v-else>
-              <Button
-                icon="pi pi-times"
-                severity="danger"
-                text
-                rounded
-                v-tooltip.top="'Cancel'"
-                @click="emit('cancel', session)"
-              />
+              <div class="flex items-center gap-2">
+                <Button
+                  icon="pi pi-times"
+                  severity="danger"
+                  text
+                  rounded
+                  v-tooltip.top="'Cancel'"
+                  @click="emit('cancel', session)"
+                />
+                <Button
+                  v-if="session.type === 'pt-session' && session.status === 'confirmed' && isCheckInAvailable(session)"
+                  label="Scan QR"
+                  icon="pi pi-qrcode"
+                  class="btn"
+                  @click="emit('check-in', session)"
+                />
+              </div>
             </template>
           </div>
         </div>

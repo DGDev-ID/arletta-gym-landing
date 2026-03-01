@@ -204,7 +204,7 @@ watch(() => props.visible, async (val) => {
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-end gap-3 pt-5">
         <Button
           label="Batal"
           severity="secondary"

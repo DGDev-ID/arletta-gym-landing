@@ -11,7 +11,8 @@ export interface BookedClass {
   time: string
   location: string
   type: 'class' | 'pt-session'
-  status: 'confirmed' | 'waitlist' | 'cancelled' | 'pending'
+  // status now includes attendance markers for history
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'pending' | 'attended' | 'missed'
   bookedAt: string
   canCancel: boolean
 }
@@ -379,6 +380,40 @@ export const cancelPTSession = (sessionId: number): boolean => {
     ptSessions.value.splice(index, 1)
     return true
   }
+  return false
+}
+
+// Mark a session as completed (attended) or missed and move to history
+export const completeSession = (bookingId: number, attended: boolean): boolean => {
+  // Search in ptSessions first
+  let idx = ptSessions.value.findIndex((s) => s.id === bookingId)
+  if (idx > -1) {
+    const session = ptSessions.value.splice(idx, 1)[0]
+    if (!session) return false
+    const historyItem: BookedClass = {
+      ...session,
+      status: attended ? ('attended' as const) : ('missed' as const),
+      // keep bookedAt as original, canCancel false
+      canCancel: false,
+    }
+    classHistory.value.push(historyItem)
+    return true
+  }
+
+  // Search in bookedClasses
+  idx = bookedClasses.value.findIndex((s) => s.id === bookingId)
+  if (idx > -1) {
+    const session = bookedClasses.value.splice(idx, 1)[0]
+    if (!session) return false
+    const historyItem: BookedClass = {
+      ...session,
+      status: attended ? ('attended' as const) : ('missed' as const),
+      canCancel: false,
+    }
+    classHistory.value.push(historyItem)
+    return true
+  }
+
   return false
 }
 

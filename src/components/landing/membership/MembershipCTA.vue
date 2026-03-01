@@ -5,7 +5,7 @@ import Dialog from 'primevue/dialog'
 import { useToast } from 'primevue/usetoast'
 import authState from '@/stores/auth'
 
-const props = defineProps<{ title?: string; subtitle?: string; image?: string }>()
+defineProps<{ title?: string; subtitle?: string; image?: string }>()
 const toast = useToast()
 const showPaymentModal = ref(false)
 

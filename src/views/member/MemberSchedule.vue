@@ -21,6 +21,8 @@ import {
   confirmPTSession,
   canCancelClass,
   cancelPTSession,
+  completeSession,
+  classHistory,
   type AvailableClass,
 } from '@/stores/booking'
 
@@ -65,45 +67,8 @@ const upcomingClasses = computed(() => storeUpcomingClasses.value)
 // Waiting list classes
 const waitingListClasses = computed(() => upcomingWaitingList.value)
 
-// Past sessions history
-const sessionHistory = ref([
-  {
-    id: 101,
-    name: 'HIIT Burn',
-    trainer: 'Sarah Johnson',
-    date: '2026-01-25',
-    time: '09:00 - 09:45',
-    type: 'class',
-    status: 'attended',
-  },
-  {
-    id: 102,
-    name: 'Personal Training',
-    trainer: 'Mike Torres',
-    date: '2026-01-24',
-    time: '14:00 - 15:00',
-    type: 'pt-session',
-    status: 'attended',
-  },
-  {
-    id: 103,
-    name: 'Boxing Fundamentals',
-    trainer: 'Carlos Rodriguez',
-    date: '2026-01-22',
-    time: '17:00 - 18:00',
-    type: 'class',
-    status: 'missed',
-  },
-  {
-    id: 104,
-    name: 'Power Yoga',
-    trainer: 'Maya Chen',
-    date: '2026-01-20',
-    time: '18:00 - 19:00',
-    type: 'class',
-    status: 'attended',
-  },
-])
+// Past sessions history (use shared store history)
+const sessionHistory = classHistory
 
 // Available classes to book
 const todayStr = new Date().toISOString().split('T')[0]
@@ -331,6 +296,42 @@ const confirmPT = (session: { id: number; name: string }) => {
   }
 }
 
+// Check-in handler (Scan QR) invoked from UpcomingTab
+const handleCheckIn = (session: { id: number; name: string }) => {
+  const ok = completeSession(session.id, true)
+  if (ok) {
+    toast.add({ severity: 'success', summary: 'Checked In', detail: `You have checked in for ${session.name}.`, life: 3000 })
+  } else {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to check in', life: 3000 })
+  }
+}
+
+// Sweep: mark past sessions as missed if time passed and not checked-in
+const sweepMissedSessions = () => {
+  const now = Date.now()
+  upcomingClasses.value.forEach((s) => {
+    try {
+      const parts = (s.time ?? '').split(' - ')
+      if (!parts || parts.length < 2) return
+      const end = String(parts[1])
+      const endParts = end.split(':').map((v) => Number(v || 0))
+      const endDt = new Date(`${s.date}T${String(endParts[0]).padStart(2, '0')}:${String(endParts[1]).padStart(2, '0')}:00`)
+      // if end time was more than 15 minutes ago and session is still confirmed, mark missed
+      if (now > endDt.getTime() + 15 * 60 * 1000 && s.status === 'confirmed') {
+        completeSession(s.id, false)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  })
+}
+
+// Run sweep on mount
+import { onMounted } from 'vue'
+onMounted(() => {
+  sweepMissedSessions()
+})
+
 // Stats
 const totalClassesThisMonth = computed(() => {
   return (
@@ -397,6 +398,7 @@ const tabs = [
         :sessions="upcomingClasses"
         @cancel="openCancelModal"
         @confirm-pt="confirmPT"
+        @check-in="handleCheckIn"
       />
 
       <BookTab
