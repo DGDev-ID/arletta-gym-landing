@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
 
 interface BookingInfo {
   id: number
@@ -72,26 +71,14 @@ const cannotCancelReason = computed(() => {
   return null
 })
 
-// Double verification state
-const step = ref<1 | 2>(1)
-const confirmText = ref('')
-
-// Reset step when modal opens/closes
+// Reset when modal opens/closes
 watch(() => props.visible, (val) => {
   if (val) {
-    step.value = 1
-    confirmText.value = ''
+    // no-op: modal opens, nothing to reset for single-step confirm
   }
 })
 
-const isConfirmTextValid = computed(() => confirmText.value.toUpperCase() === 'CANCEL')
-
-const handleFirstConfirm = () => {
-  step.value = 2
-}
-
 const handleConfirm = () => {
-  if (!isConfirmTextValid.value) return
   emit('confirm')
   emit('update:visible', false)
 }
@@ -195,45 +182,18 @@ const handleConfirm = () => {
         </div>
       </div>
 
-      <!-- Double Verification Step 2 -->
-      <div v-if="step === 2 && !cannotCancelReason" class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-        <div class="flex items-start gap-3">
-          <i class="pi pi-shield text-lg text-red-400 mt-0.5 shrink-0"></i>
-          <div class="flex-1">
-            <p class="font-medium text-red-300 mb-2">Verifikasi Pembatalan</p>
-            <p class="text-sm text-red-200 mb-3">
-              Untuk mengkonfirmasi pembatalan, ketik <strong class="text-white">CANCEL</strong> di bawah ini:
-            </p>
-            <InputText
-              v-model="confirmText"
-              placeholder="Ketik CANCEL untuk konfirmasi"
-              class="w-full bg-white/5 border border-white/10 text-white rounded-lg"
-            />
-          </div>
-        </div>
-      </div>
+      <!-- removed double-verification block (single-step confirm now) -->
     </div>
 
     <template #footer>
       <div class="flex justify-end gap-2">
         <Button label="Keep Booking" severity="secondary" outlined @click="dialogVisible = false" />
 
-        <!-- Step 1: First cancel button -->
         <Button
-          v-if="!cannotCancelReason && step === 1"
+          v-if="!cannotCancelReason"
           label="Yes, Cancel"
           severity="danger"
           icon="pi pi-times"
-          @click="handleFirstConfirm"
-        />
-
-        <!-- Step 2: Final confirm button (disabled until typed CANCEL) -->
-        <Button
-          v-if="!cannotCancelReason && step === 2"
-          label="Confirm Cancellation"
-          severity="danger"
-          icon="pi pi-exclamation-triangle"
-          :disabled="!isConfirmTextValid"
           @click="handleConfirm"
         />
       </div>

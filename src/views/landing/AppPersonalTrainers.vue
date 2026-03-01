@@ -31,12 +31,15 @@ const openDPModal = (pkg: (typeof ptPackages)[0]) => {
 
 const confirmDPPayment = (data: any) => {
   const typeLabel = data.paymentType === 'dp' ? 'DP' : 'Full Payment'
+  // Match membership toast: info severity with generic checkout opening message
   toast.add({
-    severity: 'success',
-    summary: `${typeLabel} Berhasil`,
-    detail: `Pembayaran ${typeLabel} untuk paket ${data.pkg.name} sedang diproses.`,
-    life: 4000,
+    severity: 'info',
+    summary: 'Proceeding to payment',
+    detail: `Opening ${typeLabel} checkout for ${data.pkg?.name ?? 'selected package'}...`,
+    life: 3000,
   })
+  // Simulate opening Midtrans checkout (placeholder)
+  window.open('about:blank', '_blank')
   showDPModal.value = false
 }
 

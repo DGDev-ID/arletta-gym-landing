@@ -19,6 +19,7 @@ interface Props {
 
 interface Emits {
   (e: 'cancel', session: Session): void
+  (e: 'confirm-pt', session: Session): void
 }
 
 defineProps<Props>()
@@ -121,14 +122,32 @@ const formatDate = (dateStr: string) => {
 
           <!-- Right: Actions -->
           <div class="flex items-center gap-2 ml-auto">
-            <Button
-              icon="pi pi-times"
-              severity="danger"
-              text
-              rounded
-              v-tooltip.top="'Cancel'"
-              @click="emit('cancel', session)"
-            />
+            <template v-if="session.type === 'pt-session' && session.status === 'pending'">
+              <Button
+                label="Accept"
+                icon="pi pi-check"
+                class="btn"
+                @click="emit('confirm-pt', session)"
+              />
+              <Button
+                label="Decline"
+                icon="pi pi-times"
+                severity="danger"
+                text
+                rounded
+                @click="emit('cancel', session)"
+              />
+            </template>
+            <template v-else>
+              <Button
+                icon="pi pi-times"
+                severity="danger"
+                text
+                rounded
+                v-tooltip.top="'Cancel'"
+                @click="emit('cancel', session)"
+              />
+            </template>
           </div>
         </div>
       </div>

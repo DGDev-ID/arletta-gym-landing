@@ -10,6 +10,7 @@ interface ClassInfo {
   date?: string
   time: string
   location: string
+  zoomLink?: string
 }
 
 const props = defineProps<{
@@ -19,7 +20,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'join-online'): void
   (e: 'join-waitlist'): void
 }>()
 
@@ -38,26 +38,39 @@ const formattedDate = computed(() => {
     year: 'numeric',
   })
 })
+
+const isStarted = computed(() => {
+  if (!props.classInfo?.date || !props.classInfo?.time) return false
+  const [startTime] = props.classInfo.time.split(' - ')
+  const classDateTime = new Date(`${props.classInfo.date}T${startTime}:00`)
+  return new Date() >= classDateTime
+})
+
+const openZoom = () => {
+  if (props.classInfo?.zoomLink) {
+    window.open(props.classInfo.zoomLink, '_blank')
+  }
+}
 </script>
 
 <template>
   <Dialog
     v-model:visible="dialogVisible"
     modal
-    header="Kelas Penuh - Opsi Alternatif"
+    header="Join Waiting List"
     :style="{ width: '500px' }"
     :breakpoints="{ '640px': '90vw' }"
     class="online-class-modal"
   >
     <div v-if="classInfo" class="space-y-5">
-      <!-- Class Full Notice -->
-      <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+      <!-- If class started and zoom available, show started notice -->
+      <div v-if="isStarted && classInfo.zoomLink" class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
         <div class="flex items-start gap-3">
-          <i class="pi pi-exclamation-triangle text-lg text-amber-400 mt-0.5 shrink-0"></i>
+          <i class="pi pi-info-circle text-lg text-blue-400 mt-0.5 shrink-0"></i>
           <div>
-            <p class="font-medium text-amber-300 mb-1">Kelas Sudah Penuh</p>
-            <p class="text-sm text-amber-200">
-              Kelas <strong class="text-white">{{ classInfo.name }}</strong> untuk jadwal ini sudah tidak tersedia slot. Namun Anda memiliki opsi berikut:
+            <p class="font-medium text-blue-300 mb-1">Kelas Sedang Berlangsung</p>
+            <p class="text-sm text-blue-200">
+              Kelas <strong class="text-white">{{ classInfo.name }}</strong> sudah dimulai. Tekan tombol "Open Zoom" di bawah untuk bergabung ke meeting.
             </p>
           </div>
         </div>
@@ -86,66 +99,79 @@ const formattedDate = computed(() => {
         </div>
       </div>
 
-      <!-- Option 1: Online Class -->
-      <div
-        class="p-4 rounded-lg border border-blue-500/30 bg-blue-500/10 cursor-pointer hover:bg-blue-500/15 transition-colors"
-        @click="emit('join-online')"
-      >
+      <!-- Info: Zoom link will be available at class start (only show before class starts) -->
+      <div v-if="!isStarted" class="p-4 rounded-lg border border-blue-500/30 bg-blue-500/10">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
-            <i class="pi pi-video text-blue-400 text-xl"></i>
+            <i class="pi pi-info-circle text-blue-400 text-xl"></i>
           </div>
           <div class="flex-1">
-            <h4 class="font-semibold text-white mb-1">Ikut Kelas Online via Zoom</h4>
+            <h4 class="font-semibold text-white mb-1">Zoom Link Availability</h4>
             <p class="text-sm text-blue-200 mb-2">
-              Bergabung melalui Zoom meeting. Anda tetap bisa mengikuti kelas secara real-time dengan instruksi dari trainer.
+              If the class is full you can join the waiting list. If you remain on the waiting list and are not promoted before the class starts, the Zoom link will still be made available at class start and will be sent via email to registered attendees.
             </p>
             <div class="flex items-center gap-2 text-xs text-blue-300">
               <i class="pi pi-check-circle"></i>
-              <span>Interaksi langsung dengan trainer</span>
+              <span>Zoom link appears at class start for all (including waitlist)</span>
             </div>
             <div class="flex items-center gap-2 text-xs text-blue-300 mt-1">
               <i class="pi pi-check-circle"></i>
-              <span>Akses link Zoom akan dikirim via email</span>
-            </div>
-            <div class="flex items-center gap-2 text-xs text-blue-300 mt-1">
-              <i class="pi pi-check-circle"></i>
-              <span>Recording tersedia 24 jam setelah kelas</span>
+              <span>Recording available 24 hours after class</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Option 2: Waitlist -->
-      <div
-        class="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10 cursor-pointer hover:bg-amber-500/15 transition-colors"
-        @click="emit('join-waitlist')"
-      >
+      <!-- Info about waitlist; confirmation button moved to footer -->
+      <div v-if="!isStarted || !classInfo?.zoomLink" class="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
             <i class="pi pi-clock text-amber-400 text-xl"></i>
           </div>
           <div class="flex-1">
-            <h4 class="font-semibold text-white mb-1">Masuk Waiting List</h4>
+            <h4 class="font-semibold text-white mb-1">Waiting List</h4>
             <p class="text-sm text-amber-200 mb-2">
-              Daftar di waiting list dan Anda akan otomatis dipromosikan jika ada member yang membatalkan.
+              Join the waiting list and you'll be automatically promoted if another member cancels. If you remain on the waiting list when the class starts, the Zoom link will still be made available at class start.
             </p>
             <div class="flex items-center gap-2 text-xs text-amber-300">
               <i class="pi pi-info-circle"></i>
-              <span>Notifikasi otomatis jika slot terbuka</span>
+              <span>Automatic notification if a slot opens</span>
             </div>
           </div>
         </div>
       </div>
+      
+      
+      <!-- If class already started and zoom link available, show direct access -->
+      <div v-if="isStarted && classInfo?.zoomLink" class="mt-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/10">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+            <i class="pi pi-video text-blue-400 text-xl"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-semibold text-white mb-1">Zoom Link</h4>
+            <p class="text-sm text-blue-200 mb-2">
+              The class has started. Click the button below to open the Zoom meeting. The link is also sent via email to registered attendees.
+            </p>
+            <Button label="Open Zoom" icon="pi pi-external-link" class="btn" @click="openZoom" />
+          </div>
+        </div>
+      </div>
     </div>
-
     <template #footer>
-      <Button
-        label="Tutup"
-        severity="secondary"
-        outlined
-        @click="dialogVisible = false"
-      />
+      <div class="flex justify-end gap-2 pt-5">
+        <Button label="Close" severity="secondary" outlined @click="dialogVisible = false" />
+        <template v-if="isStarted && classInfo?.zoomLink">
+          <Button label="Open Zoom" class="btn" @click="openZoom" />
+        </template>
+        <template v-else>
+          <Button
+            label="Join Waitlist"
+            class="btn"
+            @click="() => { emit('join-waitlist'); dialogVisible = false }"
+          />
+        </template>
+      </div>
     </template>
   </Dialog>
 </template>

@@ -173,7 +173,11 @@ const joinWaitingList = () => {
             <Button
               label="Book Class"
               outlined
-              class="w-full py-2 border-white/20 text-white hover:bg-white/10"
+              :disabled="authState.user?.role === 'pt'"
+              :class="[
+                'w-full py-2 border-white/20 text-white',
+                authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10',
+              ]"
               @click="handleBookClass(classItem)"
             />
           </div>

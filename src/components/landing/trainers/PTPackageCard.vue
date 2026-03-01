@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
+import authState from '@/stores/auth'
 
 const props = defineProps({
   pkg: { type: Object, required: true },
@@ -67,9 +68,11 @@ const formatPrice = (price: number) =>
       <!-- CTA -->
       <Button
         label="Book Now"
+        :disabled="authState.user?.role === 'pt'"
+        :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
         class="w-full py-3 font-semibold text-base"
         style="margin-top: auto;"
-        @click="$emit('book', pkg)"
+        @click="() => { if (authState.user?.role !== 'pt') $emit('book', pkg) }"
       />
     </div>
   </div>

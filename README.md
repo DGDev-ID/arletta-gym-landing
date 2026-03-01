@@ -6,10 +6,35 @@ A modern, premium dark-themed gym landing template built with Vue 3, Vite and Ta
 
 - Source: `src/` (components under `src/components/`, views under `src/views/`)
 - Routes are defined in `src/router/index.ts`
-- Mock/demo auth lives in `src/services/mockAuth.js`
-- Lightweight auth state in `src/stores/auth.ts`
+# Arletta Gym — Landing (Vue 3 + Vite + Tailwind)
 
-Note: Recent UI and UX improvements in this repo include consistent booking modals, toast notifications, and trainer booking via WhatsApp — see Features below.
+This repository is a demo landing + member/PT front-end built with Vue 3 (script-setup), TypeScript, Vite and Tailwind. It contains a componentized landing site, simple mock auth for local development, and example booking flows used to prototype class bookings, PT packages, and membership checkout flows.
+
+This README reflects the current state of the repository (March 2026) and documents how to run, build and test the project as well as key UX behaviors implemented in the UI.
+
+## Important behavior notes
+
+- Role-aware UI: the app distinguishes between two demo roles: `member` and `pt` (personal trainer). Several CTAs are disabled for `pt` users in the UI (they are trainers, not buyers):
+  - "Sign Up Now" on membership pricing cards and CTAs
+  - "Book Class" on class cards
+  - "Book" in the Weekly Schedule
+  - "Book Now" on PT package cards
+  These buttons are rendered disabled when the logged-in user's role is `pt`.
+- Booking and PT workflows:
+  - Shared `BookingConfirmModal` is used for class booking / waitlist flows.
+  - PT sessions support a `pending` state where a trainer can propose a PT session and a member must confirm; members can Accept or Decline from their Upcoming tab.
+  - Some classes may include an optional `zoomLink`. The UI shows a "View Zoom" CTA only when the class has started and a `zoomLink` exists.
+- Payments: membership and PT package CTAs open a small payment modal that currently uses a placeholder (simulated) checkout (Midtrans placeholder). No real payment integration or server-side tokenization is implemented.
+- Health policy gating: signup is gated behind a Health Policy modal that must be accepted before creating an account in the demo sign-up flow.
+- Particle background: `ParticleBackground` (three.js) is used and intentionally moved to be a single parent instance for sections that need it (to reduce multiple heavy renders).
+
+## Quick links (code locations)
+
+- Views: `src/views/`
+- Components: `src/components/` (landing sections under `src/components/landing/`)
+- Booking UI: `src/components/booking/BookingConfirmModal.vue`, `OnlineClassModal.vue`, `CancelConfirmModal.vue`
+- Auth (demo): `src/services/mockAuth.js`, `src/stores/auth.ts`
+- Booking store & sample data: `src/stores/booking.ts`
 
 ## Demo accounts (local/dev only)
 
@@ -23,25 +48,7 @@ Use these test accounts on the `/login` page (provided by the local mock auth se
   - email: `pt@example.com`
   - password: `ptpass`
 
-These are in-memory demo accounts and intended only for local development and demos. Replace with a real backend when ready.
-
-## Features
-
-- Vue 3 (script-setup) + TypeScript
-- Vite for dev server & build
-- Tailwind CSS for utility-first styling; CSS custom properties used for tokens
-- PrimeVue for small UI primitives (Button, InputText, Password, Menu)
-- Componentized landing sections (Hero, CTA, sections per page)
-- Simple mock auth + shared auth store for demo login flows
-
-Recent / notable features implemented in this repository:
-
-- Booking UX consistency: a shared `BookingConfirmModal` component is used across landing class cards (`src/components/landing/class/ClassCards.vue`), weekly schedule (`src/components/landing/class/WeeklySchedule.vue`) and the member booking tab (`src/components/booking/BookingConfirmModal.vue`) so the booking experience (class details, spots left, waitlist flow, time conflict warning, cancellation policy) is consistent.
-- Trainers booking: trainer detail modal (`src/components/landing/trainers/TrainerModal.vue`) opens a WhatsApp chat for scheduling personal training (external to the system). This is deliberate — trainer scheduling is done via WhatsApp/phone.
-- Auth improvements: a `ForgotPassword` page and an Email Verification modal (shown after signup) were added to the auth flow for a better signup/reset experience. The route `/forgot-password` is available.
-- Toast notifications: PrimeVue Toast is registered globally and used across the app for key events (login success/failure, booking confirmations, waitlist joins, cancellations, PT session updates, and logout notices).
-- Membership CTA/payment flow: membership CTAs no longer always route to the signup page when the user is already logged in — a small payment selection modal (placeholder for Midtrans integration) appears for logged-in users.
-- Role-aware navigation and guards: many landing CTAs and booking flows check the auth state and user role (member vs PT). PTs are prevented from booking classes in the UI (they act as trainers).
+These are in-memory demo accounts used for local development. Replace `mockAuth` with your real backend when integrating production authentication.
 
 ## Getting started
 
@@ -57,10 +64,16 @@ Start dev server (hot-reload):
 npm run dev
 ```
 
-Build for production:
+Build for production (type-check + vite build):
 
 ```powershell
 npm run build
+```
+
+Preview the production build locally:
+
+```powershell
+npm run preview
 ```
 
 Run unit tests (Vitest):
@@ -77,52 +90,38 @@ npm run build
 npm run test:e2e
 ```
 
-Lint the codebase:
+Lint and format:
 
 ```powershell
 npm run lint
+npm run format
 ```
 
-## Development notes & conventions
+## Files & patterns to know
 
-- Tailwind arbitrary values use the paren form for CSS custom properties, e.g. `text-(--primary)`, `bg-(--bg-dark)`. This repository has been normalized to that style to satisfy Tailwind linting.
-- `defineProps` and `defineEmits` are used as compiler macros (do not import them). In templates use `$emit(...)` to invoke emits unless you assign `const emit = defineEmits(...)` and use it in script.
-- Demo auth (`src/services/mockAuth.js`) is intentionally simple — it returns a user object without real tokens. Swap it for a real auth service when integrating a backend.
+- `src/stores/auth.ts` — small Pinia-like or reactive auth state used by the UI (holds `user` and `isLoggedIn`).
+- `src/stores/booking.ts` — demo booking store containing `bookedClasses`, `waitingList`, `ptSessions`, and helper functions (also contains sample/dummy data used by `MemberSchedule`).
+- `src/components/booking/BookingConfirmModal.vue` — shared booking modal for class booking & waitlist flows.
+- `src/components/booking/OnlineClassModal.vue` — shows join/waitlist or Zoom link if available.
+- `src/components/landing/membership/PricingCard.vue` — membership pricing card used on the membership page.
+- `src/components/landing/trainers/PTPackageCard.vue` — PT package card used on the trainers page.
 
-Additional developer notes:
+## Development & UX conventions
 
-- The booking modal component used across the project is `src/components/booking/BookingConfirmModal.vue`. Use it when introducing new booking UIs to keep behavior identical.
-- Trainer booking intentionally opens a WhatsApp link (see `src/components/landing/trainers/TrainerModal.vue`) — update the placeholder number there when integrating real trainer contact info.
-- PrimeVue's Toast service is registered in `src/main.ts` and the `Toast` component is included in `src/App.vue` — use `useToast()` in components to push messages.
-- The repo uses Tailwind CSS and CSS custom properties (parens style) for tokenization (e.g., `text-(--primary)`). Keep that convention to avoid Tailwind extraction issues.
+- Tailwind uses paren-style custom property references in this project (e.g. `text-(--primary)`). Keep that convention when adding styles.
+- Use `BookingConfirmModal` when adding new booking entry points so behavior stays consistent.
+- Use `useToast()` (PrimeVue) for notifications; Toast is registered globally in `src/main.ts` and included in `src/App.vue`.
 
-## File map (high level)
+## Known limitations / next steps
 
-- `src/components/layout/` — `AppNavbar.vue`, `AppFooter.vue`
-- `src/components/landing/` — per-page component folders (`about/`, `class/`, `membership/`, `trainers/`)
-- `src/components/auth/` — `LoginForm.vue`, `SignUpForm.vue`
-- `src/services/` — `mockAuth.js`, `api.js` (placeholder)
-- `src/stores/` — `auth.ts` (small in-memory reactive store)
+- Payment integration: current flow is a placeholder. For production you need server-side Midtrans tokenization / redirect or integrate a client-side payment widget with a backend.
+- Zoom link reveal: currently the demo shows `zoomLink` in sample data. In production, your backend should populate `zoomLink` when appropriate (e.g., at class start) and notify clients (websocket or polling) if you want real-time behavior.
+- Auth & persistence: `mockAuth` is in-memory for demo purposes; replace with a proper auth server and persistent storage for sessions.
 
-Other notable files:
-
-- `src/components/booking/BookingConfirmModal.vue` — shared booking confirmation UI used across landing and member flows
-- `src/components/landing/trainers/TrainerModal.vue` — trainer profile modal which links out to WhatsApp for booking
-- `src/views/auth/ForgotPassword.vue` — forgot password page
-- `src/components/auth/EmailVerificationModal.vue` — shown after signup for resending verification
-- `src/views/member/MemberSchedule.vue` — member schedule UI and booking management (uses `BookingConfirmModal`)
-
-## Suggestions & next steps
-
-- Replace `mockAuth` with a real auth backend and persist session (localStorage/cookies) if you need persistence across reloads.
-- Add more unit/e2e tests for critical flows (signup, login, booking classes).
-- Consider extracting theme tokens into a dedicated JS/JSON theme file if you plan to support multiple themes.
-
-If you'd like, I can also:
-
-- Add a small CONTRIBUTING note with code style and commit hooks.
-- Wire a simple Midtrans payment demo integration (client-only placeholder) for the membership payment modal.
-- Add a one-click demo panel to autofill demo credentials on the login page.
+If you'd like, I can:
+- Add tooltips to disabled CTAs explaining why they're disabled (recommended UX improvement).
+- Add unit tests covering the main booking flows (book, join waitlist, PT pending confirm).
+- Scaffold a minimal server example to demonstrate Midtrans token flow (separate repo or folder).
 
 ## Contributing
 
@@ -137,4 +136,4 @@ MIT — see the repository license file (if present).
 
 ---
 
-Small, focused template designed for demos and rapid iterations. If you want, I can add a one-click demo panel to the login page that lists the demo credentials and a button to autofill them.
+If you'd like, I can also add a short CONTRIBUTING.md with lint/pre-commit instructions and a small checklist for PRs.

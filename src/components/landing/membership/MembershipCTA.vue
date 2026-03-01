@@ -59,12 +59,14 @@ const emit = defineEmits<{ signup: [] }>()
         }}
       </p>
       <Button
-        label="Sign Up Now"
-        icon="pi pi-arrow-right"
-        iconPos="right"
-        class="bg-white text-(--primary) px-8 py-3 font-semibold hover:bg-white/90"
-        @click="handleCTA"
-      />
+            label="Sign Up Now"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            :disabled="authState.user?.role === 'pt'"
+            :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/90']"
+            class="bg-white text-(--primary) px-8 py-3 font-semibold"
+            @click="handleCTA"
+          />
     </div>
 
     <!-- Payment modal for logged-in users -->

@@ -77,16 +77,8 @@ const handleBookSchedule = (item: ScheduleItem) => {
     return
   }
 
-  if (authState.user?.role === 'pt') {
-    toast.add({
-      severity: 'warn',
-      summary: 'Cannot Book',
-      detail:
-        'Personal trainers cannot book classes. You are assigned as a trainer by the receptionist.',
-      life: 4000,
-    })
-    return
-  }
+  // PT users can't book classes; button is disabled in the template. Safety early-return:
+  if (authState.user?.role === 'pt') return
 
   selectedSchedule.value = item
   showBookingModal.value = true
@@ -168,11 +160,13 @@ const joinWaitingList = () => {
               <td class="py-4 px-6 text-white">{{ item.class }}</td>
               <td class="py-4 px-6 text-(--text-muted)">{{ item.trainer }}</td>
               <td class="py-4 px-6">
-                <Button
-                  class="btn btn-red px-4 py-1 text-xs"
-                  @click="handleBookSchedule(item)"
-                  label="Book"
-                />
+                  <Button
+                    class="btn btn-red px-4 py-1 text-xs"
+                    :disabled="authState.user?.role === 'pt'"
+                    :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
+                    @click="handleBookSchedule(item)"
+                    label="Book"
+                  />
               </td>
             </tr>
           </tbody>

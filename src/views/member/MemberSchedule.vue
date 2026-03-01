@@ -18,7 +18,9 @@ import {
   hasTimeConflict,
   bookClass as storeBookClass,
   cancelBooking,
+  confirmPTSession,
   canCancelClass,
+  cancelPTSession,
   type AvailableClass,
 } from '@/stores/booking'
 
@@ -43,6 +45,7 @@ const selectedClassForBooking = ref<{
   isFull?: boolean
   trainerAvatar?: string
   totalSpots?: number
+  zoomLink?: string
 } | null>(null)
 const selectedBookingForCancel = ref<{
   id: number
@@ -103,6 +106,9 @@ const sessionHistory = ref([
 ])
 
 // Available classes to book
+const todayStr = new Date().toISOString().split('T')[0]
+
+// Available classes to book
 const availableClasses = ref<AvailableClass[]>([
   {
     id: 201,
@@ -148,6 +154,19 @@ const availableClasses = ref<AvailableClass[]>([
     spotsLeft: 0,
     totalSpots: 12,
   },
+  // Sample: class that already started with Zoom link available
+  {
+    id: 205,
+    name: 'Morning Stretch (Live)',
+    trainer: 'Sandy Wibowo',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sandy',
+    date: todayStr as string,
+    time: '08:00 - 08:45',
+    location: 'Studio D / Zoom',
+    spotsLeft: 0,
+    totalSpots: 20,
+    zoomLink: 'https://zoom.us/j/1234567890',
+  },
 ])
 
 // Open booking confirmation modal
@@ -167,6 +186,11 @@ const openBookingModal = (classItem: AvailableClass) => {
 
   // If class is full, show online class option modal instead
   if (classItem.spotsLeft === 0) {
+    // preserve optional zoom link when showing online modal
+    selectedClassForBooking.value = {
+      ...selectedClassForBooking.value!,
+      zoomLink: (classItem as unknown as { zoomLink?: string }).zoomLink,
+    }
     showOnlineClassModal.value = true
     return
   }
@@ -215,21 +239,30 @@ const joinWaitingList = () => {
 }
 
 // Join online class (Zoom)
-const joinOnlineClass = () => {
-  if (selectedClassForBooking.value) {
-    toast.add({
-      severity: 'success',
-      summary: 'Kelas Online Terdaftar',
-      detail: `Link Zoom untuk ${selectedClassForBooking.value.name} akan dikirim ke email Anda 30 menit sebelum kelas dimulai.`,
-      life: 5000,
-    })
-  }
-  showOnlineClassModal.value = false
-}
+// Note: joining online is not an immediate action when class is full.
+// The Zoom link will be provided at class start; modal is informational.
 
 // Join waitlist from online modal
 const joinWaitlistFromOnline = () => {
   joinWaitingList()
+}
+
+// Open Zoom modal (when class started)
+const viewZoom = (classItem: AvailableClass) => {
+  selectedClassForBooking.value = {
+    id: classItem.id,
+    name: classItem.name,
+    trainer: classItem.trainer,
+    date: classItem.date,
+    time: classItem.time,
+    location: classItem.location,
+    spotsLeft: classItem.spotsLeft,
+    isFull: classItem.spotsLeft === 0,
+    trainerAvatar: classItem.trainerAvatar,
+    totalSpots: classItem.totalSpots,
+    zoomLink: (classItem as unknown as { zoomLink?: string }).zoomLink,
+  }
+  showOnlineClassModal.value = true
 }
 
 // Open cancel confirmation modal
@@ -245,6 +278,8 @@ const openCancelModal = (session: {
 }) => {
   const isWaitlist = session.status === 'waitlist'
   const isPTSession = session.type === 'pt-session'
+  // Members should be able to decline pending PT session requests
+  const canCancel = isWaitlist || (isPTSession ? session.status === 'pending' : canCancelClass(session.date, session.time))
 
   selectedBookingForCancel.value = {
     id: session.id,
@@ -254,7 +289,7 @@ const openCancelModal = (session: {
     time: session.time,
     location: session.location,
     type: isWaitlist ? 'waitlist' : isPTSession ? 'pt-session' : 'class',
-    canCancel: isWaitlist || (!isPTSession && canCancelClass(session.date, session.time)),
+    canCancel,
   }
   showCancelModal.value = true
 }
@@ -263,7 +298,12 @@ const openCancelModal = (session: {
 const confirmCancel = () => {
   if (selectedBookingForCancel.value) {
     const isWaitlist = selectedBookingForCancel.value.type === 'waitlist'
-    cancelBooking(selectedBookingForCancel.value.id, isWaitlist)
+    const isPT = selectedBookingForCancel.value.type === 'pt-session'
+    if (isPT) {
+      cancelPTSession(selectedBookingForCancel.value.id)
+    } else {
+      cancelBooking(selectedBookingForCancel.value.id, isWaitlist)
+    }
     toast.add({
       severity: 'success',
       summary: isWaitlist ? 'Left Waitlist' : 'Class Cancelled',
@@ -274,6 +314,21 @@ const confirmCancel = () => {
     })
   }
   showCancelModal.value = false
+}
+
+// Member confirms a PT session request
+const confirmPT = (session: { id: number; name: string }) => {
+  const ok = confirmPTSession(session.id)
+  if (ok) {
+    toast.add({
+      severity: 'success',
+      summary: 'PT Session Confirmed',
+      detail: `You have confirmed the PT session ${session.name}.`,
+      life: 3000,
+    })
+  } else {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to confirm session', life: 3000 })
+  }
 }
 
 // Stats
@@ -341,12 +396,14 @@ const tabs = [
         v-show="activeTab === 'upcoming'"
         :sessions="upcomingClasses"
         @cancel="openCancelModal"
+        @confirm-pt="confirmPT"
       />
 
       <BookTab
         v-show="activeTab === 'book'"
         :available-classes="availableClasses"
         @book="openBookingModal"
+        @view-zoom="viewZoom"
       />
 
       <WaitlistTab
@@ -379,7 +436,6 @@ const tabs = [
     <OnlineClassModal
       v-model:visible="showOnlineClassModal"
       :classInfo="selectedClassForBooking"
-      @join-online="joinOnlineClass"
       @join-waitlist="joinWaitlistFromOnline"
     />
   </div>

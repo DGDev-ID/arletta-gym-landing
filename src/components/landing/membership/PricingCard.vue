@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
+import authState from '@/stores/auth'
 
 const props = defineProps({ plan: { type: Object, required: true } })
-defineEmits(['signup'])
+const emit = defineEmits(['signup'])
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('id-ID', {
@@ -10,6 +11,12 @@ const formatPrice = (price: number) =>
     currency: 'IDR',
     minimumFractionDigits: 0,
   }).format(price)
+
+const onSignup = () => {
+  if (authState.user?.role === 'pt') return
+  // only emit signup when not PT
+  emit('signup')
+}
 </script>
 
 <template>
@@ -60,8 +67,10 @@ const formatPrice = (price: number) =>
           <div class="mt-auto">
             <Button
               label="Sign Up Now"
+              :disabled="authState.user?.role === 'pt'"
+              :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
               class="w-full py-3.5 text-base font-semibold"
-              @click="$emit('signup')"
+              @click="onSignup"
             />
           </div>
         </div>

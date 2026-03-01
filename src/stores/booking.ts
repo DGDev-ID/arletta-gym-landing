@@ -11,7 +11,7 @@ export interface BookedClass {
   time: string
   location: string
   type: 'class' | 'pt-session'
-  status: 'confirmed' | 'waitlist' | 'cancelled'
+  status: 'confirmed' | 'waitlist' | 'cancelled' | 'pending'
   bookedAt: string
   canCancel: boolean
 }
@@ -27,6 +27,7 @@ export interface AvailableClass {
   spotsLeft: number
   totalSpots: number
   isFull?: boolean
+  zoomLink?: string
   category?: string
   duration?: string
   level?: string
@@ -47,18 +48,19 @@ export interface PTSession {
 
 // Store state
 const bookedClasses = ref<BookedClass[]>([
+  // Upcoming confirmed classes
   {
     id: 1,
     classId: 101,
     name: 'HIIT Burn',
     trainer: 'Sarah Johnson',
     trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    date: '2026-02-25',
+    date: '2026-03-03',
     time: '09:00 - 09:45',
     location: 'Studio A',
     type: 'class',
     status: 'confirmed',
-    bookedAt: '2026-02-18T10:00:00',
+    bookedAt: '2026-02-25T10:00:00',
     canCancel: true,
   },
   {
@@ -67,12 +69,41 @@ const bookedClasses = ref<BookedClass[]>([
     name: 'Power Yoga',
     trainer: 'Maya Chen',
     trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
-    date: '2026-02-28',
+    date: '2026-03-04',
     time: '18:00 - 19:00',
     location: 'Studio B',
     type: 'class',
     status: 'confirmed',
-    bookedAt: '2026-02-18T11:00:00',
+    bookedAt: '2026-02-25T11:00:00',
+    canCancel: true,
+  },
+  // Two overlapping bookings to demonstrate time conflict
+  {
+    id: 3,
+    classId: 103,
+    name: 'Boxing Fundamentals',
+    trainer: 'Carlos Rodriguez',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos',
+    date: '2026-03-05',
+    time: '17:00 - 18:00',
+    location: 'Boxing Ring',
+    type: 'class',
+    status: 'confirmed',
+    bookedAt: '2026-02-26T14:00:00',
+    canCancel: true,
+  },
+  {
+    id: 4,
+    classId: 104,
+    name: 'Evening Mobility',
+    trainer: 'Alex Park',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
+    date: '2026-03-05',
+    time: '17:30 - 18:15',
+    location: 'Studio C',
+    type: 'class',
+    status: 'confirmed',
+    bookedAt: '2026-02-26T15:00:00',
     canCancel: true,
   },
 ])
@@ -84,13 +115,41 @@ const waitingList = ref<BookedClass[]>([
     name: 'Spin Cycle',
     trainer: 'David Kim',
     trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-    date: '2026-02-26',
+    date: '2026-03-02',
     time: '06:00 - 06:45',
     location: 'Cycling Studio',
     type: 'class',
     status: 'waitlist',
-    bookedAt: '2026-02-18T09:00:00',
+    bookedAt: '2026-02-28T09:00:00',
     canCancel: true, // waiting list can always be cancelled
+  },
+  {
+    id: 101,
+    classId: 204,
+    name: 'Pilates Core',
+    trainer: 'Emma Wilson',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
+    date: '2026-03-07',
+    time: '09:00 - 09:45',
+    location: 'Studio C',
+    type: 'class',
+    status: 'waitlist',
+    bookedAt: '2026-02-28T12:00:00',
+    canCancel: true,
+  },
+  {
+    id: 102,
+    classId: 202,
+    name: 'Core Crusher',
+    trainer: 'Lisa Park',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
+    date: '2026-03-05',
+    time: '12:00 - 12:30',
+    location: 'Studio A',
+    type: 'class',
+    status: 'waitlist',
+    bookedAt: '2026-02-27T08:30:00',
+    canCancel: true,
   },
 ])
 
@@ -101,13 +160,28 @@ const ptSessions = ref<BookedClass[]>([
     name: 'Personal Training',
     trainer: 'Mike Torres',
     trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
-    date: '2026-02-27',
+    date: '2026-03-06',
     time: '14:00 - 15:00',
     location: 'Weight Room',
     type: 'pt-session',
     status: 'confirmed',
-    bookedAt: '2026-02-17T10:00:00',
+    bookedAt: '2026-02-20T10:00:00',
     canCancel: false, // Only PT can cancel
+  },
+  // Pending session created by trainer, awaiting member confirmation
+  {
+    id: 202,
+    classId: 0,
+    name: 'PT - Assessment Session',
+    trainer: 'Rita Lestari',
+    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rita',
+    date: '2026-03-04',
+    time: '11:00 - 12:00',
+    location: 'Consultation Room',
+    type: 'pt-session',
+    status: 'pending',
+    bookedAt: '2026-02-28T09:30:00',
+    canCancel: true, // member can decline pending
   },
 ])
 
@@ -267,6 +341,36 @@ export const addPTSession = (
 
   ptSessions.value.push(newSession)
   return newSession
+}
+
+// Add a PT session created by a trainer that requires member confirmation
+export const addPTSessionPending = (
+  session: Omit<BookedClass, 'id' | 'bookedAt' | 'canCancel' | 'classId' | 'type' | 'status'>,
+): BookedClass => {
+  const newSession: BookedClass = {
+    id: nextId++,
+    classId: 0,
+    ...session,
+    type: 'pt-session',
+    status: 'pending',
+    bookedAt: new Date().toISOString(),
+    canCancel: true, // member can decline pending request
+  }
+
+  ptSessions.value.push(newSession)
+  return newSession
+}
+
+// Member confirms a pending PT session (trainer created)
+export const confirmPTSession = (sessionId: number): boolean => {
+  const idx = ptSessions.value.findIndex((s) => s.id === sessionId)
+  if (idx === -1) return false
+  const session = ptSessions.value[idx]
+  if (!session) return false
+  session.status = 'confirmed'
+  // after confirming, member cannot cancel directly (business rule)
+  session.canCancel = false
+  return true
 }
 
 export const cancelPTSession = (sessionId: number): boolean => {
