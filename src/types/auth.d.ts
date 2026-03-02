@@ -6,8 +6,8 @@ declare module '@/stores/auth' {
     role: 'member' | 'pt'
     avatar?: string
   }
-  export const setUser: (user: User | null) => void
-  export const logout: () => void
-  const authState: { isLoggedIn: boolean; user: User | null }
+  export function setUser(user: User | null, token?: string): void
+  export function logout(): void
+  const authState: { isLoggedIn: boolean; user: User | null; token: string | null }
   export default authState
 }
