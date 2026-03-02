@@ -170,10 +170,22 @@ const joinWaitingList = () => {
               </div>
             </div>
 
-            <Button
+            <!-- <Button
               label="Book Class"
               outlined
               :disabled="authState.user?.role === 'pt'"
+              :class="[
+                'w-full py-2 border-white/20 text-white',
+                authState.user?.role === 'pt'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-white/10',
+              ]"
+              @click="handleBookClass(classItem)"
+            /> -->
+            <Button
+              label="Coming Soon"
+              outlined
+              disabled
               :class="[
                 'w-full py-2 border-white/20 text-white',
                 authState.user?.role === 'pt'

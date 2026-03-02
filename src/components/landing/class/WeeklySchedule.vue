@@ -164,12 +164,19 @@ const joinWaitingList = () => {
               <td class="py-4 px-6 text-white">{{ item.class }}</td>
               <td class="py-4 px-6 text-(--text-muted)">{{ item.trainer }}</td>
               <td class="py-4 px-6">
-                <Button
+                <!-- <Button
                   class="btn btn-red px-4 py-1 text-xs"
                   :disabled="authState.user?.role === 'pt'"
                   :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
                   @click="handleBookSchedule(item)"
                   label="Book"
+                /> -->
+                <Button
+                  class="btn btn-red px-4 py-1 text-xs"
+                  disabled
+                  :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
+                  @click="handleBookSchedule(item)"
+                  label="Coming Soon"
                 />
               </td>
             </tr>
