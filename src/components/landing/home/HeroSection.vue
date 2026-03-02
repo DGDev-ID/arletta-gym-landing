@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { useCountUp } from '@/composables/useCountUp'
@@ -20,10 +20,18 @@ const membersRef = ref<HTMLElement | null>(null)
 const trainersRef = ref<HTMLElement | null>(null)
 const programsRef = ref<HTMLElement | null>(null)
 
+const isMobile = ref(window.innerWidth < 768)
+const onResize = () => { isMobile.value = window.innerWidth < 768 }
+
 onMounted(() => {
+  window.addEventListener('resize', onResize)
   if (membersRef.value) observeMembers(membersRef.value)
   if (trainersRef.value) observeTrainers(trainersRef.value)
   if (programsRef.value) observePrograms(programsRef.value)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
 })
 </script>
 
@@ -38,7 +46,7 @@ onMounted(() => {
       <div class="absolute inset-0 bg-linear-to-b from-black/70 via-black/50 to-(--bg-dark)"></div>
     </div>
 
-    <div class="container-custom relative z-10 text-center px-4 pt-20">
+    <div class="container-custom relative z-10 text-center px-4" :style="{ paddingTop: isMobile ? 'calc(80px + 2rem)' : undefined }">
       <h1
         v-animateonscroll="{ enterClass: 'animate-fadein', leaveClass: 'animate-fadeout' }"
         class="heading-xl text-white mb-6"
@@ -72,11 +80,11 @@ onMounted(() => {
           class="px-8 py-3.5 text-base font-semibold border-white/20 text-white hover:bg-white/10"
           @click="scrollToPrograms"
         />
-        <div class="relative inline-block">
+        <div class="relative inline-block w-full sm:w-auto">
           <Button
             label="Presale"
             icon="pi pi-ticket"
-            class="px-8 py-3.5 text-base font-semibold bg-white/5 hover:bg-white/10"
+            class="px-8 py-3.5 text-base font-semibold bg-white/5 hover:bg-white/10 w-full sm:w-auto"
             @click="goToMembership"
           />
           <!-- badge -->
@@ -115,7 +123,7 @@ onMounted(() => {
 .gift-badge {
   background-color: rgba(230, 33, 41, 1);
   box-shadow: 0 0 14px rgba(230, 33, 41, 0.55);
-  animation: giftGlow 1s ease-in-out infinite;
+  animation: giftGlow 0.8s ease-in-out infinite;
 }
 
 @keyframes giftGlow {
