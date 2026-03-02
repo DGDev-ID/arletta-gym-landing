@@ -137,10 +137,8 @@ const proceedToPayment = (method: string) => {
 
 <template>
   <section id="membership" class="section-padding bg-(--bg-dark) relative overflow-hidden">
-    <!-- Particle Background -->
     <ParticleBackground />
 
-    <!-- Content with higher z-index -->
     <div class="container-custom relative z-10">
       <div
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
@@ -154,49 +152,34 @@ const proceedToPayment = (method: string) => {
         </p>
       </div>
 
-      <div class="max-w-8xl mx-auto">
-        <div class="relative z-10">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <PricingCard
-              v-for="plan in membershipPlans"
-              :key="plan.name"
-              :plan="plan"
-              @signup="goToSignUp"
-            />
-          </div>
-        </div>
-
-        <!-- Payment modal for logged-in users -->
-        <Dialog
-          v-model:visible="showPaymentModal"
-          header="Choose payment method"
-          :modal="true"
-          class="w-full max-w-md"
-        >
-          <div class="space-y-4 p-4">
-            <p class="text-(--text-secondary)">
-              Choose a payment method to complete your membership purchase.
-            </p>
-            <div class="grid grid-cols-1 gap-3">
-              <Button
-                label="Midtrans - Credit/Debit Card"
-                class="btn"
-                @click="proceedToPayment('Midtrans - Card')"
-              />
-              <Button
-                label="Midtrans - Bank Transfer"
-                class="btn"
-                @click="proceedToPayment('Midtrans - Bank')"
-              />
-              <Button
-                label="Cancel"
-                class="p-button-text text-(--text-secondary)"
-                @click="showPaymentModal = false"
-              />
-            </div>
-          </div>
-        </Dialog>
+      <!-- On mobile: stretch to section edges. On md+: normal grid -->
+      <div class="-mx-10 sm:mx-0 px-4 sm:px-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <PricingCard
+          v-for="plan in membershipPlans"
+          :key="plan.name"
+          :plan="plan"
+          @signup="goToSignUp"
+        />
       </div>
     </div>
+
+    <!-- Payment modal -->
+    <Dialog
+      v-model:visible="showPaymentModal"
+      header="Choose payment method"
+      :modal="true"
+      class="w-full max-w-md"
+    >
+      <div class="space-y-4 p-4">
+        <p class="text-(--text-secondary)">
+          Choose a payment method to complete your membership purchase.
+        </p>
+        <div class="grid grid-cols-1 gap-3">
+          <Button label="Midtrans - Credit/Debit Card" class="btn" @click="proceedToPayment('Midtrans - Card')" />
+          <Button label="Midtrans - Bank Transfer" class="btn" @click="proceedToPayment('Midtrans - Bank')" />
+          <Button label="Cancel" class="p-button-text text-(--text-secondary)" @click="showPaymentModal = false" />
+        </div>
+      </div>
+    </Dialog>
   </section>
 </template>

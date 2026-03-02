@@ -13,7 +13,7 @@ const props = defineProps<{ benefits?: Benefit[] }>()
           v-animateonscroll="{ enterClass: 'animate-fadein', leaveClass: 'animate-fadeout' }"
           class="flex items-center gap-3"
         >
-          <div class="w-10 h-10 rounded-full bg-(--primary)/20 flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-(--primary)/20 flex items-center justify-center flex-shrink-0">
             <i :class="['pi', benefit.icon, 'text-(--primary)']"></i>
           </div>
           <div>
