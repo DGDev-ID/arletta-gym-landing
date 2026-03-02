@@ -15,6 +15,9 @@ const app = createApp(App)
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    options: {
+      darkModeSelector: ':root',
+    },
   },
 })
 app.directive('animateonscroll', AnimateOnScroll)

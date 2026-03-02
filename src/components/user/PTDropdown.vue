@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
 import { logout } from '@/stores/auth'
+import { logout as apiLogout } from '@/services/authService'
 import Menu from 'primevue/menu'
 
 interface User {
@@ -48,16 +49,15 @@ const toggleMenu = (event: Event) => {
   menu.value.toggle(event)
 }
 
-const handleLogout = () => {
-  // Show toast for sign out
+const handleLogout = async () => {
+  await apiLogout()
+  logout()
   toast.add({
     severity: 'success',
     summary: 'Signed out',
     detail: 'You have been signed out successfully.',
     life: 3000,
   })
-  // Perform logout and redirect
-  logout()
   router.push('/')
 }
 </script>

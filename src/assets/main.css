@@ -6,6 +6,8 @@
    ===================================================== */
 
 :root {
+  color-scheme: dark;
+
   /* Red palette for buttons */
   --redLight: #fde9ea;
   --redLight-rgb: 253, 233, 234;

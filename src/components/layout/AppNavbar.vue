@@ -5,6 +5,7 @@ import Button from 'primevue/button'
 import UserDropdown from '@/components/user/UserDropdown.vue'
 import PTDropdown from '@/components/user/PTDropdown.vue'
 import authState, { logout } from '@/stores/auth'
+import { logout as apiLogout } from '@/services/authService'
 
 const router = useRouter()
 const isScrolled = ref(false)
@@ -46,7 +47,8 @@ const ptMenuItems = [
 
 const menuItems = computed(() => (authState.user?.role === 'pt' ? ptMenuItems : memberMenuItems))
 
-const handleLogout = () => {
+const handleLogout = async () => {
+  await apiLogout()
   logout()
   isMobileMenuOpen.value = false
   router.push('/')
