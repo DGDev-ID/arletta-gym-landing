@@ -11,7 +11,7 @@ const quickLinks = [
 ]
 
 const socialLinks = [
-  { icon: 'pi-instagram', url: 'https://instagram.com', label: 'Instagram' },
+  { icon: 'pi-instagram', url: 'https://instagram.com/arletta.gym', label: 'Instagram' },
   { icon: 'pi-facebook', url: 'https://facebook.com', label: 'Facebook' },
   { icon: 'pi-twitter', url: 'https://twitter.com', label: 'Twitter' },
   { icon: 'pi-youtube', url: 'https://youtube.com', label: 'YouTube' },
@@ -71,15 +71,19 @@ const socialLinks = [
           <ul class="space-y-3 text-(--text-secondary)">
             <li class="flex items-start gap-3">
               <i class="pi pi-map-marker text-(--primary) mt-1"></i>
-              <span>123 Fitness Street<br />Jakarta, Indonesia 12345</span>
+              <span>Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan<br />Semarang Barat, Jawa Tengah</span>
             </li>
             <li class="flex items-center gap-3">
               <i class="pi pi-phone text-(--primary)"></i>
-              <span>+62 21 1234 5678</span>
+              <span>0851-6860-2728</span>
             </li>
             <li class="flex items-center gap-3">
               <i class="pi pi-envelope text-(--primary)"></i>
-              <span>info@arlettagym.com</span>
+              <span>gym@arlettaluxury.com</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="pi pi-instagram text-(--primary)"></i>
+              <a href="https://instagram.com/arletta.gym" target="_blank" rel="noopener noreferrer" class="text-(--text-secondary) hover:text-white">@arletta.gym</a>
             </li>
           </ul>
         </div>

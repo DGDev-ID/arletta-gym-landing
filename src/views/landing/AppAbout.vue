@@ -74,6 +74,8 @@ const team = [
 ]
 
 const storyParagraphs = story.content.split('\n\n')
+// Toggle to hide/show the leadership/team section without removing code
+const showTeam = false
 </script>
 
 <template>
@@ -93,8 +95,8 @@ const storyParagraphs = story.content.split('\n\n')
     <!-- Timeline Section (component) -->
     <TimelineSection :timeline="timeline" />
 
-    <!-- Team Section (component) -->
-    <TeamSection :team="team" />
+  <!-- Team Section (component) - hidden via `showTeam` flag -->
+  <TeamSection v-if="showTeam" :team="team" />
 
     <!-- Location Section (component) -->
     <LocationSection />

@@ -1,3 +1,5 @@
-// Placeholder user service. Add user-related API calls here when backend is ready.
+import api from "./api";
 
-export default {}
+export const login = (data) => {
+  return api.post("/login", data);
+};

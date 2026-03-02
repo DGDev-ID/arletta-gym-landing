@@ -1,4 +1,10 @@
-import axios from 'axios'
+import axios from "axios";
 
-// Export a shared axios instance so other modules can import and use it.
-export const api = axios.create({})
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export default api;
