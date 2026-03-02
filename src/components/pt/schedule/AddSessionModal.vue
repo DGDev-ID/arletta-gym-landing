@@ -152,7 +152,7 @@ const updateNotes = (val: string | undefined) => emit('update:newSession', { ...
     </div>
 
     <template #footer>
-      <div class="flex gap-3 justify-end">
+      <div class="flex gap-3 justify-end pt-5">
         <Button
           label="Cancel"
           text
