@@ -26,7 +26,8 @@
               <div>
                 <h4 class="text-white font-medium mb-1">Address</h4>
                 <p class="text-(--text-muted)">
-                  Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan,<br />Semarang Barat, Jawa Tengah
+                  Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan,<br />Semarang Barat,
+                  Jawa Tengah
                 </p>
               </div>
             </div>
@@ -58,7 +59,8 @@
               <div>
                 <h4 class="text-white font-medium mb-1">Contact</h4>
                 <p class="text-(--text-muted)">
-                  Phone: 0851-6860-2728<br />Email: gym@arlettaluxury.com<br />Instagram: @arletta.gym
+                  Phone: 0851-6860-2728<br />Email: gym@arlettaluxury.com<br />Instagram:
+                  @arletta.gym
                 </p>
               </div>
             </div>
@@ -69,7 +71,15 @@
           v-animateonscroll="{ enterClass: 'animate-scalein', leaveClass: 'animate-fadeout' }"
         >
           <!-- Embedded Google Map for interactive location -->
-          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d247.49451945579997!2d110.3355705275818!3d-7.019593255951168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e708b7c328e7989%3A0xab08868a0c9c2140!2sKost%20Putri%20Violet!5e0!3m2!1sen!2sid!4v1772442248653!5m2!1sen!2sid" width="600" height="450" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d247.49451945579997!2d110.3355705275818!3d-7.019593255951168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e708b7c328e7989%3A0xab08868a0c9c2140!2sKost%20Putri%20Violet!5e0!3m2!1sen!2sid!4v1772442248653!5m2!1sen!2sid"
+            width="600"
+            height="450"
+            style="border: 0"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
         </div>
       </div>
     </div>

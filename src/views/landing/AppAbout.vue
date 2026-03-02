@@ -46,9 +46,7 @@ const values = [
   },
 ]
 
-const timeline = [
-  { year: '2026', event: 'Grand Opening on April' },
-]
+const timeline = [{ year: '2026', event: 'Grand Opening on April' }]
 
 const team = [
   {
@@ -90,8 +88,8 @@ const showTeam = false
     <!-- Timeline Section (component) -->
     <TimelineSection :timeline="timeline" />
 
-  <!-- Team Section (component) - hidden via `showTeam` flag -->
-  <TeamSection v-if="showTeam" :team="team" />
+    <!-- Team Section (component) - hidden via `showTeam` flag -->
+    <TeamSection v-if="showTeam" :team="team" />
 
     <!-- Location Section (component) -->
     <LocationSection />

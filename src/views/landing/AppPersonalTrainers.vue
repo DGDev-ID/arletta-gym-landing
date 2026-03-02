@@ -186,8 +186,10 @@ const confirmDPPayment = (data: PaymentConfirm) => {
     <section class="relative overflow-hidden" style="margin-top: -1px">
       <ParticleBackground class="absolute inset-0 -z-10 pointer-events-none" />
       <div class="container-custom relative z-10">
-        <div class="text-center mb-6 py-12"
-        v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }">
+        <div
+          class="text-center mb-6 py-12"
+          v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
+        >
           <h2 class="text-3xl font-bold text-white mb-4">Private Training Packages</h2>
           <p class="text-(--text-secondary)">
             Choose a package that fits your goals — 1-on-1 or share with a partner.
@@ -206,8 +208,10 @@ const confirmDPPayment = (data: PaymentConfirm) => {
 
     <!-- Meet Our Trainers -->
     <section class="container-custom my-10">
-      <div class="text-center mb-6 pt-12"
-      v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }">
+      <div
+        class="text-center mb-6 pt-12"
+        v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
+      >
         <h2 class="text-3xl font-bold text-white mb-4">Meet Our Trainers</h2>
         <p class="text-(--text-secondary)">
           Our trainers specialize across strength, endurance, mobility, and wellness — choose the

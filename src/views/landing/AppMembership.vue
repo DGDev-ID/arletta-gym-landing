@@ -226,72 +226,100 @@ const benefits = [
     <!-- Benefits Bar -->
     <BenefitsBar :benefits="benefits" />
 
-    <!-- Bonus Merchandise (static) -->
-<section class="py-8">
-  <div class="container-custom">
-    <div class="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-transparent">
-
-      <!-- Background glow -->
-      <div class="absolute -top-8 -left-8 w-56 h-56 bg-[radial-gradient(ellipse,rgba(230,33,41,0.13)_0%,transparent_70%)] pointer-events-none"></div>
-      <div class="absolute -bottom-12 right-0 w-72 h-72 bg-[radial-gradient(ellipse,rgba(230,33,41,0.06)_0%,transparent_70%)] pointer-events-none"></div>
-      <!-- Subtle grid texture -->
-      <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px); background-size: 32px 32px;"></div>
-
-      <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-8 p-6 md:p-8">
-
-        <!-- Image block -->
-        <div class="relative flex-shrink-0">
-          <div class="w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(230,33,41,0.1)]">
-            <img src="/logo-gym-wtext.svg" alt="Arletta T-shirt" class="w-3/4 h-3/4 object-contain" />
-          </div>
-          <!-- Gift badge -->
-          <div class="absolute -top-2.5 -right-2.5 w-9 h-9 rounded-full bg-(--primary) border-2 border-[#0e0e11] flex items-center justify-center shadow-[0_0_14px_rgba(230,33,41,0.55)]">
-            <i class="pi pi-gift text-white text-xs"></i>
-          </div>
-        </div>
-
-        <!-- Text -->
-        <div class="flex-1 min-w-0 text-center md:text-left">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-(--primary)/15 border border-(--primary)/30 text-[10px] font-bold tracking-[0.14em] uppercase text-(--primary) mb-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-(--primary) shadow-[0_0_5px_var(--primary)]"></span>
-            Limited Offer
-          </div>
-
-          <h3 class="text-xl md:text-[1.4rem] font-extrabold text-white tracking-tight leading-tight mb-2">
-            Bonus Merchandise — <span class="text-(--primary)">Free T-shirt</span>
-          </h3>
-          
-          <!-- Slots remaining -->
-          <div class="mt-3.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs text-white/50">
-            <i class="pi pi-users text-[11px] text-white/30"></i>
-            <span><span class="text-white font-semibold">50 First</span> Member</span>
-          </div>
-        </div>
-
-        <!-- CTA -->
-        <div class="flex-shrink-0 flex flex-col items-center gap-1.5">
-          <button
-            class="group flex items-center gap-2 px-6 py-3 rounded-xl bg-(--primary) text-white text-sm font-bold shadow-[0_4px_20px_rgba(230,33,41,0.3)] hover:shadow-[0_6px_28px_rgba(230,33,41,0.5)] hover:-translate-y-0.5 transition-all duration-200"
-            @click="goToSignUp"
-          >
-            <i class="pi pi-bolt text-xs"></i>
-            Join Now
-            <i class="pi pi-arrow-right text-[10px] opacity-50 group-hover:translate-x-0.5 transition-transform duration-150"></i>
-          </button>
-          <span class="text-[11px] text-white/25">No commitment required</span>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
-
     <!-- Pricing Cards -->
-    <section class="relative overflow-hidden" style="margin-top: -1px">
+    <section class="section-padding relative overflow-hidden" style="margin-top: -1px">
       <ParticleBackground />
 
+      <!-- Bonus Merchandise (static) -->
+      <div class="container-custom">
+        <div
+          class="-mx-5 relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-transparent"
+        >
+          <!-- Background glow -->
+          <div
+            class="absolute -top-8 -left-8 w-56 h-56 bg-[radial-gradient(ellipse,rgba(230,33,41,0.13)_0%,transparent_70%)] pointer-events-none"
+          ></div>
+          <div
+            class="absolute -bottom-12 right-0 w-72 h-72 bg-[radial-gradient(ellipse,rgba(230,33,41,0.06)_0%,transparent_70%)] pointer-events-none"
+          ></div>
+          <!-- Subtle grid texture -->
+          <div
+            class="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style="
+              background-image:
+                linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+              background-size: 32px 32px;
+            "
+          ></div>
+
+          <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-8 p-6 md:p-8">
+            <!-- Image block -->
+            <div class="relative flex-shrink-0">
+              <div
+                class="w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(230,33,41,0.1)]"
+              >
+                <img
+                  src="/logo-gym-wtext.svg"
+                  alt="Arletta T-shirt"
+                  class="w-3/4 h-3/4 object-contain"
+                />
+              </div>
+              <!-- Gift badge -->
+              <div
+                class="absolute -top-2.5 -right-2.5 w-9 h-9 rounded-full bg-(--primary) border-2 border-[#0e0e11] flex items-center justify-center shadow-[0_0_14px_rgba(230,33,41,0.55)]"
+              >
+                <i class="pi pi-gift text-white text-xs"></i>
+              </div>
+            </div>
+
+            <!-- Text -->
+            <div class="flex-1 min-w-0 text-center md:text-left">
+              <div
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-(--primary)/15 border border-(--primary)/30 text-[10px] font-bold tracking-[0.14em] uppercase text-(--primary) mb-3"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-(--primary) shadow-[0_0_5px_var(--primary)]"
+                ></span>
+                Limited Offer
+              </div>
+
+              <h3
+                class="text-xl md:text-[1.4rem] font-extrabold text-white tracking-tight leading-tight mb-2"
+              >
+                Bonus Merchandise — <span class="text-(--primary)">Free T-shirt</span>
+              </h3>
+
+              <!-- Slots remaining -->
+              <div
+                class="mt-3.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs text-white/50"
+              >
+                <i class="pi pi-users text-[11px] text-white/30"></i>
+                <span><span class="text-white font-semibold">50 First</span> Member</span>
+              </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="flex-shrink-0 flex flex-col items-center gap-1.5">
+              <button
+                class="group flex items-center gap-2 px-6 py-3 rounded-xl bg-(--primary) text-white text-sm font-bold shadow-[0_4px_20px_rgba(230,33,41,0.3)] hover:shadow-[0_6px_28px_rgba(230,33,41,0.5)] hover:-translate-y-0.5 transition-all duration-200"
+                @click="goToSignUp"
+              >
+                <i class="pi pi-bolt text-xs"></i>
+                Join Now
+                <i
+                  class="pi pi-arrow-right text-[10px] opacity-50 group-hover:translate-x-0.5 transition-transform duration-150"
+                ></i>
+              </button>
+              <span class="text-[11px] text-white/25">No commitment required</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="container-custom relative z-10 py-12">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div class="h-12"></div>
+        <div class="-mx-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <PricingCard
             v-for="plan in membershipPlans"
             :key="plan.name"

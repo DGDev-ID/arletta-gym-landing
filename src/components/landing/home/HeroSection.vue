@@ -21,7 +21,9 @@ const trainersRef = ref<HTMLElement | null>(null)
 const programsRef = ref<HTMLElement | null>(null)
 
 const isMobile = ref(window.innerWidth < 768)
-const onResize = () => { isMobile.value = window.innerWidth < 768 }
+const onResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
@@ -46,7 +48,10 @@ onUnmounted(() => {
       <div class="absolute inset-0 bg-linear-to-b from-black/70 via-black/50 to-(--bg-dark)"></div>
     </div>
 
-    <div class="container-custom relative z-10 text-center px-4" :style="{ paddingTop: isMobile ? 'calc(80px + 2rem)' : undefined }">
+    <div
+      class="container-custom relative z-10 text-center px-4"
+      :style="{ paddingTop: isMobile ? 'calc(80px + 2rem)' : undefined }"
+    >
       <h1
         v-animateonscroll="{ enterClass: 'animate-fadein', leaveClass: 'animate-fadeout' }"
         class="heading-xl text-white mb-6"
@@ -88,7 +93,9 @@ onUnmounted(() => {
             @click="goToMembership"
           />
           <!-- badge -->
-          <div class="absolute -top-4 -right-3 w-8 h-8 rounded-full flex items-center justify-center gift-badge">
+          <div
+            class="absolute -top-4 -right-3 w-8 h-8 rounded-full flex items-center justify-center gift-badge"
+          >
             <i class="pi pi-gift text-white text-xs"></i>
           </div>
         </div>
@@ -127,7 +134,12 @@ onUnmounted(() => {
 }
 
 @keyframes giftGlow {
-  0%, 100% { background-color: rgb(230, 33, 41); }
-  50%       { background-color: rgb(120, 15, 20); }
+  0%,
+  100% {
+    background-color: rgb(230, 33, 41);
+  }
+  50% {
+    background-color: rgb(120, 15, 20);
+  }
 }
 </style>

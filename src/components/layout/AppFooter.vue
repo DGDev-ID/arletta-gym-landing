@@ -71,7 +71,10 @@ const socialLinks = [
           <ul class="space-y-3 text-(--text-secondary)">
             <li class="flex items-start gap-3">
               <i class="pi pi-map-marker text-(--primary) mt-1"></i>
-              <span>Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan<br />Semarang Barat, Jawa Tengah</span>
+              <span
+                >Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan<br />Semarang Barat,
+                Jawa Tengah</span
+              >
             </li>
             <li class="flex items-center gap-3">
               <i class="pi pi-phone text-(--primary)"></i>
@@ -83,7 +86,13 @@ const socialLinks = [
             </li>
             <li class="flex items-center gap-3">
               <i class="pi pi-instagram text-(--primary)"></i>
-              <a href="https://instagram.com/arletta.gym" target="_blank" rel="noopener noreferrer" class="text-(--text-secondary) hover:text-white">@arletta.gym</a>
+              <a
+                href="https://instagram.com/arletta.gym"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-(--text-secondary) hover:text-white"
+                >@arletta.gym</a
+              >
             </li>
           </ul>
         </div>

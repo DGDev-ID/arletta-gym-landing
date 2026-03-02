@@ -175,9 +175,21 @@ const proceedToPayment = (method: string) => {
           Choose a payment method to complete your membership purchase.
         </p>
         <div class="grid grid-cols-1 gap-3">
-          <Button label="Midtrans - Credit/Debit Card" class="btn" @click="proceedToPayment('Midtrans - Card')" />
-          <Button label="Midtrans - Bank Transfer" class="btn" @click="proceedToPayment('Midtrans - Bank')" />
-          <Button label="Cancel" class="p-button-text text-(--text-secondary)" @click="showPaymentModal = false" />
+          <Button
+            label="Midtrans - Credit/Debit Card"
+            class="btn"
+            @click="proceedToPayment('Midtrans - Card')"
+          />
+          <Button
+            label="Midtrans - Bank Transfer"
+            class="btn"
+            @click="proceedToPayment('Midtrans - Bank')"
+          />
+          <Button
+            label="Cancel"
+            class="p-button-text text-(--text-secondary)"
+            @click="showPaymentModal = false"
+          />
         </div>
       </div>
     </Dialog>
