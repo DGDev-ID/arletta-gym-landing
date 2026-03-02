@@ -47,12 +47,7 @@ const values = [
 ]
 
 const timeline = [
-  { year: '2015', event: 'Arletta Gym founded with 2,000 sq ft facility' },
-  { year: '2017', event: 'Expanded to 10,000 sq ft, added group classes' },
-  { year: '2019', event: 'Launched personal training program' },
-  { year: '2021', event: 'Renovated with new recovery facilities' },
-  { year: '2023', event: 'Reached 1,000+ active members milestone' },
-  { year: '2024', event: 'Introduced 24/7 access for all members' },
+  { year: '2026', event: 'Grand Opening on April' },
 ]
 
 const team = [

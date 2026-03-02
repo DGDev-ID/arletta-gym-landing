@@ -5,12 +5,12 @@ const trainers = ref([
   {
     name: 'Sandy Wibowo',
     specialty: 'Prepare for body contest, Fat loss, Muscle gain',
-    image: '/sandy.png',
+    image: '/sandy.svg',
   },
   {
     name: 'Rita Lestari',
     specialty: 'Weight loss, Fat loss, Body shaping',
-    image: '/rita.png',
+    image: '/rita.svg',
   },
 ])
 </script>

@@ -7,11 +7,11 @@ import { useCountUp } from '@/composables/useCountUp'
 const router = useRouter()
 
 const goToSignUp = () => router.push('/signup')
+const goToMembership = () => router.push('/membership')
 const scrollToPrograms = () => {
   document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// Count up animations
 const { count: membersCount, observe: observeMembers } = useCountUp(500)
 const { count: trainersCount, observe: observeTrainers } = useCountUp(15)
 const { count: programsCount, observe: observePrograms } = useCountUp(20)
@@ -72,6 +72,18 @@ onMounted(() => {
           class="px-8 py-3.5 text-base font-semibold border-white/20 text-white hover:bg-white/10"
           @click="scrollToPrograms"
         />
+        <div class="relative inline-block">
+          <Button
+            label="Presale"
+            icon="pi pi-ticket"
+            class="px-8 py-3.5 text-base font-semibold bg-white/5 hover:bg-white/10"
+            @click="goToMembership"
+          />
+          <!-- badge -->
+          <div class="absolute -top-4 -right-3 w-8 h-8 rounded-full flex items-center justify-center gift-badge">
+            <i class="pi pi-gift text-white text-xs"></i>
+          </div>
+        </div>
       </div>
 
       <div
@@ -98,3 +110,16 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.gift-badge {
+  background-color: rgba(230, 33, 41, 1);
+  box-shadow: 0 0 14px rgba(230, 33, 41, 0.55);
+  animation: giftGlow 1s ease-in-out infinite;
+}
+
+@keyframes giftGlow {
+  0%, 100% { background-color: rgb(230, 33, 41); }
+  50%       { background-color: rgb(120, 15, 20); }
+}
+</style>
