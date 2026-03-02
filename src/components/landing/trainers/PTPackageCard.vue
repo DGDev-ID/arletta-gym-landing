@@ -19,6 +19,7 @@ const formatPrice = (price: number) =>
 <template>
   <div
     class="relative flex flex-col rounded-2xl overflow-hidden h-full"
+    v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
     style="
       background: linear-gradient(145deg, #1a1a1a 0%, #111 100%);
       box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
