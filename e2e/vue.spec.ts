@@ -4,5 +4,6 @@ import { test, expect } from '@playwright/test'
 // https://playwright.dev/docs/intro
 test('visits the app root url', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('h1')).toHaveText('You did it!')
+  // The app hero text is dynamic / contains markup; assert a stable substring instead
+  await expect(page.locator('h1')).toContainText('Transform Your Body')
 })

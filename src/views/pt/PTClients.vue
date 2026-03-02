@@ -276,31 +276,48 @@ const viewClientDetails = (clientId: number) => {
       <!-- Tab Navigation: My Clients / All Members -->
       <div class="flex gap-1 mb-6 border-b border-white/10 pb-1">
         <button
-          :class="['flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all',
-            activeClientTab === 'my-clients' ? 'bg-white/10 text-white border-b-2 border-(--primary)' : 'text-(--text-muted) hover:text-white hover:bg-white/5']"
+          :class="[
+            'flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all',
+            activeClientTab === 'my-clients'
+              ? 'bg-white/10 text-white border-b-2 border-(--primary)'
+              : 'text-(--text-muted) hover:text-white hover:bg-white/5',
+          ]"
           @click="activeClientTab = 'my-clients'"
         >
           <i class="pi pi-users"></i>
           <span>My Clients</span>
-          <span class="px-2 py-0.5 bg-(--primary) text-white text-xs rounded-full">{{ clients.length }}</span>
+          <span class="px-2 py-0.5 bg-(--primary) text-white text-xs rounded-full">{{
+            clients.length
+          }}</span>
         </button>
         <button
-          :class="['flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all',
-            activeClientTab === 'all-members' ? 'bg-white/10 text-white border-b-2 border-(--primary)' : 'text-(--text-muted) hover:text-white hover:bg-white/5']"
+          :class="[
+            'flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all',
+            activeClientTab === 'all-members'
+              ? 'bg-white/10 text-white border-b-2 border-(--primary)'
+              : 'text-(--text-muted) hover:text-white hover:bg-white/5',
+          ]"
           @click="activeClientTab = 'all-members'"
         >
           <i class="pi pi-globe"></i>
           <span>Semua Member</span>
-          <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">{{ allMembers.length }}</span>
+          <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">{{
+            allMembers.length
+          }}</span>
         </button>
       </div>
 
       <!-- Info banner for All Members tab -->
-      <div v-if="activeClientTab === 'all-members'" class="mb-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+      <div
+        v-if="activeClientTab === 'all-members'"
+        class="mb-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4"
+      >
         <div class="flex items-start gap-3">
           <i class="pi pi-info-circle text-blue-400 mt-0.5 shrink-0"></i>
           <p class="text-sm text-blue-200">
-            Daftar semua member gym yang <strong class="text-white">tidak terikat</strong> dengan program class Anda. Anda dapat menghubungi mereka untuk menawarkan sesi personal training.
+            Daftar semua member gym yang <strong class="text-white">tidak terikat</strong> dengan
+            program class Anda. Anda dapat menghubungi mereka untuk menawarkan sesi personal
+            training.
           </p>
         </div>
       </div>
@@ -313,7 +330,9 @@ const viewClientDetails = (clientId: number) => {
           ></i>
           <InputText
             v-model="searchQuery"
-            :placeholder="activeClientTab === 'my-clients' ? 'Search clients...' : 'Search all members...'"
+            :placeholder="
+              activeClientTab === 'my-clients' ? 'Search clients...' : 'Search all members...'
+            "
             class="w-full bg-white/5 border border-white/10 text-white rounded-lg py-2.5 pr-4 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)"
             :style="{ paddingLeft: '2.5rem' }"
           />

@@ -37,8 +37,6 @@ defineProps<Props>()
       </div>
 
       <div class="space-y-4">
-
-
         <div class="p-4 rounded-lg bg-white/5">
           <div class="text-sm text-(--text-muted) mb-1">Expires On</div>
           <div class="text-white font-semibold">
@@ -72,12 +70,30 @@ defineProps<Props>()
           <div class="mt-3 text-xs text-(--text-muted)">ID: {{ member.memberId }}</div>
 
           <!-- Start Duration Info -->
-          <div v-if="membershipStatus.startDate || membershipStatus.duration" class="mt-3 pt-3 border-t border-white/10">
-            <div v-if="membershipStatus.startDate" class="flex items-center justify-center gap-2 text-xs text-(--text-secondary) mb-1">
+          <div
+            v-if="membershipStatus.startDate || membershipStatus.duration"
+            class="mt-3 pt-3 border-t border-white/10"
+          >
+            <div
+              v-if="membershipStatus.startDate"
+              class="flex items-center justify-center gap-2 text-xs text-(--text-secondary) mb-1"
+            >
               <i class="pi pi-calendar text-(--primary)"></i>
-              <span>Mulai: {{ new Date(membershipStatus.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+              <span
+                >Mulai:
+                {{
+                  new Date(membershipStatus.startDate).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                }}</span
+              >
             </div>
-            <div v-if="membershipStatus.duration" class="flex items-center justify-center gap-2 text-xs text-(--text-secondary)">
+            <div
+              v-if="membershipStatus.duration"
+              class="flex items-center justify-center gap-2 text-xs text-(--text-secondary)"
+            >
               <i class="pi pi-clock text-(--primary)"></i>
               <span>Durasi: {{ membershipStatus.duration }}</span>
             </div>

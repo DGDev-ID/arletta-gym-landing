@@ -37,12 +37,18 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 // Typed update handlers to avoid implicit 'any' in template inline lambdas
-const updateClient = (val: number | null | undefined) => emit('update:newSession', { ...props.newSession, clientId: val ?? null })
-const updateDate = (val: Date | null | undefined) => emit('update:newSession', { ...props.newSession, date: val ?? null })
-const updateStartTime = (val: string | undefined) => emit('update:newSession', { ...props.newSession, startTime: val || '' })
-const updateEndTime = (val: string | undefined) => emit('update:newSession', { ...props.newSession, endTime: val || '' })
-const updateLocation = (val: string | undefined) => emit('update:newSession', { ...props.newSession, location: val || '' })
-const updateNotes = (val: string | undefined) => emit('update:newSession', { ...props.newSession, notes: val || '' })
+const updateClient = (val: number | null | undefined) =>
+  emit('update:newSession', { ...props.newSession, clientId: val ?? null })
+const updateDate = (val: Date | null | undefined) =>
+  emit('update:newSession', { ...props.newSession, date: val ?? null })
+const updateStartTime = (val: string | undefined) =>
+  emit('update:newSession', { ...props.newSession, startTime: val || '' })
+const updateEndTime = (val: string | undefined) =>
+  emit('update:newSession', { ...props.newSession, endTime: val || '' })
+const updateLocation = (val: string | undefined) =>
+  emit('update:newSession', { ...props.newSession, location: val || '' })
+const updateNotes = (val: string | undefined) =>
+  emit('update:newSession', { ...props.newSession, notes: val || '' })
 </script>
 
 <template>
@@ -62,7 +68,7 @@ const updateNotes = (val: string | undefined) => emit('update:newSession', { ...
       <!-- Member Selection -->
       <div>
         <label class="block text-sm font-medium text-white mb-2">Client</label>
-          <Dropdown
+        <Dropdown
           :model-value="props.newSession.clientId"
           :options="props.members"
           option-label="name"
@@ -89,7 +95,7 @@ const updateNotes = (val: string | undefined) => emit('update:newSession', { ...
       <div>
         <label class="block text-sm font-medium text-white mb-2">Date</label>
         <Calendar
-            :model-value="props.newSession.date"
+          :model-value="props.newSession.date"
           show-icon
           placeholder="Select date"
           class="w-full"

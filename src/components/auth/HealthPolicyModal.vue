@@ -22,7 +22,9 @@ const acceptedHealth = ref(false)
 const acceptedTerms = ref(false)
 const acceptedRisk = ref(false)
 
-const allAccepted = computed(() => acceptedHealth.value && acceptedTerms.value && acceptedRisk.value)
+const allAccepted = computed(
+  () => acceptedHealth.value && acceptedTerms.value && acceptedRisk.value,
+)
 
 const handleAccept = () => {
   if (allAccepted.value) {
@@ -63,7 +65,9 @@ const healthAnswers = ref<boolean[]>(Array.from({ length: healthQuestions.length
           <div>
             <p class="font-medium text-blue-300 mb-1">Penting untuk Kesehatan Anda</p>
             <p class="text-sm text-blue-200">
-              Demi keselamatan Anda, harap isi formulir riwayat kesehatan berikut dengan jujur. Data ini bersifat rahasia dan hanya digunakan untuk memastikan program latihan yang aman dan sesuai.
+              Demi keselamatan Anda, harap isi formulir riwayat kesehatan berikut dengan jujur. Data
+              ini bersifat rahasia dan hanya digunakan untuk memastikan program latihan yang aman
+              dan sesuai.
             </p>
           </div>
         </div>
@@ -116,7 +120,9 @@ const healthAnswers = ref<boolean[]>(Array.from({ length: healthQuestions.length
         <div class="flex items-start gap-2">
           <i class="pi pi-exclamation-triangle text-amber-400 mt-0.5 shrink-0"></i>
           <p class="text-sm text-amber-200">
-            Anda menjawab "Ya" pada satu atau lebih pertanyaan. Kami menyarankan Anda untuk berkonsultasi dengan dokter sebelum memulai program latihan. Staf kami akan membantu menyesuaikan program latihan Anda.
+            Anda menjawab "Ya" pada satu atau lebih pertanyaan. Kami menyarankan Anda untuk
+            berkonsultasi dengan dokter sebelum memulai program latihan. Staf kami akan membantu
+            menyesuaikan program latihan Anda.
           </p>
         </div>
       </div>
@@ -125,41 +131,66 @@ const healthAnswers = ref<boolean[]>(Array.from({ length: healthQuestions.length
       <div class="space-y-3">
         <h4 class="text-white font-semibold">Persetujuan</h4>
 
-        <div class="max-h-40 overflow-y-auto p-4 rounded-lg bg-white/5 border border-white/10 text-sm text-(--text-secondary) leading-relaxed">
+        <div
+          class="max-h-40 overflow-y-auto p-4 rounded-lg bg-white/5 border border-white/10 text-sm text-(--text-secondary) leading-relaxed"
+        >
           <p class="mb-2"><strong class="text-white">1. Tanggung Jawab Kesehatan</strong></p>
-          <p class="mb-3">Saya menyatakan bahwa informasi kesehatan yang saya berikan di atas adalah benar dan akurat. Saya memahami bahwa Arletta Gym tidak bertanggung jawab atas cedera atau kondisi kesehatan yang timbul akibat informasi yang tidak akurat.</p>
+          <p class="mb-3">
+            Saya menyatakan bahwa informasi kesehatan yang saya berikan di atas adalah benar dan
+            akurat. Saya memahami bahwa Arletta Gym tidak bertanggung jawab atas cedera atau kondisi
+            kesehatan yang timbul akibat informasi yang tidak akurat.
+          </p>
 
           <p class="mb-2"><strong class="text-white">2. Asumsi Risiko</strong></p>
-          <p class="mb-3">Saya memahami bahwa aktivitas fisik dan olahraga mengandung risiko cedera. Saya secara sukarela memilih untuk berpartisipasi dan menerima semua risiko yang terkait.</p>
+          <p class="mb-3">
+            Saya memahami bahwa aktivitas fisik dan olahraga mengandung risiko cedera. Saya secara
+            sukarela memilih untuk berpartisipasi dan menerima semua risiko yang terkait.
+          </p>
 
           <p class="mb-2"><strong class="text-white">3. Peraturan Gym</strong></p>
-          <p class="mb-3">Saya setuju untuk mematuhi seluruh peraturan dan kebijakan Arletta Gym, termasuk penggunaan peralatan dengan benar, menjaga kebersihan, dan menghormati sesama member.</p>
+          <p class="mb-3">
+            Saya setuju untuk mematuhi seluruh peraturan dan kebijakan Arletta Gym, termasuk
+            penggunaan peralatan dengan benar, menjaga kebersihan, dan menghormati sesama member.
+          </p>
 
           <p class="mb-2"><strong class="text-white">4. Privasi Data</strong></p>
-          <p>Data kesehatan dan pribadi saya akan dijaga kerahasiaannya dan hanya digunakan untuk keperluan manajemen keanggotaan dan keselamatan latihan.</p>
+          <p>
+            Data kesehatan dan pribadi saya akan dijaga kerahasiaannya dan hanya digunakan untuk
+            keperluan manajemen keanggotaan dan keselamatan latihan.
+          </p>
         </div>
       </div>
 
       <!-- Checkboxes -->
       <div class="space-y-3">
-        <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+        <label
+          class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors"
+        >
           <Checkbox v-model="acceptedHealth" :binary="true" class="mt-0.5" />
           <span class="text-sm text-(--text-secondary)">
-            Saya menyatakan bahwa informasi riwayat kesehatan di atas <strong class="text-white">benar dan akurat</strong>.
+            Saya menyatakan bahwa informasi riwayat kesehatan di atas
+            <strong class="text-white">benar dan akurat</strong>.
           </span>
         </label>
 
-        <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+        <label
+          class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors"
+        >
           <Checkbox v-model="acceptedTerms" :binary="true" class="mt-0.5" />
           <span class="text-sm text-(--text-secondary)">
-            Saya telah membaca dan <strong class="text-white">menyetujui syarat & ketentuan</strong> keanggotaan Arletta Gym.
+            Saya telah membaca dan
+            <strong class="text-white">menyetujui syarat & ketentuan</strong> keanggotaan Arletta
+            Gym.
           </span>
         </label>
 
-        <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+        <label
+          class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors"
+        >
           <Checkbox v-model="acceptedRisk" :binary="true" class="mt-0.5" />
           <span class="text-sm text-(--text-secondary)">
-            Saya memahami dan <strong class="text-white">menerima risiko</strong> yang terkait dengan aktivitas fisik di gym.
+            Saya memahami dan <strong class="text-white">menerima risiko</strong> yang terkait
+            dengan aktivitas fisik di gym.
           </span>
         </label>
       </div>
@@ -167,12 +198,7 @@ const healthAnswers = ref<boolean[]>(Array.from({ length: healthQuestions.length
 
     <template #footer>
       <div class="flex justify-end gap-3 pt-5">
-        <Button
-          label="Batal"
-          severity="secondary"
-          outlined
-          @click="dialogVisible = false"
-        />
+        <Button label="Batal" severity="secondary" outlined @click="dialogVisible = false" />
         <Button
           label="Setuju & Lanjutkan Pendaftaran"
           icon="pi pi-check"

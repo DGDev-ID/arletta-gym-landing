@@ -455,23 +455,30 @@ const goToLogin = () => {
     <div class="mt-4">
       <div
         class="flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer"
-        :class="healthPolicyAccepted
-          ? 'bg-green-500/10 border-green-500/30'
-          : 'bg-white/5 border-white/10 hover:border-white/20'"
+        :class="
+          healthPolicyAccepted
+            ? 'bg-green-500/10 border-green-500/30'
+            : 'bg-white/5 border-white/10 hover:border-white/20'
+        "
         @click="healthPolicyAccepted ? (healthPolicyAccepted = false) : startSignUp()"
       >
         <!-- Custom Checkbox Box -->
         <div
           class="mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 transition-all flex items-center justify-center"
-          :class="healthPolicyAccepted
-            ? 'bg-(--primary) border-(--primary)'
-            : 'bg-transparent border-white/30'"
+          :class="
+            healthPolicyAccepted
+              ? 'bg-(--primary) border-(--primary)'
+              : 'bg-transparent border-white/30'
+          "
         >
           <i v-if="healthPolicyAccepted" class="pi pi-check text-white text-xs font-bold"></i>
         </div>
 
         <!-- Label Text -->
-        <span class="text-sm leading-relaxed select-none" :class="healthPolicyAccepted ? 'text-green-300' : 'text-(--text-secondary)'">
+        <span
+          class="text-sm leading-relaxed select-none"
+          :class="healthPolicyAccepted ? 'text-green-300' : 'text-(--text-secondary)'"
+        >
           Saya telah membaca dan menyetujui
           <button
             type="button"
@@ -491,7 +498,9 @@ const goToLogin = () => {
       :label="isLoading ? 'Creating account...' : 'Create Account'"
       :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-user-plus'"
       iconPos="right"
-      :disabled="isLoading || !name || !email || !password || !confirmPassword || !healthPolicyAccepted"
+      :disabled="
+        isLoading || !name || !email || !password || !confirmPassword || !healthPolicyAccepted
+      "
       class="btn w-full py-3.5 text-base font-semibold"
     />
 

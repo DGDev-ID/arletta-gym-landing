@@ -114,9 +114,7 @@ const initThreeJS = () => {
     particles.rotation.x = targetY * 0.0005 + Math.cos(time * 0.7) * 0.2
 
     // Animate individual particles
-    const posAttr = particles.geometry?.attributes?.position as
-      | THREE.BufferAttribute
-      | undefined
+    const posAttr = particles.geometry?.attributes?.position as THREE.BufferAttribute | undefined
     if (posAttr && posAttr.array) {
       const positions = posAttr.array as Float32Array
       for (let i = 0; i < positions.length; i += 3) {

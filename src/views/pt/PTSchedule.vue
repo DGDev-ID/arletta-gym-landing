@@ -227,15 +227,23 @@ const openRescheduleModal = (session: {
 }
 
 // Confirm reschedule
-const confirmReschedule = (data: { id: number; newDate: string; newStartTime: string; newEndTime: string; newLocation: string; reason: string }) => {
+const confirmReschedule = (data: {
+  id: number
+  newDate: string
+  newStartTime: string
+  newEndTime: string
+  newLocation: string
+  reason: string
+}) => {
   const session = upcomingSessions.value.find((s) => s.id === data.id)
   if (session) {
     session.date = data.newDate
     session.time = `${data.newStartTime} - ${data.newEndTime}`
     session.location = data.newLocation
-    const sessionName = session.type === 'pt-session'
-      ? `PT Session with ${session.clientName}`
-      : (session.className ?? 'Class')
+    const sessionName =
+      session.type === 'pt-session'
+        ? `PT Session with ${session.clientName}`
+        : (session.className ?? 'Class')
     toast.add({
       severity: 'success',
       summary: 'Jadwal Diubah',

@@ -84,17 +84,46 @@ function formatDate(dateStr: string): string {
             </div>
 
             <!-- Online class available badge for full classes -->
-            <div v-if="classItem.isFull || classItem.spotsLeft === 0" class="mt-1 flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div
+              v-if="classItem.isFull || classItem.spotsLeft === 0"
+              class="mt-1 flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20"
+            >
               <i class="pi pi-video text-blue-400 text-xs"></i>
               <span class="text-xs text-blue-300">Online via Zoom available</span>
             </div>
 
             <Button
-              :label="(classItem.zoomLink && (new Date(`${classItem.date}T${(classItem.time.split(' - ')[0])}:00`) <= new Date())) ? 'View Zoom' : (classItem.isFull || classItem.spotsLeft === 0 ? 'Join Waitlist' : 'Book Now')"
-              :icon="(classItem.zoomLink && (new Date(`${classItem.date}T${(classItem.time.split(' - ')[0])}:00`) <= new Date())) ? 'pi pi-video' : (classItem.isFull || classItem.spotsLeft === 0 ? 'pi pi-external-link' : 'pi pi-check')"
-              :class="(classItem.zoomLink && (new Date(`${classItem.date}T${(classItem.time.split(' - ')[0])}:00`) <= new Date())) ? 'btn' : (classItem.isFull || classItem.spotsLeft === 0 ? 'btn-outline' : 'btn')"
+              :label="
+                classItem.zoomLink &&
+                new Date(`${classItem.date}T${classItem.time.split(' - ')[0]}:00`) <= new Date()
+                  ? 'View Zoom'
+                  : classItem.isFull || classItem.spotsLeft === 0
+                    ? 'Join Waitlist'
+                    : 'Book Now'
+              "
+              :icon="
+                classItem.zoomLink &&
+                new Date(`${classItem.date}T${classItem.time.split(' - ')[0]}:00`) <= new Date()
+                  ? 'pi pi-video'
+                  : classItem.isFull || classItem.spotsLeft === 0
+                    ? 'pi pi-external-link'
+                    : 'pi pi-check'
+              "
+              :class="
+                classItem.zoomLink &&
+                new Date(`${classItem.date}T${classItem.time.split(' - ')[0]}:00`) <= new Date()
+                  ? 'btn'
+                  : classItem.isFull || classItem.spotsLeft === 0
+                    ? 'btn-outline'
+                    : 'btn'
+              "
               class="w-full mt-4 py-2"
-              @click="(classItem.zoomLink && (new Date(`${classItem.date}T${(classItem.time.split(' - ')[0])}:00`) <= new Date())) ? emit('view-zoom', classItem) : emit('book', classItem)"
+              @click="
+                classItem.zoomLink &&
+                new Date(`${classItem.date}T${classItem.time.split(' - ')[0]}:00`) <= new Date()
+                  ? emit('view-zoom', classItem)
+                  : emit('book', classItem)
+              "
             />
           </div>
         </template>

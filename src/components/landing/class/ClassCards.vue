@@ -46,9 +46,9 @@ const selectedClassForBooking = computed(() => {
   const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
 
   return {
-  id: selectedClass.value.id,
-  name: selectedClass.value.name,
-  date: dateStr,
+    id: selectedClass.value.id,
+    name: selectedClass.value.name,
+    date: dateStr,
     time: `${startTime} - ${endTime}`,
     location: selectedClass.value.location ?? 'Studio A',
     spotsLeft: selectedClass.value.spotsLeft ?? 10,
@@ -176,7 +176,9 @@ const joinWaitingList = () => {
               :disabled="authState.user?.role === 'pt'"
               :class="[
                 'w-full py-2 border-white/20 text-white',
-                authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10',
+                authState.user?.role === 'pt'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-white/10',
               ]"
               @click="handleBookClass(classItem)"
             />

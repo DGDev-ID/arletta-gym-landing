@@ -93,7 +93,7 @@ const recentClients = ref([
         <p class="text-(--text-secondary)">Manage your clients and schedule</p>
       </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Profile Card -->
         <PTProfileCard :trainer="trainer" />
 

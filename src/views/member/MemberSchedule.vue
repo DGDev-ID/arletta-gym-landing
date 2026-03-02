@@ -244,7 +244,9 @@ const openCancelModal = (session: {
   const isWaitlist = session.status === 'waitlist'
   const isPTSession = session.type === 'pt-session'
   // Members should be able to decline pending PT session requests
-  const canCancel = isWaitlist || (isPTSession ? session.status === 'pending' : canCancelClass(session.date, session.time))
+  const canCancel =
+    isWaitlist ||
+    (isPTSession ? session.status === 'pending' : canCancelClass(session.date, session.time))
 
   selectedBookingForCancel.value = {
     id: session.id,
@@ -292,7 +294,12 @@ const confirmPT = (session: { id: number; name: string }) => {
       life: 3000,
     })
   } else {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to confirm session', life: 3000 })
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Unable to confirm session',
+      life: 3000,
+    })
   }
 }
 
@@ -300,7 +307,12 @@ const confirmPT = (session: { id: number; name: string }) => {
 const handleCheckIn = (session: { id: number; name: string }) => {
   const ok = completeSession(session.id, true)
   if (ok) {
-    toast.add({ severity: 'success', summary: 'Checked In', detail: `You have checked in for ${session.name}.`, life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Checked In',
+      detail: `You have checked in for ${session.name}.`,
+      life: 3000,
+    })
   } else {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to check in', life: 3000 })
   }
@@ -315,7 +327,9 @@ const sweepMissedSessions = () => {
       if (!parts || parts.length < 2) return
       const end = String(parts[1])
       const endParts = end.split(':').map((v) => Number(v || 0))
-      const endDt = new Date(`${s.date}T${String(endParts[0]).padStart(2, '0')}:${String(endParts[1]).padStart(2, '0')}:00`)
+      const endDt = new Date(
+        `${s.date}T${String(endParts[0]).padStart(2, '0')}:${String(endParts[1]).padStart(2, '0')}:00`,
+      )
       // if end time was more than 15 minutes ago and session is still confirmed, mark missed
       if (now > endDt.getTime() + 15 * 60 * 1000 && s.status === 'confirmed') {
         completeSession(s.id, false)

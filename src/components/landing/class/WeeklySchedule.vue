@@ -13,7 +13,11 @@ type ScheduleItem = {
   spotsLeft?: number
   totalSpots?: number
 }
-const props = defineProps<{ days?: string[]; schedule?: Record<string, ScheduleItem[]>; activeDay?: string }>()
+const props = defineProps<{
+  days?: string[]
+  schedule?: Record<string, ScheduleItem[]>
+  activeDay?: string
+}>()
 defineEmits(['update-day', 'book'])
 
 const router = useRouter()
@@ -151,7 +155,7 @@ const joinWaitingList = () => {
           </thead>
           <tbody>
             <tr
-              v-for="(item, index) in (props.schedule?.[props.activeDay ?? 'monday'] ?? [])"
+              v-for="(item, index) in props.schedule?.[props.activeDay ?? 'monday'] ?? []"
               :key="index"
               v-animateonscroll="{ enterClass: 'animate-fadein', leaveClass: 'animate-fadeout' }"
               class="border-b border-white/5 hover:bg-white/5 transition-colors"
@@ -160,13 +164,13 @@ const joinWaitingList = () => {
               <td class="py-4 px-6 text-white">{{ item.class }}</td>
               <td class="py-4 px-6 text-(--text-muted)">{{ item.trainer }}</td>
               <td class="py-4 px-6">
-                  <Button
-                    class="btn btn-red px-4 py-1 text-xs"
-                    :disabled="authState.user?.role === 'pt'"
-                    :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
-                    @click="handleBookSchedule(item)"
-                    label="Book"
-                  />
+                <Button
+                  class="btn btn-red px-4 py-1 text-xs"
+                  :disabled="authState.user?.role === 'pt'"
+                  :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
+                  @click="handleBookSchedule(item)"
+                  label="Book"
+                />
               </td>
             </tr>
           </tbody>

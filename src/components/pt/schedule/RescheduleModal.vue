@@ -23,7 +23,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'confirm', data: { id: number; newDate: string; newStartTime: string; newEndTime: string; newLocation: string; reason: string }): void
+  (
+    e: 'confirm',
+    data: {
+      id: number
+      newDate: string
+      newStartTime: string
+      newEndTime: string
+      newLocation: string
+      reason: string
+    },
+  ): void
 }>()
 
 const dialogVisible = computed({
@@ -38,16 +48,19 @@ const newLocation = ref('')
 const reason = ref('')
 
 // Prefill with current session data when opened
-watch(() => props.visible, (val) => {
-  if (val && props.session) {
-    const parts = props.session.time.split(' - ')
-    newStartTime.value = parts[0]?.trim() ?? ''
-    newEndTime.value = parts[1]?.trim() ?? ''
-    newLocation.value = props.session.location
-    newDate.value = new Date(props.session.date)
-    reason.value = ''
-  }
-})
+watch(
+  () => props.visible,
+  (val) => {
+    if (val && props.session) {
+      const parts = props.session.time.split(' - ')
+      newStartTime.value = parts[0]?.trim() ?? ''
+      newEndTime.value = parts[1]?.trim() ?? ''
+      newLocation.value = props.session.location
+      newDate.value = new Date(props.session.date)
+      reason.value = ''
+    }
+  },
+)
 
 const sessionName = computed(() => {
   if (!props.session) return ''
@@ -56,7 +69,13 @@ const sessionName = computed(() => {
 })
 
 const isValid = computed(() => {
-  return newDate.value && newStartTime.value && newEndTime.value && newLocation.value && reason.value.trim().length > 0
+  return (
+    newDate.value &&
+    newStartTime.value &&
+    newEndTime.value &&
+    newLocation.value &&
+    reason.value.trim().length > 0
+  )
 })
 
 const handleConfirm = () => {
@@ -154,12 +173,18 @@ const formattedOriginalDate = computed(() => {
       <!-- New Location -->
       <div>
         <label class="block text-sm font-medium text-white mb-2">Lokasi</label>
-        <InputText v-model="newLocation" placeholder="e.g., Weight Room, Studio A" class="glass-input w-full" />
+        <InputText
+          v-model="newLocation"
+          placeholder="e.g., Weight Room, Studio A"
+          class="glass-input w-full"
+        />
       </div>
 
       <!-- Reason -->
       <div>
-        <label class="block text-sm font-medium text-white mb-2">Alasan Reschedule <span class="text-red-400">*</span></label>
+        <label class="block text-sm font-medium text-white mb-2"
+          >Alasan Reschedule <span class="text-red-400">*</span></label
+        >
         <Textarea
           v-model="reason"
           placeholder="Jelaskan alasan reschedule kepada member..."
@@ -173,7 +198,8 @@ const formattedOriginalDate = computed(() => {
         <div class="flex items-start gap-2">
           <i class="pi pi-info-circle text-blue-400 mt-0.5 shrink-0"></i>
           <p class="text-xs text-blue-200">
-            Member akan menerima notifikasi tentang perubahan jadwal ini. Pastikan jadwal baru tidak bentrok dengan sesi lain.
+            Member akan menerima notifikasi tentang perubahan jadwal ini. Pastikan jadwal baru tidak
+            bentrok dengan sesi lain.
           </p>
         </div>
       </div>

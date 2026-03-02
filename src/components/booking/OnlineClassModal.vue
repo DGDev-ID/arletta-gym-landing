@@ -64,13 +64,17 @@ const openZoom = () => {
   >
     <div v-if="classInfo" class="space-y-5">
       <!-- If class started and zoom available, show started notice -->
-      <div v-if="isStarted && classInfo.zoomLink" class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+      <div
+        v-if="isStarted && classInfo.zoomLink"
+        class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4"
+      >
         <div class="flex items-start gap-3">
           <i class="pi pi-info-circle text-lg text-blue-400 mt-0.5 shrink-0"></i>
           <div>
             <p class="font-medium text-blue-300 mb-1">Kelas Sedang Berlangsung</p>
             <p class="text-sm text-blue-200">
-              Kelas <strong class="text-white">{{ classInfo.name }}</strong> sudah dimulai. Tekan tombol "Open Zoom" di bawah untuk bergabung ke meeting.
+              Kelas <strong class="text-white">{{ classInfo.name }}</strong> sudah dimulai. Tekan
+              tombol "Open Zoom" di bawah untuk bergabung ke meeting.
             </p>
           </div>
         </div>
@@ -102,13 +106,17 @@ const openZoom = () => {
       <!-- Info: Zoom link will be available at class start (only show before class starts) -->
       <div v-if="!isStarted" class="p-4 rounded-lg border border-blue-500/30 bg-blue-500/10">
         <div class="flex items-start gap-4">
-          <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"
+          >
             <i class="pi pi-info-circle text-blue-400 text-xl"></i>
           </div>
           <div class="flex-1">
             <h4 class="font-semibold text-white mb-1">Zoom Link Availability</h4>
             <p class="text-sm text-blue-200 mb-2">
-              If the class is full you can join the waiting list. If you remain on the waiting list and are not promoted before the class starts, the Zoom link will still be made available at class start and will be sent via email to registered attendees.
+              If the class is full you can join the waiting list. If you remain on the waiting list
+              and are not promoted before the class starts, the Zoom link will still be made
+              available at class start and will be sent via email to registered attendees.
             </p>
             <div class="flex items-center gap-2 text-xs text-blue-300">
               <i class="pi pi-check-circle"></i>
@@ -123,15 +131,22 @@ const openZoom = () => {
       </div>
 
       <!-- Info about waitlist; confirmation button moved to footer -->
-      <div v-if="!isStarted || !classInfo?.zoomLink" class="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10">
+      <div
+        v-if="!isStarted || !classInfo?.zoomLink"
+        class="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10"
+      >
         <div class="flex items-start gap-4">
-          <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+          <div
+            class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0"
+          >
             <i class="pi pi-clock text-amber-400 text-xl"></i>
           </div>
           <div class="flex-1">
             <h4 class="font-semibold text-white mb-1">Waiting List</h4>
             <p class="text-sm text-amber-200 mb-2">
-              Join the waiting list and you'll be automatically promoted if another member cancels. If you remain on the waiting list when the class starts, the Zoom link will still be made available at class start.
+              Join the waiting list and you'll be automatically promoted if another member cancels.
+              If you remain on the waiting list when the class starts, the Zoom link will still be
+              made available at class start.
             </p>
             <div class="flex items-center gap-2 text-xs text-amber-300">
               <i class="pi pi-info-circle"></i>
@@ -140,18 +155,23 @@ const openZoom = () => {
           </div>
         </div>
       </div>
-      
-      
+
       <!-- If class already started and zoom link available, show direct access -->
-      <div v-if="isStarted && classInfo?.zoomLink" class="mt-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/10">
+      <div
+        v-if="isStarted && classInfo?.zoomLink"
+        class="mt-4 p-4 rounded-lg border border-blue-500/20 bg-blue-500/10"
+      >
         <div class="flex items-start gap-4">
-          <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"
+          >
             <i class="pi pi-video text-blue-400 text-xl"></i>
           </div>
           <div class="flex-1">
             <h4 class="font-semibold text-white mb-1">Zoom Link</h4>
             <p class="text-sm text-blue-200 mb-2">
-              The class has started. Click the button below to open the Zoom meeting. The link is also sent via email to registered attendees.
+              The class has started. Click the button below to open the Zoom meeting. The link is
+              also sent via email to registered attendees.
             </p>
             <Button label="Open Zoom" icon="pi pi-external-link" class="btn" @click="openZoom" />
           </div>
@@ -168,7 +188,12 @@ const openZoom = () => {
           <Button
             label="Join Waitlist"
             class="btn"
-            @click="() => { emit('join-waitlist'); dialogVisible = false }"
+            @click="
+              () => {
+                emit('join-waitlist')
+                dialogVisible = false
+              }
+            "
           />
         </template>
       </div>

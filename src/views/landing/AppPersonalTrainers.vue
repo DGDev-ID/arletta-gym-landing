@@ -64,12 +64,54 @@ const trainers = [
 ]
 
 const ptPackages = [
-  { name: '5 Sessions', sessions: 5, price: 1125000, perSession: 225000, shareable: false, features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'] },
-  { name: '10 Sessions', sessions: 10, price: 2000000, perSession: 200000, shareable: false, features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'] },
-  { name: '20 Sessions', sessions: 20, price: 3500000, perSession: 175000, shareable: false, features: ['Personalized program', 'Flexible schedule', 'Progress assessments'] },
-  { name: '50 Sessions', sessions: 50, price: 6500000, perSession: 130000, shareable: true, features: ['Personalized program', 'Couple/shared option', 'Priority booking'] },
-  { name: '80 Sessions', sessions: 80, price: 10240000, perSession: 128000, shareable: true, features: ['Personalized program', 'Couple/shared option', 'Progress tracking'] },
-  { name: '100 Sessions', sessions: 100, price: 12500000, perSession: 125000, shareable: true, features: ['Personalized program', 'Couple/shared option', 'Dedicated trainer allocation'] },
+  {
+    name: '5 Sessions',
+    sessions: 5,
+    price: 1125000,
+    perSession: 225000,
+    shareable: false,
+    features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'],
+  },
+  {
+    name: '10 Sessions',
+    sessions: 10,
+    price: 2000000,
+    perSession: 200000,
+    shareable: false,
+    features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'],
+  },
+  {
+    name: '20 Sessions',
+    sessions: 20,
+    price: 3500000,
+    perSession: 175000,
+    shareable: false,
+    features: ['Personalized program', 'Flexible schedule', 'Progress assessments'],
+  },
+  {
+    name: '50 Sessions',
+    sessions: 50,
+    price: 6500000,
+    perSession: 130000,
+    shareable: true,
+    features: ['Personalized program', 'Couple/shared option', 'Priority booking'],
+  },
+  {
+    name: '80 Sessions',
+    sessions: 80,
+    price: 10240000,
+    perSession: 128000,
+    shareable: true,
+    features: ['Personalized program', 'Couple/shared option', 'Progress tracking'],
+  },
+  {
+    name: '100 Sessions',
+    sessions: 100,
+    price: 12500000,
+    perSession: 125000,
+    shareable: true,
+    features: ['Personalized program', 'Couple/shared option', 'Dedicated trainer allocation'],
+  },
 ]
 
 const stats = [
@@ -81,8 +123,12 @@ const stats = [
 
 // TrainerModal state (Meet Our Trainers grid)
 const trainerModalTarget = ref<(typeof trainers)[0] | null>(null)
-const openTrainerModal = (trainer: (typeof trainers)[0]) => { trainerModalTarget.value = trainer }
-const closeModal = () => { trainerModalTarget.value = null }
+const openTrainerModal = (trainer: (typeof trainers)[0]) => {
+  trainerModalTarget.value = trainer
+}
+const closeModal = () => {
+  trainerModalTarget.value = null
+}
 
 // TrainerSelectorDialog state (PT Package booking flow)
 const showTrainerSelector = ref(false)
@@ -137,15 +183,22 @@ const confirmDPPayment = (data: PaymentConfirm) => {
     <StatsBlock :stats="stats" />
 
     <!-- Private Training Packages -->
-    <section class="relative overflow-hidden" style="margin-top: -1px;">
+    <section class="relative overflow-hidden" style="margin-top: -1px">
       <ParticleBackground class="absolute inset-0 -z-10 pointer-events-none" />
       <div class="container-custom relative z-10">
         <div class="text-center mb-6 py-12">
           <h2 class="text-3xl font-bold text-white mb-4">Private Training Packages</h2>
-          <p class="text-(--text-secondary)">Choose a package that fits your goals — 1-on-1 or share with a partner.</p>
+          <p class="text-(--text-secondary)">
+            Choose a package that fits your goals — 1-on-1 or share with a partner.
+          </p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
-          <PTPackageCard v-for="pkg in ptPackages" :key="pkg.name" :pkg="pkg" @book="openTrainerSelector" />
+          <PTPackageCard
+            v-for="pkg in ptPackages"
+            :key="pkg.name"
+            :pkg="pkg"
+            @book="openTrainerSelector"
+          />
         </div>
       </div>
     </section>
@@ -154,7 +207,10 @@ const confirmDPPayment = (data: PaymentConfirm) => {
     <section class="container-custom my-10">
       <div class="text-center mb-6 pt-12">
         <h2 class="text-3xl font-bold text-white mb-4">Meet Our Trainers</h2>
-        <p class="text-(--text-secondary)">Our trainers specialize across strength, endurance, mobility, and wellness — choose the coach that matches your goals and book a session or package.</p>
+        <p class="text-(--text-secondary)">
+          Our trainers specialize across strength, endurance, mobility, and wellness — choose the
+          coach that matches your goals and book a session or package.
+        </p>
       </div>
       <TrainersGrid :trainers="trainers" @open="openTrainerModal" />
     </section>

@@ -21,7 +21,6 @@ const onSignup = () => {
 
 <template>
   <section class="py-8 md:py-12 relative overflow-hidden">
-
     <!-- Content (ParticleBackground moved to parent) -->
     <div class="container-custom relative z-10 h-full">
       <div class="w-full h-full">
@@ -32,7 +31,7 @@ const onSignup = () => {
           <div class="text-center mb-8">
             <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ props.plan.name }}</h3>
             <p class="text-(--text-muted) text-sm mb-6">{{ props.plan.description }}</p>
-            
+
             <!-- Promo badge -->
             <div
               v-if="props.plan.promo"

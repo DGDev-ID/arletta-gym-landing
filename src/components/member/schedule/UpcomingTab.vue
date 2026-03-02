@@ -174,7 +174,11 @@ const isCheckInAvailable = (session: Session) => {
                   @click="emit('cancel', session)"
                 />
                 <Button
-                  v-if="session.type === 'pt-session' && session.status === 'confirmed' && isCheckInAvailable(session)"
+                  v-if="
+                    session.type === 'pt-session' &&
+                    session.status === 'confirmed' &&
+                    isCheckInAvailable(session)
+                  "
                   label="Scan QR"
                   icon="pi pi-qrcode"
                   class="btn"

@@ -100,14 +100,17 @@ const handleConfirm = () => {
   emit('update:visible', false)
 }
 
-watch(() => props.visible, async (val) => {
-  if (val) {
-    hasSignature.value = false
-    acceptedTerms.value = false
-    await nextTick()
-    initCanvas()
-  }
-})
+watch(
+  () => props.visible,
+  async (val) => {
+    if (val) {
+      hasSignature.value = false
+      acceptedTerms.value = false
+      await nextTick()
+      initCanvas()
+    }
+  },
+)
 </script>
 
 <template>
@@ -127,7 +130,8 @@ watch(() => props.visible, async (val) => {
           <div>
             <p class="font-medium text-blue-300 mb-1">Verifikasi Diperlukan</p>
             <p class="text-sm text-blue-200">
-              Untuk melindungi keamanan transaksi Anda, silakan tanda tangani persetujuan pembelian membership di bawah ini.
+              Untuk melindungi keamanan transaksi Anda, silakan tanda tangani persetujuan pembelian
+              membership di bawah ini.
             </p>
           </div>
         </div>
@@ -146,16 +150,27 @@ watch(() => props.visible, async (val) => {
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-(--text-muted)">Tanggal</span>
-          <span class="text-white">{{ new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+          <span class="text-white">{{
+            new Date().toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })
+          }}</span>
         </div>
       </div>
 
       <!-- Agreement Text -->
-      <div class="p-4 rounded-lg bg-white/5 border border-white/10 text-sm text-(--text-secondary) leading-relaxed max-h-32 overflow-y-auto">
+      <div
+        class="p-4 rounded-lg bg-white/5 border border-white/10 text-sm text-(--text-secondary) leading-relaxed max-h-32 overflow-y-auto"
+      >
         <p>Dengan menandatangani dokumen ini, saya menyatakan bahwa:</p>
         <ol class="list-decimal list-inside mt-2 space-y-1">
           <li>Saya membeli membership ini atas kemauan sendiri dan tanpa paksaan.</li>
-          <li>Saya memahami bahwa biaya membership yang telah dibayar <strong class="text-white">tidak dapat dikembalikan (non-refundable)</strong>.</li>
+          <li>
+            Saya memahami bahwa biaya membership yang telah dibayar
+            <strong class="text-white">tidak dapat dikembalikan (non-refundable)</strong>.
+          </li>
           <li>Saya setuju untuk mematuhi seluruh peraturan dan kebijakan Arletta Gym.</li>
           <li>Saya telah membaca dan memahami syarat & ketentuan keanggotaan.</li>
         </ol>
@@ -164,7 +179,9 @@ watch(() => props.visible, async (val) => {
       <!-- Signature Pad -->
       <div>
         <div class="flex items-center justify-between mb-2">
-          <label class="text-sm font-medium text-white">Tanda Tangan <span class="text-red-400">*</span></label>
+          <label class="text-sm font-medium text-white"
+            >Tanda Tangan <span class="text-red-400">*</span></label
+          >
           <Button
             v-if="hasSignature"
             label="Hapus"
@@ -179,7 +196,7 @@ watch(() => props.visible, async (val) => {
           <canvas
             ref="canvasRef"
             class="w-full cursor-crosshair touch-none"
-            style="height: 200px;"
+            style="height: 200px"
             @mousedown="startDrawing"
             @mousemove="draw"
             @mouseup="stopDrawing"
@@ -188,29 +205,31 @@ watch(() => props.visible, async (val) => {
             @touchmove="draw"
             @touchend="stopDrawing"
           />
-          <div v-if="!hasSignature" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            v-if="!hasSignature"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none"
+          >
             <span class="text-(--text-muted) text-sm">Tanda tangani di sini</span>
           </div>
         </div>
       </div>
 
       <!-- Checkbox -->
-      <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+      <label
+        class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors"
+      >
         <Checkbox v-model="acceptedTerms" :binary="true" class="mt-0.5" />
         <span class="text-sm text-(--text-secondary)">
-          Saya menyatakan bahwa tanda tangan di atas <strong class="text-white">sah dan benar</strong> milik saya, dan saya menyetujui pembelian membership ini.
+          Saya menyatakan bahwa tanda tangan di atas
+          <strong class="text-white">sah dan benar</strong> milik saya, dan saya menyetujui
+          pembelian membership ini.
         </span>
       </label>
     </div>
 
     <template #footer>
       <div class="flex justify-end gap-3 pt-5">
-        <Button
-          label="Batal"
-          severity="secondary"
-          outlined
-          @click="dialogVisible = false"
-        />
+        <Button label="Batal" severity="secondary" outlined @click="dialogVisible = false" />
         <Button
           label="Konfirmasi & Bayar"
           icon="pi pi-check"

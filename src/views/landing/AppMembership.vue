@@ -227,20 +227,20 @@ const benefits = [
     <BenefitsBar :benefits="benefits" />
 
     <!-- Pricing Cards -->
-<section class="relative overflow-hidden" style="margin-top: -1px;">
-  <ParticleBackground />
+    <section class="relative overflow-hidden" style="margin-top: -1px">
+      <ParticleBackground />
 
-  <div class="container-custom relative z-10 py-12">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      <PricingCard
-        v-for="plan in membershipPlans"
-        :key="plan.name"
-        :plan="plan"
-        @signup="goToSignUp"
-      />
-    </div>
-  </div>
-</section>
+      <div class="container-custom relative z-10 py-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <PricingCard
+            v-for="plan in membershipPlans"
+            :key="plan.name"
+            :plan="plan"
+            @signup="goToSignUp"
+          />
+        </div>
+      </div>
+    </section>
 
     <!-- Additional Perks -->
     <AdditionalPerks :perks="additionalPerks" />

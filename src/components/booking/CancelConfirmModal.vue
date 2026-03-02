@@ -72,11 +72,14 @@ const cannotCancelReason = computed(() => {
 })
 
 // Reset when modal opens/closes
-watch(() => props.visible, (val) => {
-  if (val) {
-    // no-op: modal opens, nothing to reset for single-step confirm
-  }
-})
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      // no-op: modal opens, nothing to reset for single-step confirm
+    }
+  },
+)
 
 const handleConfirm = () => {
   emit('confirm')
