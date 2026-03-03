@@ -27,12 +27,15 @@ const onSignup = () => {
       <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ props.plan.name }}</h3>
       <p class="text-(--text-muted) text-sm mb-6">{{ props.plan.description }}</p>
 
-      <!-- Promo badge -->
-      <div
-        v-if="props.plan.promo"
-        class="inline-block bg-(--primary) text-white text-xs font-semibold px-3 py-1 rounded-full mb-4"
-      >
-        {{ props.plan.promo }}
+      <!-- Promo badges -->
+      <div class="mb-4 flex flex-wrap justify-center gap-2">
+        <div
+          v-for="promo in props.plan.promos || (props.plan.promo ? [{ label: props.plan.promo }] : [])"
+          :key="promo.label"
+          class="inline-block bg-(--primary) text-white text-xs font-semibold px-3 py-1 rounded-full"
+        >
+          {{ promo.label }}
+        </div>
       </div>
 
       <div class="flex items-baseline justify-center gap-2 whitespace-nowrap">

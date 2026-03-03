@@ -5,7 +5,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { login } from '@/services/mockAuth'
+import { login as apiLogin } from '@/services/authService'
 import { setUser } from '@/stores/auth'
 
 const router = useRouter()
@@ -20,7 +20,7 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    const user = await login(email.value, password.value)
+    const { user, token } = await apiLogin(email.value, password.value)
     isLoading.value = false
     toast.add({
       severity: 'success',
@@ -28,21 +28,20 @@ const handleLogin = async () => {
       detail: `Welcome back, ${user.name}!`,
       life: 3000,
     })
-    // route based on role
-    if (user.role === 'pt') {
-      // save auth state and route
-      setUser({
-        ...user,
+
+    const role: 'member' | 'pt' = user.role === 'pt' ? 'pt' : 'member'
+    setUser(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`,
-      })
-      router.push('/pt/profile')
-    } else {
-      setUser({
-        ...user,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`,
-      })
-      router.push('/member/profile')
-    }
+      },
+      token,
+    )
+
+    router.push(role === 'pt' ? '/pt/profile' : '/member/profile')
   } catch (err) {
     isLoading.value = false
     // simple feedback — in a real app show toast/error

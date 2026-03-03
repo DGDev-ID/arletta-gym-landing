@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
@@ -8,6 +8,7 @@ import authState from '@/stores/auth'
 import HeroMembership from '@/components/landing/membership/HeroMembership.vue'
 import BenefitsBar from '@/components/landing/membership/BenefitsBar.vue'
 import PricingCard from '@/components/landing/membership/PricingCard.vue'
+import { getMemberships } from '@/services/membershipService'
 import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import AdditionalPerks from '@/components/landing/membership/AdditionalPerks.vue'
 import FAQSection from '@/components/landing/membership/FAQSection.vue'
@@ -47,110 +48,61 @@ const proceedToPayment = (method: string) => {
   showPaymentModal.value = false
 }
 
-const membershipPlans = [
-  {
-    name: '1 Month',
-    price: 300000,
-    period: '1 month',
-    description: 'One month membership. Full access to facilities and all classes.',
-    promo: '',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
-  {
-    name: '3 Months',
-    price: 840000,
-    period: '3 months',
-    description: 'Three-month payment — equivalent to 280k/month.',
-    promo: 'Free 1 month (pre-sale)',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
-  {
-    name: '6 Months',
-    price: 1560000,
-    period: '6 months',
-    description: 'Six-month payment — equivalent to 260k/month.',
-    promo: 'Free 2 months (pre-sale)',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
-  {
-    name: '1 Year',
-    price: 2880000,
-    period: '12 months',
-    description: 'Annual payment — equivalent to 240k/month.',
-    promo: 'Free 3 months (pre-sale)',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
-  {
-    name: '18 Months',
-    price: 3960000,
-    period: '18 months',
-    description: 'Eighteen-month payment — equivalent to 220k/month.',
-    promo: 'Free 4 months (pre-sale)',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
-  {
-    name: '24 Months',
-    price: 4800000,
-    period: '24 months',
-    description: 'Twenty-four month payment — equivalent to 200k/month.',
-    promo: 'Free 5 months (pre-sale)',
-    features: [
-      'Unlimited gym access',
-      'All fitness classes included',
-      'Private locker',
-      'Towel service',
-      'Air-conditioned workout rooms',
-      'Professional personal trainers',
-      'Free WiFi',
-      'Hot water / water heaters',
-    ],
-  },
+const membershipPlans = ref([])
+
+const defaultFeatures = [
+  'Unlimited gym access',
+  'All fitness classes included',
+  'Private locker',
+  'Towel service',
+  'Air-conditioned workout rooms',
+  'Professional personal trainers',
+  'Free WiFi',
+  'Hot water / water heaters',
 ]
+
+onMounted(async () => {
+  try {
+    const plans = await getMemberships()
+    membershipPlans.value = plans.map((p) => {
+      const rawPromos = p.active_promos || p.membershipPromos || p.membership_promos || p.promos || []
+      const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr) => {
+        const type = pr.type ?? pr.pivot?.type ?? null
+        const value = pr.value ?? pr.pivot?.value ?? pr.amount ?? null
+        let label = ''
+        if (type === 'percent') label = `${value}% off`
+        else if (type === 'fixed') label = `Rp ${new Intl.NumberFormat('id-ID').format(value)}`
+        else label = String(value ?? '')
+        return { ...pr, type, value, label }
+      })
+
+      if (!promos.length && rawPromos && Object.keys(rawPromos).length) {
+        console.debug('Unexpected promos shape for plan', p.id, rawPromos)
+      }
+
+      const promoLabel = promos.length ? promos[0].label : ''
+
+      const period = p.duration_in_days
+        ? p.duration_in_days % 30 === 0
+          ? `${p.duration_in_days / 30} month${p.duration_in_days / 30 > 1 ? 's' : ''}`
+          : `${p.duration_in_days} days`
+        : null
+
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        period: period,
+        description: p.gym?.name ? `${p.gym.name} plan` : 'Premium membership plan',
+        promo: promoLabel,
+        promos: promos,
+        features: defaultFeatures,
+      }
+    })
+  } catch (err) {
+    console.warn('Failed to load memberships', err)
+  }
+})
 
 const additionalPerks = [
   {
