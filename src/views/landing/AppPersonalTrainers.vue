@@ -180,7 +180,7 @@ const confirmDPPayment = (data: PaymentConfirm) => {
     />
 
     <!-- Stats Section -->
-    <StatsBlock :stats="stats" />
+    <!-- <StatsBlock :stats="stats" /> -->
 
     <!-- Private Training Packages -->
     <section class="relative overflow-hidden" style="margin-top: -1px">

@@ -260,7 +260,7 @@ const benefits = [
                 class="w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(230,33,41,0.1)]"
               >
                 <img
-                  src="/logo-gym-wtext.svg"
+                  src="/image.png"
                   alt="Arletta T-shirt"
                   class="w-3/4 h-3/4 object-contain"
                 />
