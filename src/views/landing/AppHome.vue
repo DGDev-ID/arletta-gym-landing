@@ -70,7 +70,7 @@ onUnmounted(() => {
       </button>
     </div>
     <img
-      src="/popup-promo.jpeg"
+      src="/popup-promo.svg"
       alt="Arletta Promo"
       class="block"
       style="max-height: 78vh; max-width: 88vw; width: auto; height: auto;"
