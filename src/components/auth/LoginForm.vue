@@ -20,8 +20,8 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    const { user, token } = await apiLogin(email.value, password.value)
-    isLoading.value = false
+  const { user } = await apiLogin(email.value, password.value)
+  isLoading.value = false
     toast.add({
       severity: 'success',
       summary: 'Login Successful',
@@ -29,17 +29,14 @@ const handleLogin = async () => {
       life: 3000,
     })
 
-    const role: 'member' | 'pt' = user.role === 'pt' ? 'pt' : 'member'
-    setUser(
-      {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`,
-      },
-      token,
-    )
+    const role: 'member' | 'pt' = (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt'
+    setUser({
+      id: Number(user.id),
+      name: String(user.name ?? ''),
+  email: String((user as { email?: string }).email ?? ''),
+      role,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
+    })
 
     router.push(role === 'pt' ? '/pt/profile' : '/member/profile')
   } catch (err) {

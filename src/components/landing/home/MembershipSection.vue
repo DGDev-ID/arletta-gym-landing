@@ -8,7 +8,18 @@ import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import PricingCard from '@/components/landing/membership/PricingCard.vue'
 import { getMemberships } from '@/services/membershipService'
 
-const membershipPlans = ref([])
+interface ProcessedPlan {
+  id: number | string | undefined
+  name: string
+  price: number | string | undefined
+  period: string | null
+  description: string
+  promo: string
+  promos: unknown[]
+  features: string[]
+}
+
+const membershipPlans = ref<ProcessedPlan[]>([])
 
 const defaultFeatures = [
   'Unlimited gym access',
@@ -21,44 +32,78 @@ const defaultFeatures = [
   'Hot water / water heaters',
 ]
 
+// Static pre-sale overlays for certain plans (months-based, with period-string fallback)
+const staticPresaleByMonths: Record<number, { promo?: string; description?: string }> = {
+  24: { promo: 'Free 5 months (pre-sale)', description: 'Twenty-four month payment — equivalent to 200k/month.' },
+  18: { promo: 'Free 4 months (pre-sale)', description: 'Eighteen-month payment — equivalent to 220k/month.' },
+  12: { promo: 'Free 3 months (pre-sale)', description: 'Annual payment — equivalent to 240k/month.' },
+  6: { promo: 'Free 2 months (pre-sale)', description: 'Six-month payment — equivalent to 260k/month.' },
+  3: { promo: 'Free 1 month (pre-sale)', description: 'Three-month payment — equivalent to 280k/month.' },
+  1: { promo: '', description: 'One month membership. Full access to facilities and all classes.' },
+}
+
+const staticPresale: Record<string, { promo?: string; description?: string } | undefined> = {
+  '24 months': staticPresaleByMonths[24],
+  '18 months': staticPresaleByMonths[18],
+  '12 months': staticPresaleByMonths[12],
+  '6 months': staticPresaleByMonths[6],
+  '3 months': staticPresaleByMonths[3],
+  '1 month': staticPresaleByMonths[1],
+}
+
 onMounted(async () => {
   try {
     const plans = await getMemberships()
     membershipPlans.value = plans.map((p) => {
-      const rawPromos = p.active_promos || p.membershipPromos || p.membership_promos || p.promos || []
+      const planRaw = p as Record<string, unknown>
+      const rawPromos =
+        (planRaw['active_promos'] as unknown) || (planRaw['membershipPromos'] as unknown) ||
+        (planRaw['membership_promos'] as unknown) || (planRaw['promos'] as unknown) || []
       const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr) => {
-        const type = pr.type ?? pr.pivot?.type ?? null
-        const value = pr.value ?? pr.pivot?.value ?? pr.amount ?? null
+        const promoObj = pr as Record<string, unknown>
+        const pivot = (promoObj['pivot'] as Record<string, unknown> | undefined) ?? undefined
+        const type = (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
+        const value = (promoObj['value'] as unknown) ?? (pivot && pivot['value']) ?? promoObj['amount'] ?? null
         let label = ''
         if (type === 'percent') label = `${value}% off`
-        else if (type === 'fixed') label = `Rp ${new Intl.NumberFormat('id-ID').format(value)}`
+        else if (type === 'fixed') label = `Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`
         else label = String(value ?? '')
-        return { ...pr, type, value, label }
+        return { ...(promoObj as object), type, value, label }
       })
 
       if (!promos.length && rawPromos && Object.keys(rawPromos).length) {
         console.debug('Unexpected promos shape for plan', p.id, rawPromos)
       }
 
-      const promoLabel = promos.length ? promos[0].label : ''
+      const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
 
-      const period = p.duration_in_days
-        ? p.duration_in_days % 30 === 0
-          ? `${p.duration_in_days / 30} month${p.duration_in_days / 30 > 1 ? 's' : ''}`
-          : `${p.duration_in_days} days`
+      const period = (planRaw['duration_in_days'] as number | undefined)
+        ? (planRaw['duration_in_days'] as number) % 30 === 0
+          ? `${(planRaw['duration_in_days'] as number) / 30} month${(planRaw['duration_in_days'] as number) / 30 > 1 ? 's' : ''}`
+          : `${planRaw['duration_in_days']} days`
         : null
 
+      // overlay static presale promo/description when available; prefer numeric months mapping
+      const durationDays = planRaw['duration_in_days'] as number | undefined
+      const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
+      const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
+
       return {
-        id: p.id,
-        name: p.name,
-        price: p.price,
+        id: planRaw['id'] as number | string | undefined,
+        name: String(planRaw['name'] ?? ''),
+        price: planRaw['price'] as number | string | undefined,
         period: period,
-        description: p.gym?.name ? `${p.gym.name} plan` : 'Premium membership plan',
-        promo: promoLabel,
-        promos: promos,
+        description:
+          overlay?.description ?? (planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
+            ? `${(planRaw['gym'] as Record<string, unknown>)['name']} plan`
+            : 'Premium membership plan'),
+        promo: String(overlay?.promo ?? promoLabel ?? ''),
+        promos: promos as unknown[],
         features: defaultFeatures,
       }
     })
+    // Reverse so shortest-duration plans appear first
+    membershipPlans.value = membershipPlans.value.slice().reverse()
   } catch (err) {
     console.warn('Failed to load memberships', err)
   }
