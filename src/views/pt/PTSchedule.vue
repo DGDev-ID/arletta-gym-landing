@@ -19,10 +19,10 @@ interface PTSession {
   className?: string
   date: string
   time: string
-  location?: string
-  type?: string
+  location: string
+  type: string
   clientAvatar?: string
-  status?: string
+  status: string
   participants?: number
   maxParticipants?: number
   notes?: string
