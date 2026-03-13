@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
+import { getTrainerMe, getTrainerSchedules, getTrainerClientsAll } from '@/services/trainerService'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
 import PTStatsSection from '@/components/pt/schedule/PTStatsSection.vue'
 import TabNavigation from '@/components/member/schedule/TabNavigation.vue'
@@ -11,6 +12,22 @@ import AddSessionModal from '@/components/pt/schedule/AddSessionModal.vue'
 import RescheduleModal from '@/components/pt/schedule/RescheduleModal.vue'
 
 const toast = useToast()
+
+interface PTSession {
+  id: number
+  clientName?: string
+  className?: string
+  date: string
+  time: string
+  location?: string
+  type?: string
+  clientAvatar?: string
+  status?: string
+  participants?: number
+  maxParticipants?: number
+  notes?: string
+  rating?: number
+}
 
 // Active tab
 const activeTab = ref('upcoming')
@@ -39,14 +56,8 @@ const selectedSessionForCancel = ref<{
   canCancel: boolean
 } | null>(null)
 
-// Members list (mock) - pulled from membership registry in real app
-const members = ref([
-  { id: 1, name: 'John Doe', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John' },
-  { id: 2, name: 'Sarah Smith', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
-  { id: 3, name: 'Mike Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MikeJ' },
-  { id: 4, name: 'Emily Brown', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily' },
-  { id: 5, name: 'David Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David' },
-])
+// Members dropdown (populated from API)
+const members = ref<Array<{ id: number; name: string; avatar: string }>>([])
 
 // New session form
 const newSession = ref({
@@ -58,114 +69,13 @@ const newSession = ref({
   notes: '',
 })
 
-// Mock upcoming sessions for trainer
-const upcomingSessions = ref([
-  {
-    id: 1,
-    type: 'pt-session',
-    clientName: 'John Doe',
-    clientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
-    date: '2026-01-28',
-    time: '09:00 - 10:00',
-    location: 'Weight Room',
-    status: 'confirmed',
-    notes: 'Focus on lower body strength',
-  },
-  {
-    id: 2,
-    type: 'class',
-    className: 'HIIT Burn',
-    date: '2026-01-28',
-    time: '11:00 - 11:45',
-    location: 'Studio A',
-    status: 'confirmed',
-    participants: 18,
-    maxParticipants: 20,
-  },
-  {
-    id: 3,
-    type: 'pt-session',
-    clientName: 'Sarah Smith',
-    clientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    date: '2026-01-28',
-    time: '14:00 - 15:00',
-    location: 'Private Studio',
-    status: 'confirmed',
-    notes: 'Post-injury rehabilitation',
-  },
-  {
-    id: 4,
-    type: 'class',
-    className: 'Core Strength',
-    date: '2026-01-29',
-    time: '10:00 - 10:45',
-    location: 'Studio B',
-    status: 'confirmed',
-    participants: 12,
-    maxParticipants: 15,
-  },
-  {
-    id: 5,
-    type: 'pt-session',
-    clientName: 'Mike Johnson',
-    clientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MikeJ',
-    date: '2026-01-29',
-    time: '16:00 - 17:00',
-    location: 'Weight Room',
-    status: 'confirmed',
-    notes: 'Initial assessment session',
-  },
-  {
-    id: 6,
-    type: 'pt-session',
-    clientName: 'Emily Brown',
-    clientAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
-    date: '2026-01-30',
-    time: '09:00 - 10:00',
-    location: 'Private Studio',
-    status: 'confirmed',
-    notes: 'Weight loss program - week 4',
-  },
-])
+// Upcoming sessions for trainer (fetched from API)
+const upcomingSessions = ref<PTSession[]>([])
+const upcomingLoading = ref(false)
 
-// Session history
-const sessionHistory = ref([
-  {
-    id: 101,
-    type: 'pt-session',
-    clientName: 'John Doe',
-    date: '2026-01-25',
-    time: '09:00 - 10:00',
-    status: 'completed',
-    rating: 5,
-  },
-  {
-    id: 102,
-    type: 'class',
-    className: 'HIIT Burn',
-    date: '2026-01-25',
-    time: '11:00 - 11:45',
-    status: 'completed',
-    participants: 20,
-  },
-  {
-    id: 103,
-    type: 'pt-session',
-    clientName: 'Sarah Smith',
-    date: '2026-01-24',
-    time: '14:00 - 15:00',
-    status: 'completed',
-    rating: 5,
-  },
-  {
-    id: 104,
-    type: 'pt-session',
-    clientName: 'Mike Johnson',
-    date: '2026-01-23',
-    time: '10:00 - 11:00',
-    status: 'cancelled',
-  },
-])
+// Session history (fetched from API)
+const sessionHistory = ref<PTSession[]>([])
+const historyLoading = ref(false)
 
 // Note: sessions are created as 'confirmed' by default. The previous "pending" flow
 // (confirm button) has been removed — trainers create confirmed sessions directly.
@@ -321,6 +231,62 @@ const tabs = [
   { key: 'upcoming', label: 'Upcoming', icon: 'pi-calendar' },
   { key: 'history', label: 'History', icon: 'pi-history' },
 ]
+
+// Fetch trainer schedules and map into upcoming/history lists
+onMounted(async () => {
+  try {
+    upcomingLoading.value = true
+    historyLoading.value = true
+    // get current trainer id
+    const trainer = await getTrainerMe()
+    const id = (trainer?.id ?? trainer?.trainer_id) as string | number | undefined
+    if (!id) return
+    // populate members dropdown from server
+    try {
+      const all = await getTrainerClientsAll()
+      members.value = (all || []).map((m: Record<string, unknown>) => ({
+        id: Number(m.id ?? m.member_id ?? 0),
+        name: String(m.name ?? m.full_name ?? m.fullName ?? 'Unknown'),
+        avatar: String(m.avatar ?? m.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(m.name ?? 'member'))}`),
+      }))
+    } catch (err) {
+      console.error('Failed to load members for AddSessionModal', err)
+    }
+
+    const list = await getTrainerSchedules(id)
+
+    const mapped = (list || []).map((s: Record<string, unknown>) => {
+      const type = (s.type as string) || (s.kind as string) || (s.session_type as string) || 'pt-session'
+      const date = String(s.date ?? s.start_date ?? s.session_date ?? '')
+      const start = String(s.start_time ?? s.time ?? '')
+      const end = String(s.end_time ?? '')
+      const time = end ? `${start} - ${end}` : start
+      return {
+        id: Number(s.id ?? s.schedule_id ?? 0),
+        type: type === 'class' || type === 'group' ? 'class' : 'pt-session',
+        className: String(s.class_name ?? s.name ?? ''),
+        clientName: String(s.client_name ?? s.client ?? s.full_name ?? ''),
+        clientAvatar: String(s.client_avatar ?? s.avatar ?? s.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.client_name ?? 'client'))}`),
+        date,
+        time,
+        location: String(s.location ?? s.room ?? s.venue ?? ''),
+        status: String(s.status ?? s.state ?? 'confirmed'),
+        participants: Number(s.participants ?? s.attendees ?? 0),
+        maxParticipants: Number(s.max_participants ?? s.capacity ?? 0),
+        notes: String(s.notes ?? s.note ?? ''),
+        rating: Number(s.rating ?? 0),
+      }
+    })
+
+    upcomingSessions.value = mapped.filter((m) => !['completed', 'cancelled'].includes(m.status))
+    sessionHistory.value = mapped.filter((m) => ['completed', 'cancelled'].includes(m.status))
+  } catch (err) {
+    console.error('Failed to load trainer schedules', err)
+  } finally {
+    upcomingLoading.value = false
+    historyLoading.value = false
+  }
+})
 </script>
 
 <template>
@@ -364,15 +330,18 @@ const tabs = [
 
     <!-- Add PT Session Modal -->
     <AddSessionModal
-      v-model:visible="showAddSessionModal"
-      v-model:new-session="newSession"
+      :visible="showAddSessionModal"
+      @update:visible="(v) => (showAddSessionModal = v)"
+      :new-session="newSession"
+      @update:new-session="(v) => (newSession = v)"
       :members="members"
       @add="addNewSession"
     />
 
     <!-- Cancel Confirm Modal -->
     <CancelConfirmModal
-      v-model:visible="showCancelModal"
+      :visible="showCancelModal"
+      @update:visible="(v) => (showCancelModal = v)"
       :booking-info="selectedSessionForCancel"
       user-role="pt"
       @confirm="confirmCancel"
@@ -380,7 +349,8 @@ const tabs = [
 
     <!-- Reschedule Modal -->
     <RescheduleModal
-      v-model:visible="showRescheduleModal"
+      :visible="showRescheduleModal"
+      @update:visible="(v) => (showRescheduleModal = v)"
       :session="selectedSessionForReschedule"
       @confirm="confirmReschedule"
     />

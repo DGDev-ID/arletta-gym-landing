@@ -22,7 +22,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'confirm'): void
+  (e: 'confirm', payload?: { verification?: string; reason?: string }): void
 }>()
 
 const dialogVisible = computed({
@@ -81,15 +81,21 @@ watch(
   },
 )
 
+// Local inputs for verification and optional reason
+import { ref } from 'vue'
+const verification = ref('')
+const reason = ref('')
+
 const handleConfirm = () => {
-  emit('confirm')
+  emit('confirm', { verification: verification.value, reason: reason.value })
   emit('update:visible', false)
 }
 </script>
 
 <template>
   <Dialog
-    v-model:visible="dialogVisible"
+    :visible="dialogVisible"
+    @update:visible="(v) => (dialogVisible = v)"
     modal
     :header="headerText"
     :style="{ width: '450px' }"
@@ -185,7 +191,23 @@ const handleConfirm = () => {
         </div>
       </div>
 
-      <!-- removed double-verification block (single-step confirm now) -->
+      <!-- Double-verification: require typing CANCEL for regular class cancels -->
+      <div v-if="!isWaitlist && !isPTSession" class="space-y-2">
+        <label class="text-sm text-(--text-secondary)">Type <strong>CANCEL</strong> to confirm cancellation</label>
+        <input
+          v-model="verification"
+          type="text"
+          class="w-full bg-transparent border border-white/10 rounded px-3 py-2 text-white"
+          placeholder="Type CANCEL to confirm"
+        />
+        <label class="text-sm text-(--text-secondary)">Reason (optional)</label>
+        <input
+          v-model="reason"
+          type="text"
+          class="w-full bg-transparent border border-white/10 rounded px-3 py-2 text-white"
+          placeholder="Optional reason for cancellation"
+        />
+      </div>
     </div>
 
     <template #footer>
@@ -194,6 +216,7 @@ const handleConfirm = () => {
 
         <Button
           v-if="!cannotCancelReason"
+          :disabled="(!isWaitlist && !isPTSession) && verification.toUpperCase() !== 'CANCEL'"
           label="Yes, Cancel"
           severity="danger"
           icon="pi pi-times"

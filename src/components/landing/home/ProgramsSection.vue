@@ -1,32 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getClasses } from '@/services/scheduleService'
 
-const programs = ref([
-  {
-    title: 'Strength Training',
-    description: 'Build muscle and increase power',
-    icon: 'pi-bolt',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop',
-  },
-  {
-    title: 'Cardio Blast',
-    description: 'High-intensity heart-pumping workouts',
-    icon: 'pi-heart',
-    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
-  },
-  {
-    title: 'Yoga & Flexibility',
-    description: 'Mind-body connection and balance',
-    icon: 'pi-sun',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-  },
-  {
-    title: 'CrossFit',
-    description: 'Functional fitness at high intensity',
-    icon: 'pi-flag',
-    image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&h=300&fit=crop',
-  },
-])
+const programs = ref<Array<{ title: string; description: string; icon?: string; image?: string }>>([])
+const loading = ref(false)
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const list = await getClasses()
+    // map API shape to UI shape with sensible fallbacks
+    programs.value = (list || []).map((c: Record<string, unknown>) => ({
+      title: String(c.name ?? c.title ?? 'Program'),
+      description: String(c.description ?? c.summary ?? ''),
+      icon: String(c.icon ?? 'pi-dumbbell'),
+      image: String((Array.isArray(c.images) && c.images.length && c.images[0]) ?? c.image ?? c.avatar ?? '/placeholder-class.jpg'),
+    }))
+  } catch (err) {
+    console.error('Failed to load class programs', err)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
@@ -46,12 +41,13 @@ const programs = ref([
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div
-          v-for="program in programs"
-          :key="program.title"
-          v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
-          class="dark-card overflow-hidden group cursor-pointer"
-        >
+            <div v-if="loading" class="col-span-full text-center text-(--text-muted)">Loading programs...</div>
+            <div
+              v-for="program in programs"
+              :key="program.title"
+              v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
+              class="dark-card overflow-hidden group cursor-pointer"
+            >
           <div class="relative h-48 overflow-hidden">
             <img
               :src="program.image"

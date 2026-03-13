@@ -55,7 +55,8 @@ const openZoom = () => {
 
 <template>
   <Dialog
-    v-model:visible="dialogVisible"
+    :visible="dialogVisible"
+    @update:visible="(v) => (dialogVisible = v)"
     modal
     header="Join Waiting List"
     :style="{ width: '500px' }"

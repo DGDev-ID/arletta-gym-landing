@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getTrainers } from '@/services/trainerService'
 
-const trainers = ref([
-  {
-    name: 'Sandy Wibowo',
-    specialty: 'Prepare for body contest, Fat loss, Muscle gain',
-    image: '/sandy.svg',
-  },
-  {
-    name: 'Rita Lestari',
-    specialty: 'Weight loss, Fat loss, Body shaping',
-    image: '/rita.svg',
-  },
-])
+const trainers = ref<Array<{ name: string; specialty?: string; image?: string }>>([])
+const loading = ref(false)
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const list = await getTrainers()
+    trainers.value = (list || []).map((t: Record<string, unknown>) => ({
+      name: String(t?.name ?? t?.full_name ?? t?.display_name ?? 'Trainer'),
+      specialty: String(t?.specialty ?? ((t['userDetail'] as Record<string, unknown> | undefined)?.['specialty']) ?? ''),
+      image: String((Array.isArray(t?.images) && (t['images'] as Array<unknown>).length && (t['images'] as Array<unknown>)[0]) ?? t?.avatar ?? t?.image ?? '/placeholder-trainer.jpg'),
+    }))
+  } catch (err) {
+    console.error('Failed to load trainers', err)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>

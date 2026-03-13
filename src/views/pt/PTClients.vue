@@ -1,9 +1,26 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import ClientsStatsSection from '@/components/pt/clients/ClientsStatsSection.vue'
 import ClientsListSection from '@/components/pt/clients/ClientsListSection.vue'
+import { getTrainerMe, getTrainerClients, getTrainerClientsAll } from '@/services/trainerService'
+
+interface ClientLocal {
+  id: number
+  name: string
+  avatar: string
+  email: string
+  phone: string
+  membershipType: string
+  joinDate: string
+  lastSession: string
+  totalSessions: number
+  currentGoal: string
+  progress: number
+  status: string
+  nextSession: string | null
+}
 
 const router = useRouter()
 
@@ -13,228 +30,59 @@ const searchQuery = ref('')
 // Active tab: 'my-clients' or 'all-members'
 const activeClientTab = ref<'my-clients' | 'all-members'>('my-clients')
 
-// Mock clients data (PT's own clients)
-const clients = ref([
-  {
-    id: 1,
-    name: 'John Doe',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
-    email: 'john.doe@email.com',
-    phone: '+62 812 3456 7890',
-    membershipType: 'Premium',
-    joinDate: '2025-06-15',
-    lastSession: '2026-01-25',
-    totalSessions: 48,
-    currentGoal: 'Muscle Building',
-    progress: 75,
-    status: 'active',
-    nextSession: '2026-01-28 09:00',
-  },
-  {
-    id: 2,
-    name: 'Sarah Smith',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    email: 'sarah.smith@email.com',
-    phone: '+62 813 4567 8901',
-    membershipType: 'Premium',
-    joinDate: '2025-09-01',
-    lastSession: '2026-01-24',
-    totalSessions: 32,
-    currentGoal: 'Post-injury Rehabilitation',
-    progress: 60,
-    status: 'active',
-    nextSession: '2026-01-28 14:00',
-  },
-  {
-    id: 3,
-    name: 'Mike Johnson',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MikeJ',
-    email: 'mike.j@email.com',
-    phone: '+62 814 5678 9012',
-    membershipType: 'Standard',
-    joinDate: '2026-01-10',
-    lastSession: '2026-01-23',
-    totalSessions: 4,
-    currentGoal: 'Weight Loss',
-    progress: 15,
-    status: 'active',
-    nextSession: '2026-01-29 16:00',
-  },
-  {
-    id: 4,
-    name: 'Emily Brown',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
-    email: 'emily.b@email.com',
-    phone: '+62 815 6789 0123',
-    membershipType: 'Premium',
-    joinDate: '2025-11-20',
-    lastSession: '2026-01-22',
-    totalSessions: 24,
-    currentGoal: 'Weight Loss Program',
-    progress: 45,
-    status: 'active',
-    nextSession: '2026-01-30 09:00',
-  },
-  {
-    id: 5,
-    name: 'David Chen',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-    email: 'david.chen@email.com',
-    phone: '+62 816 7890 1234',
-    membershipType: 'Premium',
-    joinDate: '2025-03-10',
-    lastSession: '2026-01-20',
-    totalSessions: 86,
-    currentGoal: 'Athletic Performance',
-    progress: 90,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 6,
-    name: 'Lisa Park',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LisaP',
-    email: 'lisa.park@email.com',
-    phone: '+62 817 8901 2345',
-    membershipType: 'Standard',
-    joinDate: '2025-08-05',
-    lastSession: '2025-12-15',
-    totalSessions: 16,
-    currentGoal: 'General Fitness',
-    progress: 30,
-    status: 'inactive',
-    nextSession: null,
-  },
-])
+// PT's clients (fetched from API)
+const clients = ref<ClientLocal[]>([])
+const clientsLoading = ref(false)
 
 const filteredClients = computed(() => {
-  const source = activeClientTab.value === 'my-clients' ? clients.value : allMembers.value
-  if (!searchQuery.value) return source
+  if (activeClientTab.value === 'my-clients') {
+    const source = clients.value
+    if (!searchQuery.value) return source
+    const query = searchQuery.value.toLowerCase()
+    return source.filter((client) =>
+      String(client.name).toLowerCase().includes(query) ||
+      String(client.email).toLowerCase().includes(query) ||
+      String(client.currentGoal).toLowerCase().includes(query),
+    )
+  }
+
+  // all-members tab: map mock members into ClientLocal shape
+  const mapped = allMembers.value.map((m: Record<string, unknown>) => ({
+    id: Number(m.id ?? 0),
+    name: String(m.name ?? 'Unknown'),
+    avatar: String(m.avatar ?? ''),
+    email: String(m.email ?? ''),
+    phone: String(m.phone ?? ''),
+    membershipType: String(m.membershipType ?? ''),
+    joinDate: String(m.joinDate ?? ''),
+    lastSession: String(m.lastSession ?? ''),
+    totalSessions: Number(m.totalSessions ?? 0),
+    currentGoal: String(m.currentGoal ?? ''),
+    progress: Number(m.progress ?? 0),
+    status: String(m.status ?? 'active'),
+  nextSession: (m['nextSession'] as string) ?? null,
+  })) as ClientLocal[]
+
+  if (!searchQuery.value) return mapped
   const query = searchQuery.value.toLowerCase()
-  return source.filter(
-    (client) =>
-      client.name.toLowerCase().includes(query) ||
-      client.email.toLowerCase().includes(query) ||
-      client.currentGoal.toLowerCase().includes(query),
+  return mapped.filter((client) =>
+    String(client.name).toLowerCase().includes(query) ||
+    String(client.email).toLowerCase().includes(query) ||
+    String(client.currentGoal).toLowerCase().includes(query),
   )
 })
 
-// All gym members (not tied to this PT's class/program)
-const allMembers = ref([
-  {
-    id: 101,
-    name: 'Amanda Putri',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Amanda',
-    email: 'amanda.putri@email.com',
-    phone: '+62 818 1234 5678',
-    membershipType: 'Premium',
-    joinDate: '2025-04-10',
-    lastSession: '2026-02-20',
-    totalSessions: 0,
-    currentGoal: 'Weight Loss',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 102,
-    name: 'Budi Santoso',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi',
-    email: 'budi.s@email.com',
-    phone: '+62 819 2345 6789',
-    membershipType: 'Standard',
-    joinDate: '2025-07-15',
-    lastSession: '2026-02-18',
-    totalSessions: 0,
-    currentGoal: 'General Fitness',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 103,
-    name: 'Citra Dewi',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Citra',
-    email: 'citra.dewi@email.com',
-    phone: '+62 820 3456 7890',
-    membershipType: 'Premium',
-    joinDate: '2025-09-01',
-    lastSession: '2026-02-22',
-    totalSessions: 0,
-    currentGoal: 'Muscle Toning',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 104,
-    name: 'Dimas Pratama',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dimas',
-    email: 'dimas.p@email.com',
-    phone: '+62 821 4567 8901',
-    membershipType: 'Standard',
-    joinDate: '2026-01-05',
-    lastSession: '2026-02-15',
-    totalSessions: 0,
-    currentGoal: 'Bodybuilding',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 105,
-    name: 'Ella Rahayu',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ella',
-    email: 'ella.r@email.com',
-    phone: '+62 822 5678 9012',
-    membershipType: 'Premium',
-    joinDate: '2025-11-20',
-    lastSession: '2026-01-10',
-    totalSessions: 0,
-    currentGoal: 'Cardio Endurance',
-    progress: 0,
-    status: 'inactive',
-    nextSession: null,
-  },
-  {
-    id: 106,
-    name: 'Fajar Hidayat',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fajar',
-    email: 'fajar.h@email.com',
-    phone: '+62 823 6789 0123',
-    membershipType: 'Premium',
-    joinDate: '2025-06-12',
-    lastSession: '2026-02-25',
-    totalSessions: 0,
-    currentGoal: 'Flexibility',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-  {
-    id: 107,
-    name: 'Gita Puspita',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Gita',
-    email: 'gita.p@email.com',
-    phone: '+62 824 7890 1234',
-    membershipType: 'Standard',
-    joinDate: '2026-02-01',
-    lastSession: null,
-    totalSessions: 0,
-    currentGoal: 'New Member',
-    progress: 0,
-    status: 'active',
-    nextSession: null,
-  },
-])
+// All gym members (not tied to this PT's class/program) - fetched from server
+const allMembers = ref<ClientLocal[]>([])
+const allMembersLoading = ref(false)
 
 const activeClients = computed(() => clients.value.filter((c) => c.status === 'active').length)
 // inactiveClients count is not used in the UI; remove to avoid unused-variable errors
-const totalSessions = computed(() => clients.value.reduce((sum, c) => sum + c.totalSessions, 0))
+const totalSessions = computed(() => clients.value.reduce((sum, c) => sum + (c.totalSessions || 0), 0))
 
 const avgProgress = computed(() => {
   if (clients.value.length === 0) return 0
-  const total = clients.value.reduce((sum, c) => sum + c.progress, 0)
+  const total = clients.value.reduce((sum, c) => sum + (c.progress || 0), 0)
   return Math.round(total / clients.value.length)
 })
 
@@ -243,7 +91,7 @@ const newClientsThisMonth = computed(() => {
   const currentMonth = now.getMonth()
   const currentYear = now.getFullYear()
   return clients.value.filter((c) => {
-    const joinDate = new Date(c.joinDate)
+    const joinDate = new Date(String(c.joinDate))
     return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear
   }).length
 })
@@ -252,6 +100,63 @@ const viewClientDetails = (clientId: number) => {
   // In real app, navigate to client detail page
   router.push(`/pt/clients/${clientId}`)
 }
+
+onMounted(async () => {
+  // Fetch trainer id (current PT) and their clients; also fetch all members
+  try {
+    clientsLoading.value = true
+    allMembersLoading.value = true
+
+    const trainer = await getTrainerMe()
+    const idVal = (trainer?.id ?? trainer?.trainer_id) as unknown as string | number | undefined
+    if (idVal !== undefined && idVal !== null) {
+      const list = await getTrainerClients(idVal)
+      clients.value = (list || []).map((c: Record<string, unknown>) => ({
+        id: Number(c.id ?? c.client_id ?? 0),
+        name: String(c.name ?? c.full_name ?? 'Unknown'),
+        avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'client'))}`),
+        email: String(c.email ?? c.contact_email ?? ''),
+        phone: String(c.phone ?? c.contact_phone ?? ''),
+        membershipType: String(c.membership_type ?? c.membershipType ?? 'Standard'),
+        joinDate: String(c.join_date ?? c.joined_at ?? ''),
+        lastSession: String(c.last_session ?? c.last_session_at ?? ''),
+        totalSessions: Number(c.total_sessions ?? c.sessions_count ?? 0),
+        currentGoal: String(c.current_goal ?? c.goal ?? ''),
+        progress: Number(c.progress ?? c.completion ?? 0),
+        status: String(c.status ?? ((c.active as unknown) ? 'active' : 'inactive')),
+        nextSession: (c.next_session ?? c.upcoming_session ?? null) as string | null,
+      }))
+    }
+
+    // Fetch the 'all members' list from server endpoint
+    try {
+      const all = await getTrainerClientsAll()
+      allMembers.value = (all || []).map((c: Record<string, unknown>) => ({
+        id: Number(c.id ?? c.member_id ?? 0),
+        name: String(c.name ?? c.full_name ?? 'Unknown'),
+        avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'member'))}`),
+        email: String(c.email ?? c.contact_email ?? ''),
+        phone: String(c.phone ?? c.contact_phone ?? ''),
+        membershipType: String(c.membership_type ?? c.membershipType ?? 'Standard'),
+        joinDate: String(c.join_date ?? c.joined_at ?? ''),
+        lastSession: String(c.last_session ?? c.last_session_at ?? ''),
+        totalSessions: Number(c.total_sessions ?? c.sessions_count ?? 0),
+        currentGoal: String(c.current_goal ?? c.goal ?? ''),
+        progress: Number(c.progress ?? c.completion ?? 0),
+        status: String(c.status ?? ((c.active as unknown) ? 'active' : 'inactive')),
+        nextSession: (c.next_session ?? c.upcoming_session ?? null) as string | null,
+      }))
+    } catch (err) {
+      console.error('Failed to load all members', err)
+    }
+  } catch (err) {
+    // swallow for now; UI will show empty state. Could add toast later.
+    console.error('Failed to load PT clients', err)
+  } finally {
+    clientsLoading.value = false
+    allMembersLoading.value = false
+  }
+})
 </script>
 
 <template>

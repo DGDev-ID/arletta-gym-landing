@@ -187,7 +187,8 @@ const joinWaitingList = () => {
 
     <!-- Booking Confirmation Modal -->
     <BookingConfirmModal
-      v-model:visible="showBookingModal"
+      :visible="showBookingModal"
+      @update:visible="(v) => (showBookingModal = v)"
       :classInfo="selectedClassForBooking"
       :hasTimeConflict="false"
       @confirm="confirmBooking"

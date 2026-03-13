@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
@@ -16,7 +16,7 @@ import {
   upcomingClasses as storeUpcomingClasses,
   upcomingWaitingList,
   hasTimeConflict,
-  bookClass as storeBookClass,
+  // bookClass as storeBookClass, (replaced with API calls)
   cancelBooking,
   confirmPTSession,
   canCancelClass,
@@ -24,7 +24,9 @@ import {
   completeSession,
   classHistory,
   type AvailableClass,
+  loadBookingsFromApi,
 } from '@/stores/booking'
+import { createBooking, joinWaitlist, cancelBooking as apiCancelBooking, rescheduleBooking as apiRescheduleBooking } from '@/services/bookingService'
 
 const router = useRouter()
 const toast = useToast()
@@ -59,7 +61,10 @@ const selectedBookingForCancel = ref<{
   type: 'class' | 'pt-session' | 'waitlist'
   canCancel: boolean
 } | null>(null)
+const rescheduleTargetBookingId = ref<number | null>(null)
 const bookingHasConflict = ref(false)
+const bookingSubmitting = ref(false)
+const waitlistSubmitting = ref(false)
 
 // Computed classes from store
 const upcomingClasses = computed(() => storeUpcomingClasses.value)
@@ -134,6 +139,15 @@ const availableClasses = ref<AvailableClass[]>([
   },
 ])
 
+onMounted(async () => {
+  try {
+    await loadBookingsFromApi()
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    toast.add({ severity: 'error', summary: 'Bookings load failed', detail: msg, life: 5000 })
+  }
+})
+
 // Open booking confirmation modal
 const openBookingModal = (classItem: AvailableClass) => {
   selectedClassForBooking.value = {
@@ -164,43 +178,40 @@ const openBookingModal = (classItem: AvailableClass) => {
   showBookingModal.value = true
 }
 
-// Confirm booking
-const confirmBooking = () => {
-  if (selectedClassForBooking.value) {
-    const classItem = availableClasses.value.find((c) => c.id === selectedClassForBooking.value?.id)
-    if (classItem) {
-      storeBookClass(classItem, classItem.spotsLeft > 0)
-      // Remove from available classes list (mock behavior)
-      if (classItem.spotsLeft > 0) {
-        classItem.spotsLeft--
-      }
-      toast.add({
-        severity: 'success',
-        summary: 'Booking Confirmed',
-        detail: `You have successfully booked ${selectedClassForBooking.value.name}.`,
-        life: 3000,
-      })
-    }
+// Join waiting list (call API)
+const joinWaitingList = async () => {
+  if (!selectedClassForBooking.value) {
+    showBookingModal.value = false
+    showOnlineClassModal.value = false
+    return
   }
-  showBookingModal.value = false
-}
 
-// Join waiting list
-const joinWaitingList = () => {
-  if (selectedClassForBooking.value) {
-    const classItem = availableClasses.value.find((c) => c.id === selectedClassForBooking.value?.id)
-    if (classItem) {
-      storeBookClass(classItem, false)
-      toast.add({
-        severity: 'success',
-        summary: 'Joined Waitlist',
-        detail: `You've been added to the waitlist for ${selectedClassForBooking.value.name}.`,
-        life: 3000,
-      })
-    }
+  const classItem = availableClasses.value.find((c) => c.id === selectedClassForBooking.value?.id)
+  if (!classItem) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Class not found', life: 3000 })
+    showBookingModal.value = false
+    showOnlineClassModal.value = false
+    return
   }
-  showBookingModal.value = false
-  showOnlineClassModal.value = false
+
+  waitlistSubmitting.value = true
+  try {
+    await joinWaitlist(classItem.id)
+    await loadBookingsFromApi()
+    toast.add({
+      severity: 'success',
+      summary: 'Joined Waitlist',
+      detail: `You've been added to the waitlist for ${selectedClassForBooking.value.name}.`,
+      life: 3000,
+    })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Waitlist failed', detail: message, life: 5000 })
+  } finally {
+    waitlistSubmitting.value = false
+    showBookingModal.value = false
+    showOnlineClassModal.value = false
+  }
 }
 
 // Join online class (Zoom)
@@ -261,26 +272,69 @@ const openCancelModal = (session: {
   showCancelModal.value = true
 }
 
-// Confirm cancel
-const confirmCancel = () => {
-  if (selectedBookingForCancel.value) {
-    const isWaitlist = selectedBookingForCancel.value.type === 'waitlist'
-    const isPT = selectedBookingForCancel.value.type === 'pt-session'
-    if (isPT) {
-      cancelPTSession(selectedBookingForCancel.value.id)
+// Open reschedule flow: open booking modal to pick a new class
+const openReschedule = (session: { id: number; name: string }) => {
+  rescheduleTargetBookingId.value = session.id
+  // show booking modal to pick a new class (reuse booking confirm modal)
+  showBookingModal.value = true
+}
+
+// Confirm cancel (accepts payload from modal: { verification, reason })
+const confirmCancel = async (payload?: { verification?: string; reason?: string }) => {
+  if (!selectedBookingForCancel.value) {
+    showCancelModal.value = false
+    return
+  }
+
+  const isWaitlist = selectedBookingForCancel.value.type === 'waitlist'
+  const isPT = selectedBookingForCancel.value.type === 'pt-session'
+
+  if (isPT) {
+    // local PT cancel behavior
+    cancelPTSession(selectedBookingForCancel.value.id)
+    toast.add({ severity: 'success', summary: 'PT Session Cancelled', detail: `PT session ${selectedBookingForCancel.value.name} cancelled.`, life: 3000 })
+    showCancelModal.value = false
+    return
+  }
+
+  if (isWaitlist) {
+    // No backend endpoint for waitlist removal exposed; fall back to local store change
+    const ok = cancelBooking(selectedBookingForCancel.value.id, true)
+    if (ok) {
+      toast.add({
+        severity: 'success',
+        summary: 'Left Waitlist',
+        detail: `You have been removed from the waitlist for ${selectedBookingForCancel.value.name}.`,
+        life: 3000,
+      })
     } else {
-      cancelBooking(selectedBookingForCancel.value.id, isWaitlist)
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to leave waitlist', life: 3000 })
     }
+    showCancelModal.value = false
+    return
+  }
+
+  // Regular booking cancellation -> call API
+  try {
+    const verifier = String(payload?.verification ?? '')
+    const reason = String(payload?.reason ?? '')
+    await apiCancelBooking(selectedBookingForCancel.value.id, { verification: verifier, reason })
+
+    // refresh store
+    await loadBookingsFromApi()
+
     toast.add({
       severity: 'success',
-      summary: isWaitlist ? 'Left Waitlist' : 'Class Cancelled',
-      detail: isWaitlist
-        ? `You have been removed from the waitlist for ${selectedBookingForCancel.value.name}.`
-        : `Your booking for ${selectedBookingForCancel.value.name} has been cancelled.`,
+      summary: 'Class Cancelled',
+      detail: `Your booking for ${selectedBookingForCancel.value.name} has been cancelled.`,
       life: 3000,
     })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Cancel failed', detail: message, life: 5000 })
+  } finally {
+    showCancelModal.value = false
   }
-  showCancelModal.value = false
 }
 
 // Member confirms a PT session request
@@ -300,6 +354,36 @@ const confirmPT = (session: { id: number; name: string }) => {
       detail: 'Unable to confirm session',
       life: 3000,
     })
+  }
+}
+
+// Confirm booking (call API)
+const confirmBooking = async () => {
+  if (!selectedClassForBooking.value) {
+    showBookingModal.value = false
+    showOnlineClassModal.value = false
+    return
+  }
+
+  bookingSubmitting.value = true
+  try {
+    const wasReschedule = Boolean(rescheduleTargetBookingId.value)
+    if (wasReschedule && rescheduleTargetBookingId.value) {
+      await apiRescheduleBooking(rescheduleTargetBookingId.value, { schedule_id: selectedClassForBooking.value.id })
+    } else {
+      await createBooking({ schedule_id: selectedClassForBooking.value.id })
+    }
+    await loadBookingsFromApi()
+    toast.add({ severity: 'success', summary: wasReschedule ? 'Rescheduled' : 'Booked', detail: `You've ${wasReschedule ? 'rescheduled to' : 'booked'} ${selectedClassForBooking.value.name}.`, life: 3000 })
+    // clear target after success
+    rescheduleTargetBookingId.value = null
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Booking failed', detail: message, life: 5000 })
+  } finally {
+    bookingSubmitting.value = false
+    showBookingModal.value = false
+    showOnlineClassModal.value = false
   }
 }
 
@@ -341,7 +425,6 @@ const sweepMissedSessions = () => {
 }
 
 // Run sweep on mount
-import { onMounted } from 'vue'
 onMounted(() => {
   sweepMissedSessions()
 })
@@ -413,6 +496,7 @@ const tabs = [
         @cancel="openCancelModal"
         @confirm-pt="confirmPT"
         @check-in="handleCheckIn"
+        @reschedule="openReschedule"
       />
 
       <BookTab
@@ -433,7 +517,8 @@ const tabs = [
 
     <!-- Booking Confirm Modal -->
     <BookingConfirmModal
-      v-model:visible="showBookingModal"
+      :visible="showBookingModal"
+      @update:visible="(v) => (showBookingModal = v)"
       :classInfo="selectedClassForBooking"
       :hasTimeConflict="bookingHasConflict"
       @confirm="confirmBooking"
@@ -442,7 +527,8 @@ const tabs = [
 
     <!-- Cancel Confirm Modal -->
     <CancelConfirmModal
-      v-model:visible="showCancelModal"
+      :visible="showCancelModal"
+      @update:visible="(v) => (showCancelModal = v)"
       :bookingInfo="selectedBookingForCancel"
       userRole="member"
       @confirm="confirmCancel"
@@ -450,7 +536,8 @@ const tabs = [
 
     <!-- Online Class Modal (when class is full) -->
     <OnlineClassModal
-      v-model:visible="showOnlineClassModal"
+      :visible="showOnlineClassModal"
+      @update:visible="(v) => (showOnlineClassModal = v)"
       :classInfo="selectedClassForBooking"
       @join-waitlist="joinWaitlistFromOnline"
     />

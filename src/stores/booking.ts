@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import bookingService from '@/services/bookingService'
 
 // Types
 export interface BookedClass {
@@ -442,3 +443,46 @@ export const upcomingWaitingList = computed(() => {
 
 // Export refs for direct access
 export { bookedClasses, waitingList, ptSessions, classHistory }
+
+// Load bookings from backend and populate store refs
+export async function loadBookingsFromApi(params?: Record<string, unknown>) {
+  const remote = await bookingService.getBookings(params)
+
+  // reset current lists
+  bookedClasses.value = []
+  waitingList.value = []
+  ptSessions.value = []
+
+  if (!Array.isArray(remote)) return
+
+  remote.forEach((b: unknown) => {
+    const booking = (b ?? {}) as Record<string, unknown>
+    const s = (booking.schedule ?? {}) as Record<string, unknown>
+    const start = String(s.start_time ?? '')
+    const end = String(s.end_time ?? '')
+    const time = start && end ? `${start} - ${end}` : start
+
+    const status = String(booking.status ?? 'confirmed')
+
+    const item: BookedClass = {
+      id: Number(booking.id ?? 0),
+      classId: Number(s.id ?? 0),
+      name: String(s.class_name ?? ''),
+      trainer: String(s.trainer_name ?? ''),
+      trainerAvatar: s.trainer_name ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}` : '',
+      date: String(booking.date ?? s.date ?? ''),
+      time: time,
+      location: String(s.location ?? ''),
+      type: 'class',
+      status: (status as unknown) as BookedClass['status'],
+      bookedAt: String(booking.created_at ?? ''),
+      canCancel: status === 'confirmed' ? canCancelClass(String(s.date ?? ''), time) : false,
+    }
+
+    if (item.status === 'waitlist') {
+      waitingList.value.push(item)
+    } else {
+      bookedClasses.value.push(item)
+    }
+  })
+}

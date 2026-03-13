@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import HeroTrainers from '@/components/landing/trainers/HeroTrainers.vue'
@@ -12,56 +12,57 @@ import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import DPPaymentModal from '@/components/booking/DPPaymentModal.vue'
 import TrainerSelectorDialog from '@/components/landing/trainers/TrainerSelector.vue'
 import authState from '@/stores/auth'
+import { getTrainers } from '@/services/trainerService'
 
 const router = useRouter()
 const toast = useToast()
 const goToSignUp = () => router.push('/signup')
 
-const trainers = [
-  {
-    id: 1,
-    name: 'Sandy Wibowo',
-    role: 'Senior Personal Trainer',
-    specializations: [
-      'Prepare for body contest',
-      'Fat loss',
-      'Muscle gain',
-      'Weight gain',
-      'Functional Training',
-      'Female Fitness',
-      'HIIT',
-      'Sport performance',
-      'Endurance',
-      'Body shaping',
-    ],
-    experience: '7 years',
-    certifications: [
-      'Personal Trainer Foundation',
-      'First Aid Training Level 1',
-      'Female Fitness Specialist',
-      'Equalizer Specialist',
-      'Assisted Stretching',
-    ],
-    bio: 'Sandy specializes in competition preparation, body shaping, and performance training with a focus on safe progressive programming.',
-    image: '/sandy.svg',
-    instagram: '@sandy_pt',
-    rating: 4.9,
-    clients: 220,
-  },
-  {
-    id: 2,
-    name: 'Rita Lestari',
-    role: 'Personal Trainer',
-    specializations: ['Weight loss', 'Fat loss', 'Body shaping'],
-    experience: '5 years',
-    certifications: ['Max Fitness Academy'],
-    bio: 'Rita focuses on evidence-based weight loss and body shaping programs tailored for lasting results.',
-    image: '/rita.svg',
-    instagram: '@rita_fit',
-    rating: 4.8,
-    clients: 140,
-  },
-]
+type Trainer = {
+  id: number
+  name: string
+  image: string
+  role: string
+  rating: number
+  clients: number
+  specializations: string[]
+  bio: string
+  experience: string
+  certifications: string[]
+  instagram: string
+}
+
+const trainers = ref<Trainer[]>([])
+const loadingTrainers = ref(false)
+const trainersError = ref<string | null>(null)
+
+onMounted(async () => {
+  loadingTrainers.value = true
+  try {
+    const data = await getTrainers()
+    const list = Array.isArray(data) ? data : []
+    // map server trainer shape to UI Trainer shape with sensible defaults
+    trainers.value = list.map((t) => ({
+      id: Number((t && (t.id ?? 0)) ?? 0),
+      name: String((t && t.name) ?? 'Unknown'),
+      image: Array.isArray(t?.images) && t.images.length ? String(t.images[0]) : String((t && (t.avatar ?? t.image)) ?? '/placeholder-trainer.jpg'),
+      role: String((t && (t.role ?? t.position ?? t.description)) ?? ''),
+      rating: Number((t && (t.rating ?? 4.8)) ?? 4.8),
+      clients: Number((t && (t.clients ?? t.clients_count ?? 0)) ?? 0),
+      specializations: Array.isArray(t?.specializations) ? t.specializations : (Array.isArray(t?.expertise) ? t.expertise : []),
+      bio: String((t && (t.bio ?? t.description)) ?? ''),
+      experience: String((t && (t.experience ?? t.years ?? '')) ?? ''),
+      certifications: Array.isArray(t?.certifications) ? t.certifications : [],
+      instagram: String((t && (t.instagram ?? '')) ?? ''),
+    }))
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    trainersError.value = msg
+    toast.add({ severity: 'error', summary: 'Failed to load trainers', detail: msg, life: 4000 })
+  } finally {
+    loadingTrainers.value = false
+  }
+})
 
 const ptPackages = [
   {
@@ -122,8 +123,8 @@ const stats = [
 ]
 
 // TrainerModal state (Meet Our Trainers grid)
-const trainerModalTarget = ref<(typeof trainers)[0] | null>(null)
-const openTrainerModal = (trainer: (typeof trainers)[0]) => {
+const trainerModalTarget = ref<Trainer | null>(null)
+const openTrainerModal = (trainer: Trainer) => {
   trainerModalTarget.value = trainer
 }
 const closeModal = () => {
@@ -132,7 +133,7 @@ const closeModal = () => {
 
 // TrainerSelectorDialog state (PT Package booking flow)
 const showTrainerSelector = ref(false)
-const selectedTrainer = ref<(typeof trainers)[0] | null>(null)
+const selectedTrainer = ref<Trainer | null>(null)
 const tempPackage = ref<(typeof ptPackages)[0] | null>(null)
 
 const openTrainerSelector = (pkg: (typeof ptPackages)[0]) => {
@@ -226,8 +227,10 @@ const confirmDPPayment = (data: PaymentConfirm) => {
 
     <!-- Trainer Selector Dialog (PT Package booking flow) -->
     <TrainerSelectorDialog
-      v-model:visible="showTrainerSelector"
-      v-model:selectedTrainer="selectedTrainer"
+      :visible="showTrainerSelector"
+      @update:visible="val => (showTrainerSelector = val)"
+      :selectedTrainer="selectedTrainer"
+      @update:selectedTrainer="val => (selectedTrainer = val)"
       :trainers="trainers"
       :tempPackage="tempPackage"
       @proceed="proceedWithTrainer"
@@ -238,7 +241,8 @@ const confirmDPPayment = (data: PaymentConfirm) => {
 
     <!-- DP Payment Modal -->
     <DPPaymentModal
-      v-model:visible="showDPModal"
+      :visible="showDPModal"
+      @update:visible="val => (showDPModal = val)"
       :pkg="selectedPackage"
       @confirm="confirmDPPayment"
     />

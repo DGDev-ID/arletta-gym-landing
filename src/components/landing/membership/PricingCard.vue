@@ -14,7 +14,7 @@ const formatPrice = (price: number) =>
 
 const onSignup = () => {
   if (authState.user?.role === 'pt') return
-  emit('signup')
+  emit('signup', props.plan)
 }
 </script>
 

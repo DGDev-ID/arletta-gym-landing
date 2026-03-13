@@ -21,6 +21,7 @@ interface Emits {
   (e: 'cancel', session: Session): void
   (e: 'confirm-pt', session: Session): void
   (e: 'check-in', session: Session): void
+  (e: 'reschedule', session: Session): void
 }
 
 defineProps<Props>()
@@ -172,6 +173,14 @@ const isCheckInAvailable = (session: Session) => {
                   rounded
                   v-tooltip.top="'Cancel'"
                   @click="emit('cancel', session)"
+                />
+                <Button
+                  icon="pi pi-refresh"
+                  class="btn"
+                  text
+                  rounded
+                  v-tooltip.top="'Reschedule'"
+                  @click="emit('reschedule', session)"
                 />
                 <Button
                   v-if="

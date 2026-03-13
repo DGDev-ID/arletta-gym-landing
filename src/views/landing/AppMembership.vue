@@ -19,8 +19,12 @@ const router = useRouter()
 const toast = useToast()
 const showPaymentModal = ref(false)
 const showSignatureModal = ref(false)
+const selectedPlan = ref<ProcessedPlan | null>(null)
+let createdSignatureId: number | null = null
 
-const goToSignUp = () => {
+const goToSignUp = (plan?: ProcessedPlan) => {
+  // Save selected plan so we can send plan id with signature/payment
+  if (plan) selectedPlan.value = plan
   // If user already logged in, show signature verification first
   if (authState.isLoggedIn) {
     showSignatureModal.value = true
@@ -29,23 +33,47 @@ const goToSignUp = () => {
   router.push('/signup')
 }
 
-// After signature verification, show payment modal
-const onSignatureConfirmed = () => {
-  showSignatureModal.value = false
-  showPaymentModal.value = true
+// After signature verification, call server to persist signature then show payment modal
+import { createSignature, createPayment } from '@/services/paymentService'
+
+const onSignatureConfirmed = async (signatureData?: string) => {
+  try {
+  if (!signatureData) throw new Error('Signature missing')
+  const payloadSig: { signature: string; membership_plan_id?: number | string } = { signature: signatureData }
+  if (selectedPlan.value && selectedPlan.value.id) payloadSig.membership_plan_id = selectedPlan.value.id as number | string
+  const resp = await createSignature(payloadSig as unknown as { signature: string; membership_plan_id?: number })
+    // store created signature id for use in payment creation
+    createdSignatureId = resp?.id ?? null
+    toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified successfully.', life: 3000 })
+    showSignatureModal.value = false
+    showPaymentModal.value = true
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Signature failed', detail: message, life: 5000 })
+  }
 }
 
-const proceedToPayment = (method: string) => {
-  // Placeholder: in real app this would call Midtrans SDK / server
-  toast.add({
-    severity: 'info',
-    summary: 'Proceeding to payment',
-    detail: `Opening ${method} checkout...`,
-    life: 3000,
-  })
-  // open placeholder external link (replace with actual Midtrans flow)
-  window.open('about:blank', '_blank')
-  showPaymentModal.value = false
+const proceedToPayment = async (method: string) => {
+  try {
+    toast.add({ severity: 'info', summary: 'Creating payment', detail: `Creating ${method} checkout...`, life: 3000 })
+  const payloadPayment: { method: string; membership_plan_id?: number | string; signature_id?: number | null } = { method }
+  if (selectedPlan.value && selectedPlan.value.id) payloadPayment.membership_plan_id = selectedPlan.value.id as number | string
+  if (createdSignatureId) payloadPayment.signature_id = createdSignatureId
+  const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
+    // Expecting resp.payment_url or resp.token depending on backend
+    if (resp.payment_url) {
+      window.open(resp.payment_url, '_blank')
+    } else if (resp.token) {
+      // If payment token provided (for JS SDK), open a blank and let SDK pick it up in real app
+      window.open('about:blank', '_blank')
+    } else {
+      window.open('about:blank', '_blank')
+    }
+    showPaymentModal.value = false
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Payment creation failed', detail: message, life: 5000 })
+  }
 }
 
 interface ProcessedPlan {
@@ -302,7 +330,7 @@ const benefits = [
             <div class="flex-shrink-0 flex flex-col items-center gap-1.5">
               <button
                 class="group flex items-center gap-2 px-6 py-3 rounded-xl bg-(--primary) text-white text-sm font-bold shadow-[0_4px_20px_rgba(230,33,41,0.3)] hover:shadow-[0_6px_28px_rgba(230,33,41,0.5)] hover:-translate-y-0.5 transition-all duration-200"
-                @click="goToSignUp"
+                @click="() => goToSignUp()"
               >
                 <i class="pi pi-bolt text-xs"></i>
                 Join Now
@@ -340,7 +368,8 @@ const benefits = [
 
     <!-- Payment selection modal shown when user is already logged in -->
     <Dialog
-      v-model:visible="showPaymentModal"
+      :visible="showPaymentModal"
+      @update:visible="(v) => (showPaymentModal = v)"
       header="Choose payment method"
       :modal="true"
       class="w-full max-w-md"
@@ -371,9 +400,10 @@ const benefits = [
 
     <!-- Signature Verification Modal (shown before payment) -->
     <SignatureVerificationModal
-      v-model:visible="showSignatureModal"
+      :visible="showSignatureModal"
+      @update:visible="(v) => (showSignatureModal = v)"
       :member-name="authState.user?.name"
-      membership-plan="Premium Membership"
+      :membership-plan="selectedPlan ? selectedPlan.name : 'Premium Membership'"
       @confirmed="onSignatureConfirmed"
     />
   </div>

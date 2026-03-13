@@ -56,7 +56,8 @@ const handleConfirm = () => {
 
 <template>
   <Dialog
-    v-model:visible="dialogVisible"
+    :visible="dialogVisible"
+    @update:visible="(v) => (dialogVisible = v)"
     modal
     :header="isClassFull ? 'Join Waiting List' : 'Confirm Booking'"
     :style="{ width: '450px' }"

@@ -9,6 +9,9 @@ import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import EmailVerificationModal from '@/components/auth/EmailVerificationModal.vue'
 import HealthPolicyModal from '@/components/auth/HealthPolicyModal.vue'
+import { useToast } from 'primevue/usetoast'
+import { register as apiRegister } from '@/services/authService'
+import { setUser } from '@/stores/auth'
 
 const router = useRouter()
 
@@ -46,6 +49,30 @@ const genderOptions = [
   { label: 'Perempuan', value: 'Perempuan' },
 ]
 
+const toast = useToast()
+
+function getErrorMessage(e: unknown): string {
+  if (!e) return ''
+  if (typeof e === 'string') return e
+  if (e instanceof Error) return e.message
+  const obj = e as Record<string, unknown>
+  if (obj) {
+    if ('response' in obj && obj.response && typeof obj.response === 'object') {
+      const resp = obj.response as Record<string, unknown>
+      if ('data' in resp && resp.data && typeof resp.data === 'object') {
+        const data = resp.data as Record<string, unknown>
+        if ('message' in data && typeof data.message === 'string') return data.message
+      }
+    }
+    if ('message' in obj && typeof obj.message === 'string') return obj.message
+  }
+  try {
+    return String(e)
+  } catch {
+    return ''
+  }
+}
+
 const handleSignUp = async () => {
   // Must accept health policy first
   if (!healthPolicyAccepted.value) {
@@ -64,11 +91,61 @@ const handleSignUp = async () => {
 
   isLoading.value = true
 
-  // Simulate API call
-  setTimeout(() => {
-    isLoading.value = false
+  try {
+    const payload: Record<string, unknown> = {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      password_confirmation: confirmPassword.value,
+      phone_number: noHp.value || undefined,
+      nik: noKtp.value || undefined,
+      birth_place: tempatLahir.value || undefined,
+      birth_date: tanggalLahir.value ? new Date(tanggalLahir.value).toISOString().split('T')[0] : undefined,
+      gender: jenisKelamin.value === 'Laki-laki' ? 'male' : jenisKelamin.value === 'Perempuan' ? 'female' : undefined,
+      address: alamat.value || undefined,
+      emergency_name: emergencyName.value || undefined,
+      emergency_phone: emergencyPhone.value || undefined,
+      emergency_relation: emergencyRelation.value || undefined,
+      // minimal health policy payload so backend knows user accepted terms
+      health_policy: {
+        agreed_terms: !!healthPolicyAccepted.value,
+      },
+    }
+
+    const { user, token } = await apiRegister(payload)
+
+    // Persist token and set authorization header (use registerAndPersist helper)
+    try {
+      const auth = await import('@/services/authService')
+      if (auth && typeof auth.registerAndPersist === 'function') {
+        await auth.registerAndPersist(payload)
+      } else {
+        try {
+          localStorage.setItem('auth_token', token)
+        } catch {}
+      }
+    } catch {
+      try { localStorage.setItem('auth_token', token) } catch {}
+    }
+
+    // Optionally set user into auth store (consistent with login behavior)
+    setUser({
+      id: Number(user.id),
+      name: String(user.name ?? ''),
+      email: String(user.email ?? ''),
+      role: (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt',
+      avatar: String(user.avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`),
+    })
+
+    toast.add({ severity: 'success', summary: 'Account created', detail: 'Registration successful', life: 3000 })
     showVerificationModal.value = true
-  }, 1500)
+  } catch (err) {
+    console.warn('Registration failed', err)
+    const errorMsg = getErrorMessage(err) || 'Please check your input'
+    toast.add({ severity: 'error', summary: 'Registration failed', detail: errorMsg, life: 5000 })
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const startSignUp = () => {

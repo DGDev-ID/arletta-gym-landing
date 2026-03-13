@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'confirmed'): void
+  (e: 'confirmed', signatureData?: string): void
 }>()
 
 const dialogVisible = computed({
@@ -95,8 +95,10 @@ const clearSignature = () => {
 const isValid = computed(() => hasSignature.value && acceptedTerms.value)
 
 const handleConfirm = () => {
-  if (!isValid.value) return
-  emit('confirmed')
+  if (!isValid.value || !canvasRef.value) return
+  // extract signature as data URL
+  const dataUrl = canvasRef.value.toDataURL('image/png')
+  emit('confirmed', dataUrl)
   emit('update:visible', false)
 }
 
@@ -115,7 +117,8 @@ watch(
 
 <template>
   <Dialog
-    v-model:visible="dialogVisible"
+    :visible="dialogVisible"
+    @update:visible="(v) => (dialogVisible = v)"
     modal
     header="Verifikasi Tanda Tangan"
     :style="{ width: '550px' }"

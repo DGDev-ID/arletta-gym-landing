@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
+import { forgotPassword as apiForgotPassword } from '@/services/authService'
 
 const router = useRouter()
 const toast = useToast()
@@ -16,34 +17,58 @@ const goHome = () => router.push('/')
 const goToLogin = () => router.push('/login')
 const openEmailApp = () => window.open('mailto:', '_blank')
 
+function getErrorMessage(e: unknown): string {
+  if (!e) return ''
+  if (typeof e === 'string') return e
+  if (e instanceof Error) return e.message
+  const obj = e as Record<string, unknown>
+  if (obj) {
+    if ('response' in obj && obj.response && typeof obj.response === 'object') {
+      const resp = obj.response as Record<string, unknown>
+      if ('data' in resp && resp.data && typeof resp.data === 'object') {
+        const data = resp.data as Record<string, unknown>
+        if ('message' in data && typeof data.message === 'string') return data.message
+      }
+    }
+    if ('message' in obj && typeof obj.message === 'string') return obj.message
+  }
+  try {
+    return String(e)
+  } catch {
+    return ''
+  }
+}
+
 const handleSubmit = async () => {
   if (!email.value) return
 
   isLoading.value = true
-  // Simulate API call
-  setTimeout(() => {
-    isLoading.value = false
+  try {
+    await apiForgotPassword(email.value)
     emailSent.value = true
-    toast.add({
-      severity: 'success',
-      summary: 'Email Sent',
-      detail: 'Password reset instructions have been sent to your email.',
-      life: 3000,
-    })
-  }, 1500)
+    toast.add({ severity: 'success', summary: 'Email Sent', detail: 'Password reset instructions have been sent to your email.', life: 3000 })
+  } catch (err) {
+    console.warn('Forgot password failed', err)
+    const msg = getErrorMessage(err) || 'Unable to send reset link'
+    toast.add({ severity: 'error', summary: 'Failed to send', detail: msg, life: 5000 })
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const handleResend = async () => {
+  if (!email.value) return
   isLoading.value = true
-  setTimeout(() => {
+  try {
+    await apiForgotPassword(email.value)
+    toast.add({ severity: 'success', summary: 'Email Resent', detail: 'Password reset instructions have been resent to your email.', life: 3000 })
+  } catch (err) {
+    console.warn('Resend failed', err)
+    const msg = getErrorMessage(err) || 'Unable to resend link'
+    toast.add({ severity: 'error', summary: 'Failed to resend', detail: msg, life: 5000 })
+  } finally {
     isLoading.value = false
-    toast.add({
-      severity: 'success',
-      summary: 'Email Resent',
-      detail: 'Password reset instructions have been resent to your email.',
-      life: 3000,
-    })
-  }, 1500)
+  }
 }
 </script>
 
