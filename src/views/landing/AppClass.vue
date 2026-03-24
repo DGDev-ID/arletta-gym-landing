@@ -21,7 +21,7 @@ interface ScheduleItem {
   spotsLeft?: number
   totalSpots?: number
 }
-import { getSchedules, getClasses } from '@/services/scheduleService'
+import { getSchedules, getClasses, getClassCategories } from '@/services/scheduleService'
 import { useRouter } from 'vue-router'
 import HeroClass from '@/components/landing/class/HeroClass.vue'
 import ClassCategories from '@/components/landing/class/ClassCategories.vue'
@@ -89,9 +89,25 @@ onMounted(async () => {
     // swallow: keep fallback UI data empty
     console.warn('Failed to load classes/schedules', err)
   }
+
+  // Fetch class categories from API, fallback to static list
+  try {
+    const rawCats = await getClassCategories()
+    const list = Array.isArray(rawCats) ? rawCats : []
+    if (list.length > 0) {
+      const names = list.map((c) => {
+        const obj = (c as unknown) as Record<string, unknown>
+        return String(obj['name'] ?? obj['label'] ?? c)
+      })
+      // Ensure 'All' is always first
+      categories.value = ['All', ...names.filter((n) => n !== 'All')]
+    }
+  } catch {
+    // silently keep static fallback already set
+  }
 })
 
-const categories = ['All', 'Cardio', 'Strength', 'Mind & Body', 'Combat']
+const categories = ref<string[]>(['All', 'Cardio', 'Strength', 'Mind & Body', 'Combat'])
 const activeCategory = ref('All')
 
 const filteredClasses = ref<ClassItem[]>([])

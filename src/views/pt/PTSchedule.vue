@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { getTrainerMe, getTrainerSchedules, getTrainerClientsAll } from '@/services/trainerService'
+import { getTrainerMe, getTrainerSchedules, getTrainerClientsAll, createSession, updateSession, cancelSession } from '@/services/trainerService'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
 import PTStatsSection from '@/components/pt/schedule/PTStatsSection.vue'
 import TabNavigation from '@/components/member/schedule/TabNavigation.vue'
@@ -106,20 +106,61 @@ const openCancelModal = (session: {
   showCancelModal.value = true
 }
 
-// Confirm cancel
-const confirmCancel = () => {
-  if (selectedSessionForCancel.value) {
-    upcomingSessions.value = upcomingSessions.value.filter(
-      (s) => s.id !== selectedSessionForCancel.value?.id,
-    )
+// Trainer id (set in onMounted after getTrainerMe)
+const currentTrainerId = ref<number | string | null>(null)
+
+// Helper: reload trainer schedules from API and split into upcoming / history
+const reloadSchedules = async () => {
+  if (!currentTrainerId.value) return
+  const list = await getTrainerSchedules(currentTrainerId.value)
+  const mapped = (list || []).map((s: Record<string, unknown>) => {
+    const type = (s.type as string) || (s.kind as string) || (s.session_type as string) || 'pt-session'
+    const date = String(s.date ?? s.start_date ?? s.session_date ?? '')
+    const start = String(s.start_time ?? s.time ?? '')
+    const end = String(s.end_time ?? '')
+    const time = end ? `${start} - ${end}` : start
+    return {
+      id: Number(s.id ?? s.schedule_id ?? 0),
+      type: type === 'class' || type === 'group' ? 'class' : 'pt-session',
+      className: String(s.class_name ?? s.name ?? ''),
+      clientName: String(s.client_name ?? s.client ?? s.full_name ?? ''),
+      clientAvatar: String(s.client_avatar ?? s.avatar ?? s.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.client_name ?? 'client'))}`),
+      date,
+      time,
+      location: String(s.location ?? s.room ?? s.venue ?? ''),
+      status: String(s.status ?? s.state ?? 'confirmed'),
+      participants: Number(s.participants ?? s.attendees ?? 0),
+      maxParticipants: Number(s.max_participants ?? s.capacity ?? 0),
+      notes: String(s.notes ?? s.note ?? ''),
+      rating: Number(s.rating ?? 0),
+    }
+  })
+  upcomingSessions.value = mapped.filter((m) => !['completed', 'cancelled'].includes(m.status))
+  sessionHistory.value = mapped.filter((m) => ['completed', 'cancelled'].includes(m.status))
+}
+
+// Confirm cancel — call API then refresh
+const confirmCancel = async () => {
+  if (!selectedSessionForCancel.value) {
+    showCancelModal.value = false
+    return
+  }
+  const sessionName = selectedSessionForCancel.value.name
+  try {
+    await cancelSession(selectedSessionForCancel.value.id, { reason: '' })
+    await reloadSchedules()
     toast.add({
       severity: 'success',
       summary: 'Schedule Cancelled',
-      detail: `${selectedSessionForCancel.value.name} has been cancelled.`,
+      detail: `${sessionName} has been cancelled.`,
       life: 3000,
     })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Cancel failed', detail: msg, life: 5000 })
+  } finally {
+    showCancelModal.value = false
   }
-  showCancelModal.value = false
 }
 
 // Open reschedule modal
@@ -136,8 +177,8 @@ const openRescheduleModal = (session: {
   showRescheduleModal.value = true
 }
 
-// Confirm reschedule
-const confirmReschedule = (data: {
+// Confirm reschedule — call API then refresh
+const confirmReschedule = async (data: {
   id: number
   newDate: string
   newStartTime: string
@@ -145,73 +186,76 @@ const confirmReschedule = (data: {
   newLocation: string
   reason: string
 }) => {
-  const session = upcomingSessions.value.find((s) => s.id === data.id)
-  if (session) {
-    session.date = data.newDate
-    session.time = `${data.newStartTime} - ${data.newEndTime}`
-    session.location = data.newLocation
-    const sessionName =
-      session.type === 'pt-session'
-        ? `PT Session with ${session.clientName}`
-        : (session.className ?? 'Class')
+  try {
+    await updateSession(data.id, {
+      date: data.newDate,
+      start_time: data.newStartTime,
+      end_time: data.newEndTime,
+      location: data.newLocation,
+    })
+    await reloadSchedules()
     toast.add({
       severity: 'success',
       summary: 'Jadwal Diubah',
-      detail: `${sessionName} telah di-reschedule ke ${data.newDate} ${data.newStartTime} - ${data.newEndTime}.`,
+      detail: `Session telah di-reschedule ke ${data.newDate} ${data.newStartTime} - ${data.newEndTime}.`,
       life: 4000,
     })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Reschedule failed', detail: msg, life: 5000 })
+  } finally {
+    showRescheduleModal.value = false
   }
-  showRescheduleModal.value = false
 }
 
-// Add new PT session
-const addNewSession = () => {
+// Add new PT session — call API then refresh
+const addNewSession = async () => {
   if (
     !newSession.value.clientId ||
     !newSession.value.date ||
     !newSession.value.startTime ||
-    !newSession.value.endTime
+    !newSession.value.endTime ||
+    !currentTrainerId.value
   )
     return
 
   const member = members.value.find((m) => m.id === newSession.value.clientId)
   if (!member) return
 
-  const newId = Math.max(...upcomingSessions.value.map((s) => s.id)) + 1
-  // newSession.date is validated above (not null) - coerce to ISO yyyy-mm-dd
-  const dateObj = newSession.value.date! as Date
+  const dateObj = newSession.value.date as Date
   const dateStr = String(dateObj.toISOString().split('T')[0])
-  const timeStr = `${newSession.value.startTime} - ${newSession.value.endTime}`
 
-  upcomingSessions.value.push({
-    id: newId,
-    type: 'pt-session',
-    clientName: member.name,
-    clientAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.name.replace(/\s/g, '')}`,
-    date: dateStr,
-    time: timeStr,
-    location: newSession.value.location,
-    status: 'confirmed',
-    notes: newSession.value.notes,
-  })
-
-  toast.add({
-    severity: 'success',
-    summary: 'PT Session Added',
-    detail: `PT session with ${member.name} added on ${dateStr} ${timeStr}.`,
-    life: 3000,
-  })
-
-  // Reset form and close modal
-  newSession.value = {
-    clientId: null,
-    date: null,
-    startTime: '',
-    endTime: '',
-    location: 'Weight Room',
-    notes: '',
+  try {
+    await createSession(currentTrainerId.value, {
+      client_id: member.id,
+      date: dateStr,
+      start_time: newSession.value.startTime,
+      end_time: newSession.value.endTime,
+      location: newSession.value.location,
+      notes: newSession.value.notes,
+    })
+    await reloadSchedules()
+    toast.add({
+      severity: 'success',
+      summary: 'PT Session Added',
+      detail: `PT session with ${member.name} added on ${dateStr} ${newSession.value.startTime} - ${newSession.value.endTime}.`,
+      life: 3000,
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Failed to add session', detail: msg, life: 5000 })
+  } finally {
+    // Reset form and close modal regardless of success/failure
+    newSession.value = {
+      clientId: null,
+      date: null,
+      startTime: '',
+      endTime: '',
+      location: 'Weight Room',
+      notes: '',
+    }
+    showAddSessionModal.value = false
   }
-  showAddSessionModal.value = false
 }
 
 // Stats
@@ -237,10 +281,11 @@ onMounted(async () => {
   try {
     upcomingLoading.value = true
     historyLoading.value = true
-    // get current trainer id
+    // get current trainer id and store it
     const trainer = await getTrainerMe()
     const id = (trainer?.id ?? trainer?.trainer_id) as string | number | undefined
     if (!id) return
+    currentTrainerId.value = id
     // populate members dropdown from server
     try {
       const all = await getTrainerClientsAll()
@@ -252,34 +297,8 @@ onMounted(async () => {
     } catch (err) {
       console.error('Failed to load members for AddSessionModal', err)
     }
-
-    const list = await getTrainerSchedules(id)
-
-    const mapped = (list || []).map((s: Record<string, unknown>) => {
-      const type = (s.type as string) || (s.kind as string) || (s.session_type as string) || 'pt-session'
-      const date = String(s.date ?? s.start_date ?? s.session_date ?? '')
-      const start = String(s.start_time ?? s.time ?? '')
-      const end = String(s.end_time ?? '')
-      const time = end ? `${start} - ${end}` : start
-      return {
-        id: Number(s.id ?? s.schedule_id ?? 0),
-        type: type === 'class' || type === 'group' ? 'class' : 'pt-session',
-        className: String(s.class_name ?? s.name ?? ''),
-        clientName: String(s.client_name ?? s.client ?? s.full_name ?? ''),
-        clientAvatar: String(s.client_avatar ?? s.avatar ?? s.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.client_name ?? 'client'))}`),
-        date,
-        time,
-        location: String(s.location ?? s.room ?? s.venue ?? ''),
-        status: String(s.status ?? s.state ?? 'confirmed'),
-        participants: Number(s.participants ?? s.attendees ?? 0),
-        maxParticipants: Number(s.max_participants ?? s.capacity ?? 0),
-        notes: String(s.notes ?? s.note ?? ''),
-        rating: Number(s.rating ?? 0),
-      }
-    })
-
-    upcomingSessions.value = mapped.filter((m) => !['completed', 'cancelled'].includes(m.status))
-    sessionHistory.value = mapped.filter((m) => ['completed', 'cancelled'].includes(m.status))
+    // load schedules using shared helper
+    await reloadSchedules()
   } catch (err) {
     console.error('Failed to load trainer schedules', err)
   } finally {

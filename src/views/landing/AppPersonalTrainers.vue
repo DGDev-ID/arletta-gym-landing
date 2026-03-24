@@ -12,7 +12,8 @@ import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import DPPaymentModal from '@/components/booking/DPPaymentModal.vue'
 import TrainerSelectorDialog from '@/components/landing/trainers/TrainerSelector.vue'
 import authState from '@/stores/auth'
-import { getTrainers } from '@/services/trainerService'
+import { getTrainers, getTrainerStats } from '@/services/trainerService'
+import { getPtPackages } from '@/services/ptPackageService'
 
 const router = useRouter()
 const toast = useToast()
@@ -64,63 +65,82 @@ onMounted(async () => {
   }
 })
 
-const ptPackages = [
-  {
-    name: '5 Sessions',
-    sessions: 5,
-    price: 1125000,
-    perSession: 225000,
-    shareable: false,
-    features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'],
-  },
-  {
-    name: '10 Sessions',
-    sessions: 10,
-    price: 2000000,
-    perSession: 200000,
-    shareable: false,
-    features: ['Personalized program', 'Flexible schedule', '1-on-1 coaching'],
-  },
-  {
-    name: '20 Sessions',
-    sessions: 20,
-    price: 3500000,
-    perSession: 175000,
-    shareable: false,
-    features: ['Personalized program', 'Flexible schedule', 'Progress assessments'],
-  },
-  {
-    name: '50 Sessions',
-    sessions: 50,
-    price: 6500000,
-    perSession: 130000,
-    shareable: true,
-    features: ['Personalized program', 'Couple/shared option', 'Priority booking'],
-  },
-  {
-    name: '80 Sessions',
-    sessions: 80,
-    price: 10240000,
-    perSession: 128000,
-    shareable: true,
-    features: ['Personalized program', 'Couple/shared option', 'Progress tracking'],
-  },
-  {
-    name: '100 Sessions',
-    sessions: 100,
-    price: 12500000,
-    perSession: 125000,
-    shareable: true,
-    features: ['Personalized program', 'Couple/shared option', 'Dedicated trainer allocation'],
-  },
-]
+// ── PT Packages (from API) ─────────────────────────────────
+type PtPackageUI = {
+  id?: number | string
+  name: string
+  sessions: number
+  price: number
+  perSession: number
+  shareable: boolean
+  features: string[]
+  promo?: string
+}
 
-const stats = [
-  { value: '15+', label: 'Expert Trainers' },
-  { value: '50+', label: 'Years Combined Experience' },
-  { value: '1000+', label: 'Happy Clients' },
-  { value: '4.8', label: 'Average Rating' },
-]
+const ptPackages = ref<PtPackageUI[]>([])
+const ptPackagesLoading = ref(false)
+
+// ── Trainer Stats (from API) ───────────────────────────────
+type StatItem = { value: string; label: string }
+const stats = ref<StatItem[]>([])
+const statsLoading = ref(false)
+
+onMounted(async () => {
+  // Fetch PT packages
+  ptPackagesLoading.value = true
+  try {
+    const raw = await getPtPackages()
+    const list = Array.isArray(raw) ? raw : []
+    ptPackages.value = list.map((p) => {
+      const pr = (p as unknown) as Record<string, unknown>
+      const sessions = Number(pr['sessions'] ?? pr['session_count'] ?? 0)
+      const price = Number(pr['price'] ?? 0)
+      const perSession = Number(pr['per_session'] ?? pr['perSession'] ?? (sessions > 0 ? Math.round(price / sessions) : 0))
+      const rawFeatures = pr['features']
+      const features: string[] = Array.isArray(rawFeatures)
+        ? (rawFeatures as unknown[]).map(String)
+        : ['Personalized program', 'Flexible schedule', '1-on-1 coaching']
+      return {
+        id: pr['id'] as number | string | undefined,
+        name: String(pr['name'] ?? ''),
+        sessions,
+        price,
+        perSession,
+        shareable: Boolean(pr['shareable'] ?? false),
+        features,
+        promo: pr['promo'] ? String(pr['promo']) : undefined,
+      }
+    })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    toast.add({ severity: 'error', summary: 'Failed to load packages', detail: msg, life: 4000 })
+  } finally {
+    ptPackagesLoading.value = false
+  }
+
+  // Fetch trainer stats
+  statsLoading.value = true
+  try {
+    const raw = await getTrainerStats()
+    const s = (raw ?? {}) as Record<string, unknown>
+    stats.value = [
+      { value: s['expert_trainers_count'] != null ? `${s['expert_trainers_count']}+` : '15+', label: 'Expert Trainers' },
+      { value: s['years_combined_experience'] != null ? `${s['years_combined_experience']}+` : '50+', label: 'Years Combined Experience' },
+      { value: s['happy_clients_count'] != null ? `${s['happy_clients_count']}+` : '1000+', label: 'Happy Clients' },
+      { value: s['average_rating'] != null ? String(s['average_rating']) : '4.8', label: 'Average Rating' },
+    ]
+  } catch {
+    // fallback to static values when API unavailable
+    stats.value = [
+      { value: '15+', label: 'Expert Trainers' },
+      { value: '50+', label: 'Years Combined Experience' },
+      { value: '1000+', label: 'Happy Clients' },
+      { value: '4.8', label: 'Average Rating' },
+    ]
+  } finally {
+    statsLoading.value = false
+  }
+})
 
 // TrainerModal state (Meet Our Trainers grid)
 const trainerModalTarget = ref<Trainer | null>(null)
@@ -134,9 +154,9 @@ const closeModal = () => {
 // TrainerSelectorDialog state (PT Package booking flow)
 const showTrainerSelector = ref(false)
 const selectedTrainer = ref<Trainer | null>(null)
-const tempPackage = ref<(typeof ptPackages)[0] | null>(null)
+const tempPackage = ref<PtPackageUI | null>(null)
 
-const openTrainerSelector = (pkg: (typeof ptPackages)[0]) => {
+const openTrainerSelector = (pkg: PtPackageUI) => {
   if (!authState.isLoggedIn) {
     router.push('/signup')
     return
@@ -148,7 +168,7 @@ const openTrainerSelector = (pkg: (typeof ptPackages)[0]) => {
 
 // DPPaymentModal state
 const showDPModal = ref(false)
-const selectedPackage = ref<(typeof ptPackages)[0] | null>(null)
+const selectedPackage = ref<PtPackageUI | null>(null)
 
 const proceedWithTrainer = () => {
   if (!selectedTrainer.value || !tempPackage.value) return

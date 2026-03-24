@@ -12,4 +12,10 @@ export async function getClasses(params) {
   return data.data
 }
 
-export default { getSchedules, getClasses }
+export async function getClassCategories() {
+  const { data } = await api.get('/class-categories')
+  if (!data.success) throw new Error(data.message ?? 'Failed to fetch class categories')
+  return data.data
+}
+
+export default { getSchedules, getClasses, getClassCategories }
