@@ -27,7 +27,7 @@ const formatPrice = (price: number) =>
   >
     <!-- Badge jika shareable -->
     <div
-      v-if="pkg.shareable"
+      v-if="pkg.shareable || (pkg.maxPerson && pkg.maxPerson > 1)"
       class="absolute top-4 right-4 text-xs font-semibold px-2 py-1 rounded-full"
       style="
         background: rgba(var(--primary-rgb, 239, 68, 68), 0.15);
@@ -35,7 +35,7 @@ const formatPrice = (price: number) =>
         border: 1px solid var(--primary);
       "
     >
-      Couple
+      {{ pkg.maxPerson ? `Max ${pkg.maxPerson} Orang` : 'Couple' }}
     </div>
 
     <div class="flex flex-col flex-1 p-6 gap-5">
@@ -46,6 +46,27 @@ const formatPrice = (price: number) =>
         </div>
         <h4 class="text-2xl font-black text-white">{{ pkg.name }}</h4>
         <p class="text-sm mt-1" style="color: var(--text-muted)">{{ pkg.sessions }} sessions</p>
+        <p v-if="pkg.gymName" class="text-xs mt-1" style="color: var(--text-muted)">
+          <i class="pi pi-map-marker mr-1" style="font-size: 0.65rem" />{{ pkg.gymName }}
+        </p>
+      </div>
+
+      <!-- Promo badge -->
+      <div
+        v-if="pkg.promos && pkg.promos.length"
+        class="flex justify-center"
+      >
+        <span
+          class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
+          style="
+            background: rgba(34, 197, 94, 0.12);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+          "
+        >
+          <i class="pi pi-tag" style="font-size: 0.6rem" />
+          {{ pkg.promos[0].type === 'percent' ? `${pkg.promos[0].value}% off` : pkg.promos[0].type === 'fixed' ? `Diskon ${formatPrice(pkg.promos[0].value ?? 0)}` : `Promo ${pkg.promos[0].value ?? ''}` }}
+        </span>
       </div>
 
       <!-- Divider -->

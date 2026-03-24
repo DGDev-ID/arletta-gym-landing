@@ -62,16 +62,14 @@ const saveProfile = async () => {
   try {
     const payload = {
       name: editMember.value.name,
-      email: editMember.value.email,
-      phone: editMember.value.phone,
-      avatar: editMember.value.avatar,
+      phone_number: editMember.value.phone,
     }
     const updated = await authService.updateUserMe(payload)
     // update local member with returned data (best-effort)
   const mRec = ((updated && (updated.user as Record<string, unknown>)) || (updated as Record<string, unknown>)) as Record<string, unknown>
   member.value.name = String(mRec.name ?? editMember.value.name)
   member.value.email = String(mRec.email ?? editMember.value.email)
-  member.value.phone = String(mRec.phone ?? editMember.value.phone)
+  member.value.phone = String(mRec.phone_number ?? mRec.phone ?? editMember.value.phone)
   member.value.avatar = String(mRec.avatar ?? editMember.value.avatar)
     useToast().add({ severity: 'success', summary: 'Saved', detail: 'Profile updated.', life: 3000 })
     showEdit.value = false

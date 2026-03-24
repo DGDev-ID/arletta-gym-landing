@@ -123,14 +123,14 @@ declare module '@/services/bookingService' {
   export function createBooking(payload: { schedule_id: number; booking_type?: string; notes?: string }): Promise<BookingRaw>
   export function joinWaitlist(schedule_id: number): Promise<{ id?: number; position?: number }>
   export function cancelBooking(bookingId: number, payload: { verification: string; reason?: string }): Promise<unknown>
-  export function rescheduleBooking(bookingId: number, payload: { schedule_id: number; reason?: string }): Promise<BookingRaw>
+  export function rescheduleBooking(bookingId: number, payload: { new_schedule_id: number; reason: string }): Promise<BookingRaw>
 
   const _default: {
     getBookings: (params?: Record<string, unknown>) => Promise<BookingRaw[]>
     createBooking: (payload: { schedule_id: number; booking_type?: string; notes?: string }) => Promise<BookingRaw>
     joinWaitlist: (schedule_id: number) => Promise<{ id?: number; position?: number }>
     cancelBooking: (bookingId: number, payload: { verification: string; reason?: string }) => Promise<unknown>
-    rescheduleBooking: (bookingId: number, payload: { schedule_id: number; reason?: string }) => Promise<BookingRaw>
+    rescheduleBooking: (bookingId: number, payload: { new_schedule_id: number; reason: string }) => Promise<BookingRaw>
   }
   export default _default
 }

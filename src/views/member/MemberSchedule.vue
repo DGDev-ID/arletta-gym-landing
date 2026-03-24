@@ -27,6 +27,7 @@ import {
   loadBookingsFromApi,
 } from '@/stores/booking'
 import { createBooking, joinWaitlist, cancelBooking as apiCancelBooking, rescheduleBooking as apiRescheduleBooking } from '@/services/bookingService'
+import { getSchedules } from '@/services/scheduleService'
 
 const router = useRouter()
 const toast = useToast()
@@ -76,75 +77,53 @@ const waitingListClasses = computed(() => upcomingWaitingList.value)
 const sessionHistory = classHistory
 
 // Available classes to book
-const todayStr = new Date().toISOString().split('T')[0]
-
-// Available classes to book
-const availableClasses = ref<AvailableClass[]>([
-  {
-    id: 201,
-    name: 'Spin Cycle',
-    trainer: 'David Kim',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-    date: '2026-01-28',
-    time: '06:00 - 06:45',
-    location: 'Cycling Studio',
-    spotsLeft: 8,
-    totalSpots: 20,
-  },
-  {
-    id: 202,
-    name: 'Core Crusher',
-    trainer: 'Lisa Park',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
-    date: '2026-01-28',
-    time: '12:00 - 12:30',
-    location: 'Studio A',
-    spotsLeft: 3,
-    totalSpots: 15,
-  },
-  {
-    id: 203,
-    name: 'Boxing Fundamentals',
-    trainer: 'Carlos Rodriguez',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos',
-    date: '2026-01-29',
-    time: '17:00 - 18:00',
-    location: 'Boxing Ring',
-    spotsLeft: 12,
-    totalSpots: 16,
-  },
-  {
-    id: 204,
-    name: 'Pilates Core',
-    trainer: 'Emma Wilson',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    date: '2026-01-28',
-    time: '09:00 - 09:45',
-    location: 'Studio C',
-    spotsLeft: 0,
-    totalSpots: 12,
-  },
-  // Sample: class that already started with Zoom link available
-  {
-    id: 205,
-    name: 'Morning Stretch (Live)',
-    trainer: 'Sandy Wibowo',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sandy',
-    date: todayStr as string,
-    time: '08:00 - 08:45',
-    location: 'Studio D / Zoom',
-    spotsLeft: 0,
-    totalSpots: 20,
-    zoomLink: 'https://zoom.us/j/1234567890',
-  },
-])
+const availableClasses = ref<AvailableClass[]>([])
+const availableClassesLoading = ref(false)
 
 onMounted(async () => {
+  // Load bookings from API
   try {
     await loadBookingsFromApi()
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     toast.add({ severity: 'error', summary: 'Bookings load failed', detail: msg, life: 5000 })
+  }
+
+  // Load available classes from API
+  try {
+    availableClassesLoading.value = true
+    const schedulesData = await getSchedules()
+    if (Array.isArray(schedulesData)) {
+      availableClasses.value = (schedulesData as Array<Record<string, unknown>>).map((s) => {
+        const cls = (s['class'] ?? {}) as Record<string, unknown>
+        const trainer = (s['trainer'] ?? {}) as Record<string, unknown>
+        const startTime = String(s['start_time'] ?? '')
+        const endTime = String(s['end_time'] ?? '')
+        const time = startTime && endTime ? `${startTime} - ${endTime}` : startTime
+        const trainerName = String(trainer['name'] ?? '')
+        const capacity = Number(s['capacity'] ?? 0)
+        const bookedCount = Number(s['booked_count'] ?? 0)
+        return {
+          id: Number(s['id'] ?? 0),
+          name: String(cls['name'] ?? ''),
+          trainer: trainerName,
+          trainerAvatar: trainerName ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(trainerName)}` : '',
+          date: String(s['date'] ?? ''),
+          time,
+          location: String(s['location'] ?? ''),
+          spotsLeft: Math.max(0, capacity - bookedCount),
+          totalSpots: capacity,
+          category: String(cls['category'] ?? ''),
+          duration: cls['duration_minutes'] ? `${cls['duration_minutes']} min` : undefined,
+          level: String(cls['level'] ?? ''),
+          zoomLink: s['zoom_link'] ? 'available' : undefined,
+        } as AvailableClass
+      })
+    }
+  } catch (e: unknown) {
+    console.warn('Failed to load available classes', e)
+  } finally {
+    availableClassesLoading.value = false
   }
 })
 
@@ -369,7 +348,7 @@ const confirmBooking = async () => {
   try {
     const wasReschedule = Boolean(rescheduleTargetBookingId.value)
     if (wasReschedule && rescheduleTargetBookingId.value) {
-      await apiRescheduleBooking(rescheduleTargetBookingId.value, { schedule_id: selectedClassForBooking.value.id })
+      await apiRescheduleBooking(rescheduleTargetBookingId.value, { new_schedule_id: selectedClassForBooking.value.id, reason: 'Rescheduled by member' })
     } else {
       await createBooking({ schedule_id: selectedClassForBooking.value.id })
     }

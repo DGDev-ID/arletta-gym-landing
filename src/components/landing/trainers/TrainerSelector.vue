@@ -11,9 +11,12 @@ interface Trainer {
   certifications: string[]
   bio: string
   image: string
+  images: string[]
   instagram: string
   rating: number
   clients: number
+  phone_number: string
+  gender: string
 }
 
 interface PackageInfo {

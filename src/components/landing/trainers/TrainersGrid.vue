@@ -4,11 +4,17 @@ type Trainer = {
   id: number
   name: string
   image: string
+  images: string[]
   role: string
   rating: number
   clients: number
   specializations: string[]
   bio: string
+  experience: string
+  certifications: string[]
+  instagram: string
+  phone_number: string
+  gender: string
 }
 const props = defineProps<{ trainers?: Trainer[] }>()
 defineEmits(['open'])
@@ -47,6 +53,10 @@ defineEmits(['open'])
               <div class="flex items-center gap-1">
                 <i class="pi pi-users text-(--text-muted) text-sm"></i>
                 <span class="text-(--text-muted) text-sm">{{ trainer.clients }}+ clients</span>
+              </div>
+              <div v-if="trainer.experience" class="flex items-center gap-1">
+                <i class="pi pi-clock text-(--text-muted) text-sm"></i>
+                <span class="text-(--text-muted) text-sm">{{ trainer.experience }}</span>
               </div>
             </div>
 

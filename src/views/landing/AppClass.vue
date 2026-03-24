@@ -49,34 +49,53 @@ onMounted(async () => {
           id: Number((c && (c.id ?? 0)) ?? 0),
           name: String((c && (c.name ?? '')) ?? ''),
           description: String((c && (c.description ?? '')) ?? ''),
-          duration: String((c && (c.duration ?? '45 min')) ?? '45 min'),
-          level: String((c && (c.level ?? 'All Levels')) ?? 'All Levels'),
-          trainer: String((c && (c.trainer ?? c.trainer_name)) ?? ''),
-          image: String((c && (c.image ?? c.avatar)) ?? '/placeholder-class.jpg'),
+          duration: c?.duration ? String(c.duration) : (c?.duration_minutes ? `${c.duration_minutes} min` : undefined),
+          level: c?.level ? String(c.level) : undefined,
+          trainer: c?.trainer ? String(c.trainer) : undefined,
+          image: String((c && (c.image ?? c.image_url ?? c.avatar)) ?? '/placeholder-class.jpg'),
           category: String((c && (c.category ?? 'General')) ?? 'General'),
           benefits: Array.isArray(c?.benefits) ? c.benefits : [],
-          spotsLeft: Number((c && (c.spots_left ?? c.spotsLeft ?? 10)) ?? 10),
-          totalSpots: Number((c && (c.total_spots ?? c.totalSpots ?? 20)) ?? 20),
-          location: String((c && (c.location ?? 'Studio A')) ?? 'Studio A'),
+          spotsLeft: c?.spotsLeft != null ? Number(c.spotsLeft) : (c?.spots_left != null ? Number(c.spots_left) : undefined),
+          totalSpots: c?.totalSpots != null ? Number(c.totalSpots) : (c?.total_spots != null ? Number(c.total_spots) : undefined),
+          location: c?.location ? String(c.location) : undefined,
         }))
       : []
 
+    // Initialize filteredClasses so cards are visible on load
+    filteredClasses.value = classes.value
+
     const schedulesData = await getSchedules()
-    // Expect schedulesData to be an object or array; normalize to Record<string, ScheduleItem[]>
+    // Expect schedulesData to be an array; group by day-of-week derived from date
     if (schedulesData && typeof schedulesData === 'object') {
-      // If API returns an array of schedule entries, transform them
       if (Array.isArray(schedulesData)) {
-        // group by day name
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
         const grouped: Record<string, ScheduleItem[]> = {}
         for (const item of schedulesData as Array<Record<string, unknown>>) {
-          const day = String(item['day'] ?? item['weekday'] ?? 'monday').toLowerCase()
+          // BE returns { date, start_time, class: { name }, trainer: { name } }
+          const dateStr = String(item['date'] ?? '')
+          const cls = (item['class'] ?? {}) as Record<string, unknown>
+          const trainer = (item['trainer'] ?? {}) as Record<string, unknown>
+          // Derive day-of-week from date string; fallback to legacy 'day'/'weekday' field
+          let day = ''
+          if (dateStr) {
+            const dt = new Date(dateStr + 'T00:00:00')
+            if (!isNaN(dt.getTime())) {
+              day = dayNames[dt.getDay()] ?? 'monday'
+            }
+          }
+          if (!day) {
+            day = String(item['day'] ?? item['weekday'] ?? 'monday').toLowerCase()
+          }
           if (!grouped[day]) grouped[day] = []
-          grouped[day].push({
-            time: String(item['time'] ?? item['start_time'] ?? '06:00'),
-            class: String(item['class_name'] ?? item['name'] ?? ''),
-            trainer: String(item['trainer_name'] ?? item['trainer'] ?? ''),
-            spotsLeft: Number(item['spots_left'] ?? item['spotsLeft'] ?? 10),
-            totalSpots: Number(item['total_spots'] ?? item['totalSpots'] ?? 20),
+          const startTime = String(item['start_time'] ?? item['time'] ?? '06:00')
+          const endTime = String(item['end_time'] ?? '')
+          const arr = grouped[day]!
+          arr.push({
+            time: endTime ? `${startTime} - ${endTime}` : startTime,
+            class: String(cls['name'] ?? item['class_name'] ?? item['name'] ?? ''),
+            trainer: String(trainer['name'] ?? item['trainer_name'] ?? item['trainer'] ?? ''),
+            spotsLeft: Number(item['available_slots'] ?? item['spots_left'] ?? item['spotsLeft'] ?? 0),
+            totalSpots: Number(item['capacity'] ?? item['total_spots'] ?? item['totalSpots'] ?? 20),
           })
         }
         schedule.value = grouped
@@ -90,7 +109,7 @@ onMounted(async () => {
     console.warn('Failed to load classes/schedules', err)
   }
 
-  // Fetch class categories from API, fallback to static list
+  // Fetch class categories from API
   try {
     const rawCats = await getClassCategories()
     const list = Array.isArray(rawCats) ? rawCats : []
@@ -103,11 +122,11 @@ onMounted(async () => {
       categories.value = ['All', ...names.filter((n) => n !== 'All')]
     }
   } catch {
-    // silently keep static fallback already set
+    // categories stays empty; ClassCategories component handles empty gracefully
   }
 })
 
-const categories = ref<string[]>(['All', 'Cardio', 'Strength', 'Mind & Body', 'Combat'])
+const categories = ref<string[]>([])
 const activeCategory = ref('All')
 
 const filteredClasses = ref<ClassItem[]>([])

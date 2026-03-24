@@ -25,7 +25,10 @@ const onSignup = () => {
   >
     <div class="text-center mb-8">
       <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ props.plan.name }}</h3>
-      <p class="text-(--text-muted) text-sm mb-6">{{ props.plan.description }}</p>
+      <p class="text-(--text-muted) text-sm mb-4">{{ props.plan.description }}</p>
+      <p v-if="props.plan.gymName" class="text-(--text-muted) text-xs mb-4">
+        <i class="pi pi-map-marker mr-1" style="font-size: 0.65rem" />{{ props.plan.gymName }}
+      </p>
 
       <!-- Promo badges -->
       <div class="mb-4 flex flex-wrap justify-center gap-2">

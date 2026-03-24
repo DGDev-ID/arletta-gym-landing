@@ -23,6 +23,7 @@ type Trainer = {
   id: number
   name: string
   image: string
+  images: string[]
   role: string
   rating: number
   clients: number
@@ -31,6 +32,8 @@ type Trainer = {
   experience: string
   certifications: string[]
   instagram: string
+  phone_number: string
+  gender: string
 }
 
 const trainers = ref<Trainer[]>([])
@@ -47,14 +50,17 @@ onMounted(async () => {
       id: Number((t && (t.id ?? 0)) ?? 0),
       name: String((t && t.name) ?? 'Unknown'),
       image: Array.isArray(t?.images) && t.images.length ? String(t.images[0]) : String((t && (t.avatar ?? t.image)) ?? '/placeholder-trainer.jpg'),
+      images: Array.isArray(t?.images) ? (t.images as string[]) : (t?.image ? [String(t.image)] : []),
       role: String((t && (t.role ?? t.position ?? t.description)) ?? ''),
       rating: Number((t && (t.rating ?? 4.8)) ?? 4.8),
       clients: Number((t && (t.clients ?? t.clients_count ?? 0)) ?? 0),
-      specializations: Array.isArray(t?.specializations) ? t.specializations : (Array.isArray(t?.expertise) ? t.expertise : []),
+      specializations: Array.isArray(t?.specializations) ? t.specializations as string[] : (Array.isArray(t?.expertise) ? t.expertise as string[] : []),
       bio: String((t && (t.bio ?? t.description)) ?? ''),
       experience: String((t && (t.experience ?? t.years ?? '')) ?? ''),
-      certifications: Array.isArray(t?.certifications) ? t.certifications : [],
+      certifications: Array.isArray(t?.certifications) ? t.certifications as string[] : [],
       instagram: String((t && (t.instagram ?? '')) ?? ''),
+      phone_number: String((t && (t.phone_number ?? '')) ?? ''),
+      gender: String((t && (t.gender ?? '')) ?? ''),
     }))
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -75,6 +81,9 @@ type PtPackageUI = {
   shareable: boolean
   features: string[]
   promo?: string
+  gymName?: string
+  maxPerson?: number
+  promos?: Array<{ type?: string; value?: number; unique_code?: string }>
 }
 
 const ptPackages = ref<PtPackageUI[]>([])
@@ -93,22 +102,37 @@ onMounted(async () => {
     const list = Array.isArray(raw) ? raw : []
     ptPackages.value = list.map((p) => {
       const pr = (p as unknown) as Record<string, unknown>
-      const sessions = Number(pr['sessions'] ?? pr['session_count'] ?? 0)
+      // Backend uses duration_in_sessions (not sessions)
+      const sessions = Number(pr['duration_in_sessions'] ?? pr['sessions'] ?? 0)
       const price = Number(pr['price'] ?? 0)
-      const perSession = Number(pr['per_session'] ?? pr['perSession'] ?? (sessions > 0 ? Math.round(price / sessions) : 0))
-      const rawFeatures = pr['features']
-      const features: string[] = Array.isArray(rawFeatures)
-        ? (rawFeatures as unknown[]).map(String)
-        : ['Personalized program', 'Flexible schedule', '1-on-1 coaching']
+      const perSession = sessions > 0 ? Math.round(price / sessions) : 0
+      const maxPerson = Number(pr['max_person'] ?? 1)
+
+      // Gym metadata
+      const gym = pr['gym'] as Record<string, unknown> | null | undefined
+      const gymName = gym ? String(gym['name'] ?? '') : undefined
+
+      // Promos from active_promos
+      const rawPromos = (pr['active_promos'] ?? pr['promos'] ?? []) as unknown[]
+      const promos = Array.isArray(rawPromos)
+        ? rawPromos.map((x) => {
+            const po = (x as Record<string, unknown>) ?? {}
+            return { type: po['type'] as string | undefined, value: po['value'] as number | undefined, unique_code: po['unique_code'] as string | undefined }
+          })
+        : []
+
       return {
         id: pr['id'] as number | string | undefined,
         name: String(pr['name'] ?? ''),
         sessions,
         price,
         perSession,
-        shareable: Boolean(pr['shareable'] ?? false),
-        features,
-        promo: pr['promo'] ? String(pr['promo']) : undefined,
+        shareable: maxPerson > 1,
+        features: Array.isArray(pr['features']) ? (pr['features'] as string[]) : [],
+        promo: promos.length > 0 && promos[0] ? `${promos[0].type ?? 'Promo'} ${promos[0].value ?? ''}`.trim() : undefined,
+        gymName: gymName || undefined,
+        maxPerson: maxPerson > 1 ? maxPerson : undefined,
+        promos,
       }
     })
   } catch (e: unknown) {
@@ -122,21 +146,15 @@ onMounted(async () => {
   statsLoading.value = true
   try {
     const raw = await getTrainerStats()
-    const s = (raw ?? {}) as Record<string, unknown>
-    stats.value = [
-      { value: s['expert_trainers_count'] != null ? `${s['expert_trainers_count']}+` : '15+', label: 'Expert Trainers' },
-      { value: s['years_combined_experience'] != null ? `${s['years_combined_experience']}+` : '50+', label: 'Years Combined Experience' },
-      { value: s['happy_clients_count'] != null ? `${s['happy_clients_count']}+` : '1000+', label: 'Happy Clients' },
-      { value: s['average_rating'] != null ? String(s['average_rating']) : '4.8', label: 'Average Rating' },
-    ]
+    // Backend returns an array of { value, label } objects
+    if (Array.isArray(raw) && raw.length > 0) {
+      stats.value = raw.map((item: unknown) => {
+        const s = (item ?? {}) as Record<string, unknown>
+        return { value: String(s['value'] ?? ''), label: String(s['label'] ?? '') }
+      })
+    }
   } catch {
-    // fallback to static values when API unavailable
-    stats.value = [
-      { value: '15+', label: 'Expert Trainers' },
-      { value: '50+', label: 'Years Combined Experience' },
-      { value: '1000+', label: 'Happy Clients' },
-      { value: '4.8', label: 'Average Rating' },
-    ]
+    // stats stays empty; StatsBlock handles empty array gracefully
   } finally {
     statsLoading.value = false
   }

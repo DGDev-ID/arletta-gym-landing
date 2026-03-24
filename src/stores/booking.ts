@@ -463,24 +463,30 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
     const time = start && end ? `${start} - ${end}` : start
 
     const status = String(booking.status ?? 'confirmed')
+    const category = String(s.category ?? '').toLowerCase()
+    const className = String(s.class_name ?? '')
+    // Detect PT sessions by category or class name
+    const isPT = category.includes('pt') || category.includes('personal') || className.toLowerCase().includes('personal training')
 
     const item: BookedClass = {
       id: Number(booking.id ?? 0),
       classId: Number(s.id ?? 0),
-      name: String(s.class_name ?? ''),
+      name: className,
       trainer: String(s.trainer_name ?? ''),
       trainerAvatar: s.trainer_name ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}` : '',
-      date: String(booking.date ?? s.date ?? ''),
+      date: String(s.date ?? booking.date ?? ''),
       time: time,
       location: String(s.location ?? ''),
-      type: 'class',
+      type: isPT ? 'pt-session' : 'class',
       status: (status as unknown) as BookedClass['status'],
       bookedAt: String(booking.created_at ?? ''),
       canCancel: status === 'confirmed' ? canCancelClass(String(s.date ?? ''), time) : false,
     }
 
-    if (item.status === 'waitlist') {
-      waitingList.value.push(item)
+    // Note: BE GET /bookings does not include waitlist entries (separate table).
+    // Waitlist items are managed locally or require a dedicated endpoint.
+    if (isPT) {
+      ptSessions.value.push(item)
     } else {
       bookedClasses.value.push(item)
     }

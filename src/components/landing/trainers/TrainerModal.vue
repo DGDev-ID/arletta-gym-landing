@@ -10,17 +10,22 @@ type Trainer = {
   certifications: string[]
   bio: string
   image: string
+  images?: string[]
   instagram?: string
   rating?: number
   clients?: number
+  phone_number?: string
+  gender?: string
 }
 const props = defineProps<{ trainer?: Trainer | null }>()
 defineEmits(['close'])
 
-// Trainers use WhatsApp for booking PT sessions (outside of the system)
-// TODO: Replace with actual trainer's WhatsApp number in production
+// Use trainer's real phone number for WhatsApp; fallback to placeholder
 const handleBookSession = () => {
-  const whatsappNumber = '628123456789' // Placeholder number
+  const rawPhone = props.trainer?.phone_number ?? ''
+  // Normalize phone: strip non-digits, ensure starts with country code
+  const digits = rawPhone.replace(/\D/g, '')
+  const whatsappNumber = digits.startsWith('0') ? '62' + digits.slice(1) : (digits || '628123456789')
   const message = encodeURIComponent(
     `Hi ${props.trainer?.name ?? 'Trainer'}, I would like to book a personal training session with you.`,
   )
@@ -77,6 +82,10 @@ const handleBookSession = () => {
               <div class="flex items-center gap-2">
                 <i class="pi pi-clock text-(--primary)"></i
                 ><span class="text-white">{{ props.trainer.experience }} Experience</span>
+              </div>
+              <div v-if="props.trainer.gender" class="flex items-center gap-2">
+                <i class="pi pi-user text-(--primary)"></i
+                ><span class="text-white capitalize">{{ props.trainer.gender }}</span>
               </div>
             </div>
 

@@ -60,9 +60,7 @@ const saveProfile = async () => {
   try {
     const payload = {
       name: editTrainer.value.name,
-      email: editTrainer.value.email,
-      phone: editTrainer.value.phone,
-      avatar: editTrainer.value.avatar,
+      phone_number: editTrainer.value.phone,
     }
     const updated = await authService.updateUserMe(payload)
     const tRec = ((updated && (updated.user as Record<string, unknown>)) || (updated as Record<string, unknown>)) as Record<string, unknown>
@@ -70,7 +68,7 @@ const saveProfile = async () => {
       ...trainer.value,
       name: String(tRec.name ?? editTrainer.value.name ?? ''),
       email: String(tRec.email ?? editTrainer.value.email ?? ''),
-      phone: String(tRec.phone ?? editTrainer.value.phone ?? ''),
+      phone: String(tRec.phone_number ?? tRec.phone ?? editTrainer.value.phone ?? ''),
       avatar: String(tRec.avatar ?? editTrainer.value.avatar ?? ''),
     }
     toast.add({ severity: 'success', summary: 'Saved', detail: 'Profile updated.', life: 3000 })

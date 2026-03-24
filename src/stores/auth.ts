@@ -21,22 +21,33 @@ export function logout() {
 export async function fetchMe(): Promise<void> {
   try {
     const data = await apiMe()
-    // backend returns an object that includes 'member' or 'trainer' payloads for landing
-    // attempt to map to our simple User shape
+    // backend GET /auth/me returns { id, name, email, roles: [{name: '...'}], userDetail, gyms }
     const obj = (data && typeof data === 'object') ? (data as Record<string, unknown>) : null
-    const u = obj ? ('member' in obj ? obj['member'] : ('trainer' in obj ? obj['trainer'] : obj)) : null
-    if (!u || typeof u !== 'object') {
+    if (!obj) {
       setUser(null)
       return
     }
-    const uObj = u as Record<string, unknown>
-    const role = String((uObj['role'] as string | undefined) ?? (uObj['roles'] as string | undefined) ?? '').toLowerCase().includes('pt') ? 'pt' : 'member'
+
+    // Detect role from 'roles' array (Laravel Spatie format: [{id, name, ...}])
+    let roleName = ''
+    const rolesArr = obj['roles']
+    if (Array.isArray(rolesArr) && rolesArr.length > 0) {
+      const firstRole = rolesArr[0] as Record<string, unknown> | string
+      roleName = typeof firstRole === 'string' ? firstRole : String((firstRole as Record<string, unknown>)['name'] ?? '')
+    } else if (typeof obj['role'] === 'string') {
+      roleName = obj['role']
+    }
+    const role: 'member' | 'pt' = roleName.toLowerCase().includes('personal trainer') || roleName.toLowerCase().includes('pt') ? 'pt' : 'member'
+
+    // Read userDetail for avatar
+    const userDetail = (obj['userDetail'] ?? obj['user_detail'] ?? {}) as Record<string, unknown>
+
     setUser({
-      id: Number(uObj['id'] ?? (uObj['user'] && (uObj['user'] as Record<string, unknown>)['id']) ?? 0),
-      name: String(uObj['name'] ?? (uObj['user'] && (uObj['user'] as Record<string, unknown>)['name']) ?? ''),
-      email: String(uObj['email'] ?? (uObj['user'] && (uObj['user'] as Record<string, unknown>)['email']) ?? ''),
-      role: role as 'member' | 'pt',
-      avatar: String(uObj['avatar'] ?? (uObj['user'] && (uObj['user'] as Record<string, unknown>)['avatar']) ?? ''),
+      id: Number(obj['id'] ?? 0),
+      name: String(obj['name'] ?? ''),
+      email: String(obj['email'] ?? ''),
+      role,
+      avatar: String(userDetail['avatar'] ?? obj['avatar'] ?? ''),
     })
   } catch {
     // silently ignore — user not authenticated or token invalid

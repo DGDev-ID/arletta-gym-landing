@@ -27,7 +27,7 @@ export async function cancelBooking(bookingId, payload) {
 }
 
 export async function rescheduleBooking(bookingId, payload) {
-  // payload: { schedule_id: number, reason?: string }
+  // payload: { new_schedule_id: number, reason: string }
   const { data } = await api.post(`/bookings/${bookingId}/reschedule`, payload)
   if (!data.success) throw new Error(data.message ?? 'Failed to reschedule booking')
   return data.data
