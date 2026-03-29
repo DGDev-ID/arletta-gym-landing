@@ -7,7 +7,7 @@ import Menu from 'primevue/menu'
 
 interface User {
   name: string
-  avatar?: string
+  photo_url?: string
 }
 
 defineProps<{
@@ -65,7 +65,7 @@ const handleLogout = () => {
       aria-label="User menu"
     >
       <img
-        :src="user.avatar"
+        :src="user.photo_url"
         :alt="user.name"
         class="w-9 h-9 rounded-full border-2 border-(--primary)"
       />

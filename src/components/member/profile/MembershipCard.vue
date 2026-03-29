@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
 import Card from 'primevue/card'
+import QrcodeVue from 'qrcode.vue'
 
 interface Props {
   member: {
@@ -61,10 +62,12 @@ defineProps<Props>()
         <div class="p-4 rounded-lg bg-white/5 border border-white/10 text-center">
           <div class="text-sm text-(--text-muted) mb-3">Member QR Code</div>
           <div class="bg-white p-3 rounded-lg inline-block">
-            <img
-              :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('ARLETTA-GYM:' + member.memberId)}`"
-              alt="Member QR Code"
-              class="w-36 h-36"
+            <QrcodeVue
+              v-if="member.memberId"
+              :value="member.memberId"
+              :size="150"
+              level="H"
+              render-as="svg"
             />
           </div>
           <div class="mt-3 text-xs text-(--text-muted)">ID: {{ member.memberId }}</div>

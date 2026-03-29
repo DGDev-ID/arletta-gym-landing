@@ -109,10 +109,9 @@ const onAvatarChange = async (e: Event) => {
 onMounted(async () => {
   try {
     const data = await getTrainerMe()
-    trainer.value = data ?? trainer.value
-
-    // Try to populate today's schedule and recent clients from trainer dashboard
+    // API returns { trainer: {...}, recentClients: [...], todaySchedule: [...] }
     const t = (data ?? {}) as Record<string, unknown>
+    trainer.value = (t['trainer'] as Record<string, unknown> | null) ?? trainer.value
 
     const todayRaw = t['today_schedule'] ?? t['todaySchedule'] ?? t['today'] ?? t['todaySchedules'] ?? []
     if (Array.isArray(todayRaw)) {

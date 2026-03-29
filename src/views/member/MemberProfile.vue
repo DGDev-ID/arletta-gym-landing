@@ -31,6 +31,11 @@ interface MemberMeResponse {
     [key: string]: unknown
   }
   upcomingClasses?: Session[]
+  emergencyContact?: {
+    emergency_name?: string
+    emergency_phone?: string
+    emergency_relation?: string
+  }
 }
 import ProfileCard from '@/components/member/profile/ProfileCard.vue'
 import MembershipCard from '@/components/member/profile/MembershipCard.vue'
@@ -137,10 +142,13 @@ onMounted(async () => {
     }
 
     if (membership) {
+      const endDate = membership.membership_end_at ? new Date(membership.membership_end_at) : null
+      const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0
+
       membershipStatus.value = {
         status: membership.is_active ? 'Active' : 'Inactive',
         expiresAt: membership.membership_end_at ?? '',
-        daysRemaining: 0,
+        daysRemaining,
         startDate: '',
         duration: '',
       }
@@ -148,6 +156,14 @@ onMounted(async () => {
     }
 
     upcomingClasses.value = Array.isArray(upcoming) ? upcoming : []
+
+    // Load emergency contact data
+    const ec = data?.emergencyContact ?? null
+    if (ec) {
+      emergency_name.value = ec.emergency_name ?? ''
+      emergency_phone.value = ec.emergency_phone ?? ''
+      emergency_relation.value = ec.emergency_relation ?? ''
+    }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     useToast().add({ severity: 'error', summary: 'Failed to load profile', detail: msg, life: 4000 })

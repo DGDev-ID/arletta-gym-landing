@@ -10,7 +10,7 @@ import Select from 'primevue/select'
 import EmailVerificationModal from '@/components/auth/EmailVerificationModal.vue'
 import HealthPolicyModal from '@/components/auth/HealthPolicyModal.vue'
 import { useToast } from 'primevue/usetoast'
-import { register as apiRegister } from '@/services/authService'
+import { registerAndPersist as apiRegister } from '@/services/authService'
 import { setUser } from '@/stores/auth'
 
 const router = useRouter()

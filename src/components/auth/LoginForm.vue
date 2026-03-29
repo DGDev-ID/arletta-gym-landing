@@ -5,7 +5,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { login as apiLogin } from '@/services/authService'
+import { loginAndPersist as apiLogin } from '@/services/authService'
 import { setUser } from '@/stores/auth'
 
 const router = useRouter()
@@ -29,7 +29,8 @@ const handleLogin = async () => {
       life: 3000,
     })
 
-    const role: 'member' | 'pt' = (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt'
+    const roleName = String(user.role ?? '').toLowerCase()
+    const role: 'member' | 'pt' = roleName.includes('personal trainer') || roleName === 'pt' ? 'pt' : 'member'
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
