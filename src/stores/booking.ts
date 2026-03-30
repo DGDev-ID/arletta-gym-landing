@@ -49,160 +49,13 @@ export interface PTSession {
 }
 
 // Store state
-const bookedClasses = ref<BookedClass[]>([
-  // Upcoming confirmed classes
-  {
-    id: 1,
-    classId: 101,
-    name: 'HIIT Burn',
-    trainer: 'Sarah Johnson',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    date: '2026-03-03',
-    time: '09:00 - 09:45',
-    location: 'Studio A',
-    type: 'class',
-    status: 'confirmed',
-    bookedAt: '2026-02-25T10:00:00',
-    canCancel: true,
-  },
-  {
-    id: 2,
-    classId: 102,
-    name: 'Power Yoga',
-    trainer: 'Maya Chen',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
-    date: '2026-03-04',
-    time: '18:00 - 19:00',
-    location: 'Studio B',
-    type: 'class',
-    status: 'confirmed',
-    bookedAt: '2026-02-25T11:00:00',
-    canCancel: true,
-  },
-  // Two overlapping bookings to demonstrate time conflict
-  {
-    id: 3,
-    classId: 103,
-    name: 'Boxing Fundamentals',
-    trainer: 'Carlos Rodriguez',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos',
-    date: '2026-03-05',
-    time: '17:00 - 18:00',
-    location: 'Boxing Ring',
-    type: 'class',
-    status: 'confirmed',
-    bookedAt: '2026-02-26T14:00:00',
-    canCancel: true,
-  },
-  {
-    id: 4,
-    classId: 104,
-    name: 'Evening Mobility',
-    trainer: 'Alex Park',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    date: '2026-03-05',
-    time: '17:30 - 18:15',
-    location: 'Studio C',
-    type: 'class',
-    status: 'confirmed',
-    bookedAt: '2026-02-26T15:00:00',
-    canCancel: true,
-  },
-])
+const bookedClasses = ref<BookedClass[]>([])
 
-const waitingList = ref<BookedClass[]>([
-  {
-    id: 100,
-    classId: 201,
-    name: 'Spin Cycle',
-    trainer: 'David Kim',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-    date: '2026-03-02',
-    time: '06:00 - 06:45',
-    location: 'Cycling Studio',
-    type: 'class',
-    status: 'waitlist',
-    bookedAt: '2026-02-28T09:00:00',
-    canCancel: true, // waiting list can always be cancelled
-  },
-  {
-    id: 101,
-    classId: 204,
-    name: 'Pilates Core',
-    trainer: 'Emma Wilson',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    date: '2026-03-07',
-    time: '09:00 - 09:45',
-    location: 'Studio C',
-    type: 'class',
-    status: 'waitlist',
-    bookedAt: '2026-02-28T12:00:00',
-    canCancel: true,
-  },
-  {
-    id: 102,
-    classId: 202,
-    name: 'Core Crusher',
-    trainer: 'Lisa Park',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
-    date: '2026-03-05',
-    time: '12:00 - 12:30',
-    location: 'Studio A',
-    type: 'class',
-    status: 'waitlist',
-    bookedAt: '2026-02-27T08:30:00',
-    canCancel: true,
-  },
-])
+const waitingList = ref<BookedClass[]>([])
 
-const ptSessions = ref<BookedClass[]>([
-  {
-    id: 201,
-    classId: 0,
-    name: 'Personal Training',
-    trainer: 'Mike Torres',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
-    date: '2026-03-06',
-    time: '14:00 - 15:00',
-    location: 'Weight Room',
-    type: 'pt-session',
-    status: 'confirmed',
-    bookedAt: '2026-02-20T10:00:00',
-    canCancel: false, // Only PT can cancel
-  },
-  // Pending session created by trainer, awaiting member confirmation
-  {
-    id: 202,
-    classId: 0,
-    name: 'PT - Assessment Session',
-    trainer: 'Rita Lestari',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rita',
-    date: '2026-03-04',
-    time: '11:00 - 12:00',
-    location: 'Consultation Room',
-    type: 'pt-session',
-    status: 'pending',
-    bookedAt: '2026-02-28T09:30:00',
-    canCancel: true, // member can decline pending
-  },
-])
+const ptSessions = ref<BookedClass[]>([])
 
-const classHistory = ref<BookedClass[]>([
-  {
-    id: 301,
-    classId: 101,
-    name: 'HIIT Burn',
-    trainer: 'Sarah Johnson',
-    trainerAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    date: '2026-02-10',
-    time: '09:00 - 09:45',
-    location: 'Studio A',
-    type: 'class',
-    status: 'confirmed',
-    bookedAt: '2026-01-20T10:00:00',
-    canCancel: false,
-  },
-])
+const classHistory = ref<BookedClass[]>([])
 
 // Helper: Check if class can be cancelled (H-1 rule)
 export const canCancelClass = (classDate: string, classTime: string): boolean => {
@@ -452,8 +305,12 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
   bookedClasses.value = []
   waitingList.value = []
   ptSessions.value = []
+  classHistory.value = []
 
   if (!Array.isArray(remote)) return
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   remote.forEach((b: unknown) => {
     const booking = (b ?? {}) as Record<string, unknown>
@@ -468,6 +325,10 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
     // Detect PT sessions by category or class name
     const isPT = category.includes('pt') || category.includes('personal') || className.toLowerCase().includes('personal training')
 
+    // Determine if the schedule date is in the past
+    const scheduleDate = new Date(String(s.date ?? booking.date ?? ''))
+    const isPast = !isNaN(scheduleDate.getTime()) && scheduleDate < today
+
     const item: BookedClass = {
       id: Number(booking.id ?? 0),
       classId: Number(s.id ?? 0),
@@ -481,6 +342,12 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
       status: (status as unknown) as BookedClass['status'],
       bookedAt: String(booking.created_at ?? ''),
       canCancel: status === 'confirmed' ? canCancelClass(String(s.date ?? ''), time) : false,
+    }
+
+    // Cancelled bookings or past confirmed/attended → history
+    if (status === 'cancelled' || isPast) {
+      classHistory.value.push(item)
+      return
     }
 
     // Note: BE GET /bookings does not include waitlist entries (separate table).

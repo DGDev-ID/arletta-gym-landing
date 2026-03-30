@@ -29,15 +29,23 @@ export async function fetchMe(): Promise<void> {
     }
 
     // Detect role from 'roles' array (Laravel Spatie format: [{id, name, ...}])
-    let roleName = ''
+    // A PT user has TWO roles: 'User' AND 'Personal Trainer'.
+    // We must scan ALL roles and prioritise 'pt' over 'member'.
+    let isPt = false
     const rolesArr = obj['roles']
     if (Array.isArray(rolesArr) && rolesArr.length > 0) {
-      const firstRole = rolesArr[0] as Record<string, unknown> | string
-      roleName = typeof firstRole === 'string' ? firstRole : String((firstRole as Record<string, unknown>)['name'] ?? '')
+      for (const r of rolesArr) {
+        const name = typeof r === 'string' ? r : String((r as Record<string, unknown>)['name'] ?? '')
+        if (name.toLowerCase().includes('personal trainer') || name.toLowerCase() === 'pt') {
+          isPt = true
+          break
+        }
+      }
     } else if (typeof obj['role'] === 'string') {
-      roleName = obj['role']
+      const roleName = obj['role']
+      isPt = roleName.toLowerCase().includes('personal trainer') || roleName.toLowerCase() === 'pt'
     }
-    const role: 'member' | 'pt' = roleName.toLowerCase().includes('personal trainer') || roleName.toLowerCase().includes('pt') ? 'pt' : 'member'
+    const role: 'member' | 'pt' = isPt ? 'pt' : 'member'
 
     // Read userDetail for avatar
     const userDetail = (obj['userDetail'] ?? obj['user_detail'] ?? {}) as Record<string, unknown>
@@ -55,4 +63,8 @@ export async function fetchMe(): Promise<void> {
   }
 }
 
+// Named export for the reactive state — use `import { authState } from '@/stores/auth'`
+export const authState = state
+
+// Default export — use `import authState from '@/stores/auth'`
 export default state

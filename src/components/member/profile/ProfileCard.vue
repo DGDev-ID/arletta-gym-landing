@@ -14,6 +14,7 @@ interface Props {
 }
 
 defineProps<Props>()
+const emit = defineEmits<{ (e: 'edit'): void }>()
 </script>
 
 <template>
@@ -59,6 +60,7 @@ defineProps<Props>()
           icon="pi pi-pencil"
           outlined
           class="mt-6 w-full py-2.5 border-white/20 text-white hover:bg-white/10"
+          @click="emit('edit')"
         />
       </div>
     </template>

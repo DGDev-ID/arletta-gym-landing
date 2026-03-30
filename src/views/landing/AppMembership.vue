@@ -90,6 +90,17 @@ interface ProcessedPlan {
 
 const membershipPlans = ref<ProcessedPlan[]>([])
 
+const defaultFeatures = [
+  'Unlimited gym access',
+  'All fitness classes included',
+  'Private locker',
+  'Towel service',
+  'Air-conditioned workout rooms',
+  'Professional personal trainers',
+  'Free WiFi',
+  'Hot water / water heaters',
+]
+
 // Static pre-sale overlays for certain plans (only promo and description)
 // Provide both a months-based map (for services that return duration in days like 365/730)
 // and a fallback by the `period` string.
@@ -158,14 +169,12 @@ onMounted(async () => {
             : 'Premium membership plan'),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
-        features: Array.isArray(planRaw['features']) ? (planRaw['features'] as string[]) : [],
+        features: defaultFeatures,
         gymName: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
           ? String((planRaw['gym'] as Record<string, unknown>)['name'])
           : undefined,
       }
     })
-    // Reverse order so the shortest-duration / smallest monthly packages appear first on the page
-    membershipPlans.value = membershipPlans.value.slice().reverse()
   } catch (err) {
     console.warn('Failed to load memberships', err)
   }

@@ -136,7 +136,7 @@ onMounted(async () => {
         name: String(c.name ?? c.full_name ?? 'Unknown'),
         avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'member'))}`),
         email: String(c.email ?? c.contact_email ?? ''),
-        phone: String(c.phone ?? c.contact_phone ?? ''),
+        phone: String(c.phone_number ?? c.phone ?? c.contact_phone ?? ''),
         membershipType: String(c.membership_type ?? c.membershipType ?? 'Standard'),
         joinDate: String(c.join_date ?? c.joined_at ?? ''),
         lastSession: String(c.last_session ?? c.last_session_at ?? ''),

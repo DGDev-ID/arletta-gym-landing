@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import authService from '@/services/authService'
 import { uploadFile } from '@/services/uploadService'
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import Card from 'primevue/card'
 
 interface Session {
   id: number
@@ -195,57 +198,245 @@ const submitEmergency = async () => {
 </script>
 
 <template>
-  <div class="pt-24 pb-12">
-    <div class="container-custom">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="heading-md text-white mb-2">My Profile</h1>
-        <p class="text-(--text-secondary)">Manage your account and view your fitness journey</p>
-        <div class="mt-3">
-          <button class="btn btn-secondary" @click="openEdit">Edit Profile</button>
+  <div>
+    <!-- Page -->
+    <div class="pt-24 pb-12">
+      <div class="container-custom">
+        <!-- Header -->
+        <div class="mb-8">
+          <h1 class="heading-md text-white mb-2">My Profile</h1>
+          <p class="text-(--text-secondary)">Manage your account and view your fitness journey</p>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Profile Card -->
-        <ProfileCard :member="member" />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Profile Card -->
+          <ProfileCard :member="member" @edit="openEdit" />
 
-        <!-- Membership Status -->
-        <MembershipCard :member="member" :membership-status="membershipStatus" />
+          <!-- Membership Status -->
+          <MembershipCard :member="member" :membership-status="membershipStatus" />
 
-        <!-- Upcoming Classes -->
-        <ScheduleCard :upcoming-classes="upcomingClasses" />
-      </div>
-      
-      <div class="mt-8">
-        <div v-if="showEdit" class="mb-6 max-w-xl bg-white/5 p-4 rounded-lg">
-          <h3 class="text-white font-semibold mb-2">Edit Profile</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input v-model="editMember.name" class="input" placeholder="Full name" />
-            <input v-model="editMember.email" class="input" placeholder="Email" />
-            <input v-model="editMember.phone" class="input" placeholder="Phone" />
-            <input v-model="editMember.avatar" class="input" placeholder="Avatar URL" />
-            <div class="col-span-2">
-              <label class="text-sm text-(--text-muted) mb-1 inline-block">Upload avatar</label>
-              <input type="file" accept="image/*" @change="onAvatarChange" class="input mt-1" />
-              <div v-if="uploadingAvatar" class="text-xs text-(--text-muted) mt-1">Uploading...</div>
-            </div>
-          </div>
-          <div class="mt-3 flex gap-3">
-            <button class="btn" :disabled="savingProfile" @click="saveProfile">Save</button>
-            <button class="btn btn-ghost" @click="showEdit = false">Cancel</button>
-          </div>
+          <!-- Upcoming Classes -->
+          <ScheduleCard :upcoming-classes="upcomingClasses" />
         </div>
-        <h2 class="text-white font-bold mb-3">Emergency Contact</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl">
-          <input v-model="emergency_name" placeholder="Contact name" class="input" />
-          <input v-model="emergency_phone" placeholder="Phone" class="input" />
-          <input v-model="emergency_relation" placeholder="Relation" class="input" />
-        </div>
-        <div class="mt-3">
-          <button class="btn" :disabled="submittingEmergency" @click="submitEmergency">Save Emergency Contact</button>
+
+        <!-- Emergency Contact Section -->
+        <div class="mt-10">
+          <h2 class="text-white font-bold text-lg mb-5 flex items-center gap-2">
+            <i class="pi pi-heart-fill text-(--primary)" />
+            Emergency Contact
+          </h2>
+
+          <Card
+            class="glass-card max-w-2xl"
+            :pt="{
+              root: { class: 'bg-transparent border-0' },
+              body: { class: 'p-0' },
+              content: { class: 'p-0' },
+            }"
+          >
+            <template #content>
+              <div class="p-6">
+                <!-- Info hint -->
+                <div class="flex items-start gap-3 mb-6 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <i class="pi pi-info-circle text-amber-400 mt-0.5 shrink-0" />
+                  <p class="text-sm text-amber-200">
+                    Kontak darurat akan dihubungi jika terjadi situasi yang tidak diinginkan selama sesi latihan.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <!-- Name -->
+                  <div class="space-y-2">
+                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                      <i class="pi pi-user text-(--primary) text-xs" />
+                      Name
+                    </label>
+                    <InputText
+                      v-model="emergency_name"
+                      placeholder="Contact name"
+                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
+                    />
+                  </div>
+
+                  <!-- Phone -->
+                  <div class="space-y-2">
+                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                      <i class="pi pi-phone text-(--primary) text-xs" />
+                      Phone
+                    </label>
+                    <InputText
+                      v-model="emergency_phone"
+                      placeholder="+62 8xx xxxx xxxx"
+                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
+                    />
+                  </div>
+
+                  <!-- Relation -->
+                  <div class="space-y-2">
+                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                      <i class="pi pi-users text-(--primary) text-xs" />
+                      Relation
+                    </label>
+                    <InputText
+                      v-model="emergency_relation"
+                      placeholder="e.g. Parent, Sibling"
+                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
+                    />
+                  </div>
+                </div>
+
+                <!-- Saved preview (shown when data exists) -->
+                <div
+                  v-if="emergency_name || emergency_phone || emergency_relation"
+                  class="mt-5 p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-3"
+                >
+                  <div class="w-9 h-9 rounded-full bg-(--primary)/20 flex items-center justify-center shrink-0">
+                    <i class="pi pi-user text-(--primary) text-sm" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-white text-sm font-medium truncate">{{ emergency_name || '—' }}</p>
+                    <p class="text-(--text-muted) text-xs truncate">
+                      {{ emergency_phone || '—' }}
+                      <span v-if="emergency_relation" class="mx-1">·</span>
+                      {{ emergency_relation }}
+                    </p>
+                  </div>
+                  <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full shrink-0">Saved</span>
+                </div>
+
+                <div class="mt-5 flex justify-end border-t border-white/10 pt-5">
+                  <Button
+                    :label="submittingEmergency ? 'Saving…' : 'Save Emergency Contact'"
+                    icon="pi pi-save"
+                    :loading="submittingEmergency"
+                    :disabled="submittingEmergency"
+                    class="px-5"
+                    @click="submitEmergency"
+                  />
+                </div>
+              </div>
+            </template>
+          </Card>
         </div>
       </div>
     </div>
+
+    <!-- Edit Profile Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="showEdit"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showEdit = false" />
+
+          <!-- Modal Panel -->
+          <div class="relative z-10 w-full max-w-lg bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="pi pi-user-edit text-(--primary)" />
+                Edit Profile
+              </h2>
+              <button
+                class="text-white/50 hover:text-white transition-colors rounded-lg p-1 hover:bg-white/10"
+                @click="showEdit = false"
+              >
+                <i class="pi pi-times text-xl" />
+              </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-5 space-y-4">
+              <!-- Avatar preview + upload -->
+              <div class="flex items-center gap-4">
+                <img
+                  :src="editMember.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(editMember.name || 'member')}`"
+                  alt="Avatar preview"
+                  class="w-16 h-16 rounded-full border-2 border-(--primary) object-cover shrink-0"
+                />
+                <div class="flex-1">
+                  <label class="text-sm text-(--text-muted) mb-1 block">Upload new avatar</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="block w-full text-sm text-white/60
+                      file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
+                      file:text-sm file:font-medium file:bg-(--primary)/20 file:text-(--primary)
+                      hover:file:bg-(--primary)/30 cursor-pointer"
+                    @change="onAvatarChange"
+                  />
+                  <div v-if="uploadingAvatar" class="text-xs text-(--text-muted) mt-1 flex items-center gap-1">
+                    <i class="pi pi-spin pi-spinner text-xs" /> Uploading…
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fields -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Full Name</label>
+                  <input v-model="editMember.name" class="input w-full" placeholder="Full name" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Phone</label>
+                  <input v-model="editMember.phone" class="input w-full" placeholder="Phone number" />
+                </div>
+                <div class="sm:col-span-2 space-y-1">
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Email</label>
+                  <input
+                    v-model="editMember.email"
+                    class="input w-full opacity-60 cursor-not-allowed"
+                    placeholder="Email address"
+                    type="email"
+                    disabled
+                  />
+                </div>
+                <div class="sm:col-span-2 space-y-1">
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Avatar URL</label>
+                  <input v-model="editMember.avatar" class="input w-full" placeholder="https://…" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-white/2">
+              <button class="btn btn-ghost" :disabled="savingProfile" @click="showEdit = false">
+                Cancel
+              </button>
+              <button class="btn" :disabled="savingProfile" @click="saveProfile">
+                <i v-if="savingProfile" class="pi pi-spin pi-spinner mr-2" />
+                {{ savingProfile ? 'Saving…' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-enter-active .relative,
+.modal-leave-active .relative {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .relative {
+  transform: translateY(-12px) scale(0.97);
+  opacity: 0;
+}
+.modal-leave-to .relative {
+  transform: translateY(8px) scale(0.97);
+  opacity: 0;
+}
+</style>
+
