@@ -21,6 +21,17 @@ interface ProcessedPlan {
 
 const membershipPlans = ref<ProcessedPlan[]>([])
 
+const defaultFeatures = [
+  'Unlimited gym access',
+  'All fitness classes included',
+  'Private locker',
+  'Towel service',
+  'Air-conditioned workout rooms',
+  'Professional personal trainers',
+  'Free WiFi',
+  'Hot water / water heaters',
+]
+
 // Static pre-sale overlays for certain plans (months-based, with period-string fallback)
 const staticPresaleByMonths: Record<number, { promo?: string; description?: string }> = {
   24: { promo: 'Free 5 months (pre-sale)', description: 'Twenty-four month payment — equivalent to 200k/month.' },
@@ -88,11 +99,9 @@ onMounted(async () => {
             : 'Premium membership plan'),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
-        features: Array.isArray(planRaw['features']) ? (planRaw['features'] as string[]) : [],
+        features: defaultFeatures,
       }
     })
-    // Reverse so shortest-duration plans appear first
-    membershipPlans.value = membershipPlans.value.slice().reverse()
   } catch (err) {
     console.warn('Failed to load memberships', err)
   }

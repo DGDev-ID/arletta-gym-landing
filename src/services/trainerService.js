@@ -32,12 +32,17 @@ export async function getTrainerClients(id) {
   return data.data
 }
 
-export async function getTrainerClientsAll() {
-  const { data } = await api.get('/trainers/clients/all')
+export async function getTrainerClientsAll(params = {}) {
+  const { data } = await api.get('/trainers/clients/all', { params })
   if (!data.success) {
     throw new Error(data.message ?? 'Failed to fetch all trainer clients')
   }
-  return data.data
+  // Backend returns a Laravel paginator: data.data = { data: [...], current_page, total, ... }
+  // Extract the items array; fall back gracefully if BE ever returns a plain array
+  const payload = data.data
+  if (Array.isArray(payload)) return payload
+  if (payload && Array.isArray(payload.data)) return payload.data
+  return []
 }
 
 export async function getTrainerSchedules(id) {
