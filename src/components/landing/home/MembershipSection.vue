@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
 import authState from '@/stores/auth'
 import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import PricingCard from '@/components/landing/membership/PricingCard.vue'
+import SignatureVerificationModal from '@/components/booking/SignatureVerificationModal.vue'
 import { getMemberships } from '@/services/membershipService'
+import { createSignature, createPayment } from '@/services/paymentService'
 
 interface ProcessedPlan {
   id: number | string | undefined
@@ -17,9 +21,12 @@ interface ProcessedPlan {
   promo: string
   promos: unknown[]
   features: string[]
+  gymName: string | undefined
+  gymId: number | string | undefined
 }
 
 const membershipPlans = ref<ProcessedPlan[]>([])
+const membershipLoading = ref(true)
 
 const defaultFeatures = [
   'Unlimited gym access',
@@ -53,6 +60,7 @@ const staticPresale: Record<string, { promo?: string; description?: string } | u
 
 onMounted(async () => {
   try {
+    membershipLoading.value = true
     const plans = await getMemberships()
     membershipPlans.value = plans.map((p) => {
       const planRaw = p as Record<string, unknown>
@@ -100,33 +108,87 @@ onMounted(async () => {
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
+        gymName: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
+          ? String((planRaw['gym'] as Record<string, unknown>)['name'])
+          : undefined,
+        gymId: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['id']
+          ? (planRaw['gym'] as Record<string, unknown>)['id'] as number | string
+          : undefined,
       }
     })
   } catch (err) {
     console.warn('Failed to load memberships', err)
+  } finally {
+    membershipLoading.value = false
   }
 })
 
+const router = useRouter()
 const toast = useToast()
 const showPaymentModal = ref(false)
+const showSignatureModal = ref(false)
+const selectedPlan = ref<ProcessedPlan | null>(null)
+let createdSignatureId: number | null = null
 
-const goToSignUp = () => {
+const goToSignUp = (plan?: ProcessedPlan) => {
+  if (plan) selectedPlan.value = plan
   if (authState.isLoggedIn) {
-    showPaymentModal.value = true
+    showSignatureModal.value = true
     return
   }
-  window.location.href = '/signup'
+  router.push('/signup')
 }
 
-const proceedToPayment = (method: string) => {
-  toast.add({
-    severity: 'info',
-    summary: 'Proceeding to payment',
-    detail: `Opening ${method} checkout...`,
-    life: 3000,
-  })
-  window.open('about:blank', '_blank')
-  showPaymentModal.value = false
+const onSignatureConfirmed = async (signatureData?: string) => {
+  try {
+    if (!signatureData) throw new Error('Signature missing')
+    const payloadSig: { signature_data: string; membership_plan_id?: number | string } = { signature_data: signatureData }
+    if (selectedPlan.value && selectedPlan.value.id) payloadSig.membership_plan_id = selectedPlan.value.id as number | string
+    const resp = await createSignature(payloadSig as unknown as { signature_data: string; membership_plan_id?: number })
+    createdSignatureId = resp?.id ?? null
+    toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified successfully.', life: 3000 })
+    showSignatureModal.value = false
+    showPaymentModal.value = true
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Signature failed', detail: message, life: 5000 })
+  }
+}
+
+const proceedToPayment = async (method: 'va' | 'qris') => {
+  try {
+    if (!selectedPlan.value || !selectedPlan.value.id) {
+      throw new Error('No membership plan selected')
+    }
+    if (!selectedPlan.value.gymId) {
+      throw new Error('Gym information is missing for this plan')
+    }
+
+    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+
+    const payloadPayment: Record<string, unknown> = {
+      gym_id: Number(selectedPlan.value.gymId),
+      transaction_type: 'membership',
+      type_id: Number(selectedPlan.value.id),
+      payment_method: method,
+    }
+    if (createdSignatureId) payloadPayment.signature_data = undefined
+    const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
+    if (resp.payment_url) {
+      window.open(resp.payment_url, '_blank')
+    } else if ((resp as Record<string, unknown>).snap_token) {
+      const snapToken = (resp as Record<string, unknown>).snap_token as string
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${snapToken}`, '_blank')
+    } else if (resp.token) {
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
+    } else {
+      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
+    }
+    showPaymentModal.value = false
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Payment creation failed', detail: message, life: 5000 })
+  }
 }
 </script>
 
@@ -149,7 +211,25 @@ const proceedToPayment = (method: string) => {
 
       <!-- On mobile: stretch to section edges. On md+: normal grid -->
       <div class="-mx-10 sm:mx-0 px-4 sm:px-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- Skeleton loading -->
+        <template v-if="membershipLoading">
+          <div v-for="i in 3" :key="i" class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6">
+            <div class="text-center space-y-3">
+              <Skeleton width="60%" height="1.75rem" class="mx-auto" />
+              <Skeleton width="80%" height="0.875rem" class="mx-auto" />
+              <Skeleton width="50%" height="2.25rem" class="mx-auto mt-4" />
+            </div>
+            <div class="space-y-3">
+              <div v-for="j in 5" :key="j" class="flex items-center gap-3">
+                <Skeleton shape="circle" size="1.25rem" />
+                <Skeleton width="75%" height="0.875rem" />
+              </div>
+            </div>
+            <Skeleton width="100%" height="2.75rem" borderRadius="8px" class="mt-auto" />
+          </div>
+        </template>
         <PricingCard
+          v-else
           v-for="plan in membershipPlans"
           :key="plan.name"
           :plan="plan"
@@ -160,7 +240,8 @@ const proceedToPayment = (method: string) => {
 
     <!-- Payment modal -->
     <Dialog
-      v-model:visible="showPaymentModal"
+      :visible="showPaymentModal"
+      @update:visible="(v) => (showPaymentModal = v)"
       header="Choose payment method"
       :modal="true"
       class="w-full max-w-md"
@@ -171,14 +252,16 @@ const proceedToPayment = (method: string) => {
         </p>
         <div class="grid grid-cols-1 gap-3">
           <Button
-            label="Midtrans - Credit/Debit Card"
+            label="Virtual Account (Bank Transfer)"
+            icon="pi pi-building"
             class="btn"
-            @click="proceedToPayment('Midtrans - Card')"
+            @click="proceedToPayment('va')"
           />
           <Button
-            label="Midtrans - Bank Transfer"
+            label="QRIS"
+            icon="pi pi-qrcode"
             class="btn"
-            @click="proceedToPayment('Midtrans - Bank')"
+            @click="proceedToPayment('qris')"
           />
           <Button
             label="Cancel"
@@ -188,5 +271,14 @@ const proceedToPayment = (method: string) => {
         </div>
       </div>
     </Dialog>
+
+    <!-- Signature Verification Modal -->
+    <SignatureVerificationModal
+      :visible="showSignatureModal"
+      @update:visible="(v) => (showSignatureModal = v)"
+      :member-name="authState.user?.name"
+      :membership-plan="selectedPlan ? selectedPlan.name : 'Premium Membership'"
+      @confirmed="onSignatureConfirmed"
+    />
   </section>
 </template>

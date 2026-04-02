@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import Skeleton from 'primevue/skeleton'
 import { getTrainers } from '@/services/trainerService'
 
 const trainers = ref<Array<{ name: string; specialty?: string; image?: string }>>([])
@@ -39,7 +40,18 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Skeleton loading -->
+        <template v-if="loading">
+          <div v-for="i in 3" :key="i" class="dark-card overflow-hidden rounded-2xl">
+            <Skeleton width="100%" height="18rem" borderRadius="0" />
+            <div class="p-6 text-center space-y-2">
+              <Skeleton width="50%" height="1.25rem" class="mx-auto" />
+              <Skeleton width="35%" height="0.875rem" class="mx-auto" />
+            </div>
+          </div>
+        </template>
         <div
+          v-else
           v-for="trainer in trainers"
           :key="trainer.name"
           v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Button from 'primevue/button'
+import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
 import { getTrainerMe, getTrainerSchedules, getTrainerClientsAll, createSession, updateSession, cancelSession } from '@/services/trainerService'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
@@ -326,7 +327,16 @@ onMounted(async () => {
       </div>
 
       <!-- Stats Cards -->
+      <template v-if="upcomingLoading">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div v-for="i in 4" :key="i" class="glass-card rounded-xl p-4 space-y-2">
+            <Skeleton width="40%" height="0.75rem" />
+            <Skeleton width="60%" height="1.75rem" />
+          </div>
+        </div>
+      </template>
       <PTStatsSection
+        v-else
         :total-sessions-this-week="weekSessions"
         :upcoming-count="upcomingSessions.length"
         :completed-this-month="completedThisMonth"
@@ -337,6 +347,19 @@ onMounted(async () => {
       <TabNavigation :tabs="tabs" :active-tab="activeTab" @update:active-tab="activeTab = $event" />
 
       <!-- Tab Content -->
+      <!-- Skeleton when loading -->
+      <div v-if="upcomingLoading || historyLoading" class="space-y-4 mt-6">
+        <div v-for="i in 4" :key="i" class="glass-card rounded-xl p-4 flex items-center gap-4">
+          <Skeleton shape="circle" size="2.75rem" />
+          <div class="flex-1 space-y-2">
+            <Skeleton width="45%" height="1rem" />
+            <Skeleton width="30%" height="0.75rem" />
+          </div>
+          <Skeleton width="5rem" height="1.5rem" borderRadius="9999px" />
+          <Skeleton width="5rem" height="2rem" borderRadius="8px" />
+        </div>
+      </div>
+
       <PTUpcomingTab
         v-show="activeTab === 'upcoming'"
         :sessions="upcomingSessions"

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
+import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
 import BookingConfirmModal from '@/components/booking/BookingConfirmModal.vue'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
@@ -79,14 +80,18 @@ const sessionHistory = classHistory
 // Available classes to book
 const availableClasses = ref<AvailableClass[]>([])
 const availableClassesLoading = ref(false)
+const bookingsLoading = ref(true)
 
 onMounted(async () => {
   // Load bookings from API
+  bookingsLoading.value = true
   try {
     await loadBookingsFromApi()
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     toast.add({ severity: 'error', summary: 'Bookings load failed', detail: msg, life: 5000 })
+  } finally {
+    bookingsLoading.value = false
   }
 
   // Load available classes from API
@@ -458,7 +463,16 @@ const tabs = [
       </div>
 
       <!-- Stats Cards -->
+      <template v-if="bookingsLoading">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div v-for="i in 4" :key="i" class="glass-card rounded-xl p-4 space-y-2">
+            <Skeleton width="40%" height="0.75rem" />
+            <Skeleton width="60%" height="1.75rem" />
+          </div>
+        </div>
+      </template>
       <StatsSection
+        v-else
         :upcoming-count="upcomingClasses.length"
         :total-classes-this-month="totalClassesThisMonth"
         :pt-sessions-this-month="ptSessionsThisMonth"
@@ -469,6 +483,18 @@ const tabs = [
       <TabNavigation :tabs="tabs" :active-tab="activeTab" @update:active-tab="activeTab = $event" />
 
       <!-- Tab Content -->
+      <!-- Skeleton when bookings loading -->
+      <div v-if="bookingsLoading && (activeTab === 'upcoming' || activeTab === 'history')" class="space-y-4 mt-6">
+        <div v-for="i in 3" :key="i" class="glass-card rounded-xl p-4 flex items-center gap-4">
+          <Skeleton width="3rem" height="3rem" borderRadius="8px" />
+          <div class="flex-1 space-y-2">
+            <Skeleton width="50%" height="1rem" />
+            <Skeleton width="35%" height="0.75rem" />
+          </div>
+          <Skeleton width="5rem" height="2rem" borderRadius="8px" />
+        </div>
+      </div>
+
       <UpcomingTab
         v-show="activeTab === 'upcoming'"
         :sessions="upcomingClasses"
@@ -478,8 +504,23 @@ const tabs = [
         @reschedule="openReschedule"
       />
 
+      <!-- Book Tab with skeleton -->
+      <div v-if="availableClassesLoading && activeTab === 'book'" class="mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="i in 6" :key="i" class="glass-card rounded-xl p-6 space-y-3">
+            <Skeleton width="65%" height="1.125rem" />
+            <Skeleton width="45%" height="0.875rem" />
+            <div class="flex items-center gap-2">
+              <Skeleton shape="circle" size="1.5rem" />
+              <Skeleton width="40%" height="0.75rem" />
+            </div>
+            <Skeleton width="50%" height="0.75rem" />
+            <Skeleton width="100%" height="2.5rem" borderRadius="8px" class="mt-2" />
+          </div>
+        </div>
+      </div>
       <BookTab
-        v-show="activeTab === 'book'"
+        v-show="activeTab === 'book' && !availableClassesLoading"
         :available-classes="availableClasses"
         @book="openBookingModal"
         @view-zoom="viewZoom"

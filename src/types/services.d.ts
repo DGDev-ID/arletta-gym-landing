@@ -119,9 +119,28 @@ declare module '@/services/bookingService' {
     [key: string]: unknown
   }
 
+  export interface WaitlistEntryRaw {
+    id?: number
+    position?: number
+    status?: string
+    created_at?: string
+    schedule?: {
+      id?: number
+      class_name?: string
+      category?: string
+      trainer_name?: string
+      date?: string
+      start_time?: string
+      end_time?: string
+      location?: string
+    }
+    [key: string]: unknown
+  }
+
   export function getBookings(params?: Record<string, unknown>): Promise<BookingRaw[]>
   export function createBooking(payload: { schedule_id: number; booking_type?: string; notes?: string }): Promise<BookingRaw>
   export function joinWaitlist(schedule_id: number): Promise<{ id?: number; position?: number }>
+  export function getWaitlist(): Promise<WaitlistEntryRaw[]>
   export function cancelBooking(bookingId: number, payload: { verification: string; reason?: string }): Promise<unknown>
   export function rescheduleBooking(bookingId: number, payload: { new_schedule_id: number; reason: string }): Promise<BookingRaw>
 
@@ -129,6 +148,7 @@ declare module '@/services/bookingService' {
     getBookings: (params?: Record<string, unknown>) => Promise<BookingRaw[]>
     createBooking: (payload: { schedule_id: number; booking_type?: string; notes?: string }) => Promise<BookingRaw>
     joinWaitlist: (schedule_id: number) => Promise<{ id?: number; position?: number }>
+    getWaitlist: () => Promise<WaitlistEntryRaw[]>
     cancelBooking: (bookingId: number, payload: { verification: string; reason?: string }) => Promise<unknown>
     rescheduleBooking: (bookingId: number, payload: { new_schedule_id: number; reason: string }) => Promise<BookingRaw>
   }
@@ -136,12 +156,12 @@ declare module '@/services/bookingService' {
 }
 
 declare module '@/services/paymentService' {
-  export function createSignature(payload: { signature: string; membership_plan_id?: number }): Promise<{ id?: number; token?: string }>
-  export function createPayment(payload: { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number }): Promise<{ payment_url?: string; token?: string }>
+  export function createSignature(payload: { signature_data: string; membership_plan_id?: number }): Promise<{ id?: number; token?: string }>
+  export function createPayment(payload: Record<string, unknown>): Promise<{ payment_url?: string; token?: string; snap_token?: string }>
 
   const _default: {
-    createSignature: (payload: { signature: string; membership_plan_id?: number }) => Promise<{ id?: number; token?: string }>
-    createPayment: (payload: { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number }) => Promise<{ payment_url?: string; token?: string }>
+    createSignature: (payload: { signature_data: string; membership_plan_id?: number }) => Promise<{ id?: number; token?: string }>
+    createPayment: (payload: Record<string, unknown>) => Promise<{ payment_url?: string; token?: string; snap_token?: string }>
   }
   export default _default
 }

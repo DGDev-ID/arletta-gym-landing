@@ -19,6 +19,12 @@ export async function joinWaitlist(schedule_id) {
   return data.data
 }
 
+export async function getWaitlist() {
+  const { data } = await api.get('/waitlist')
+  if (!data.success) throw new Error(data.message ?? 'Failed to fetch waitlist')
+  return data.data
+}
+
 export async function cancelBooking(bookingId, payload) {
   // payload: { verification: string, reason?: string }
   const { data } = await api.post(`/bookings/${bookingId}/cancel`, payload)
@@ -33,4 +39,4 @@ export async function rescheduleBooking(bookingId, payload) {
   return data.data
 }
 
-export default { getBookings, createBooking, joinWaitlist, cancelBooking, rescheduleBooking }
+export default { getBookings, createBooking, joinWaitlist, getWaitlist, cancelBooking, rescheduleBooking }
