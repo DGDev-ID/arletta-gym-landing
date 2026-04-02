@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
+import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
 import authState from '@/stores/auth'
 import HeroMembership from '@/components/landing/membership/HeroMembership.vue'
@@ -39,9 +40,9 @@ import { createSignature, createPayment } from '@/services/paymentService'
 const onSignatureConfirmed = async (signatureData?: string) => {
   try {
   if (!signatureData) throw new Error('Signature missing')
-  const payloadSig: { signature: string; membership_plan_id?: number | string } = { signature: signatureData }
+  const payloadSig: { signature_data: string; membership_plan_id?: number | string } = { signature_data: signatureData }
   if (selectedPlan.value && selectedPlan.value.id) payloadSig.membership_plan_id = selectedPlan.value.id as number | string
-  const resp = await createSignature(payloadSig as unknown as { signature: string; membership_plan_id?: number })
+  const resp = await createSignature(payloadSig as unknown as { signature_data: string; membership_plan_id?: number })
     // store created signature id for use in payment creation
     createdSignatureId = resp?.id ?? null
     toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified successfully.', life: 3000 })
@@ -53,21 +54,35 @@ const onSignatureConfirmed = async (signatureData?: string) => {
   }
 }
 
-const proceedToPayment = async (method: string) => {
+const proceedToPayment = async (method: 'va' | 'qris') => {
   try {
-    toast.add({ severity: 'info', summary: 'Creating payment', detail: `Creating ${method} checkout...`, life: 3000 })
-  const payloadPayment: { method: string; membership_plan_id?: number | string; signature_id?: number | null } = { method }
-  if (selectedPlan.value && selectedPlan.value.id) payloadPayment.membership_plan_id = selectedPlan.value.id as number | string
-  if (createdSignatureId) payloadPayment.signature_id = createdSignatureId
-  const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
-    // Expecting resp.payment_url or resp.token depending on backend
+    if (!selectedPlan.value || !selectedPlan.value.id) {
+      throw new Error('No membership plan selected')
+    }
+    if (!selectedPlan.value.gymId) {
+      throw new Error('Gym information is missing for this plan')
+    }
+
+    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+
+    const payloadPayment: Record<string, unknown> = {
+      gym_id: Number(selectedPlan.value.gymId),
+      transaction_type: 'membership',
+      type_id: Number(selectedPlan.value.id),
+      payment_method: method,
+    }
+    if (createdSignatureId) payloadPayment.signature_data = undefined // signature already saved separately
+    const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
+    // Expecting resp.payment_url or resp.snap_token depending on backend
     if (resp.payment_url) {
       window.open(resp.payment_url, '_blank')
+    } else if ((resp as Record<string, unknown>).snap_token) {
+      const snapToken = (resp as Record<string, unknown>).snap_token as string
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${snapToken}`, '_blank')
     } else if (resp.token) {
-      // If payment token provided (for JS SDK), open a blank and let SDK pick it up in real app
-      window.open('about:blank', '_blank')
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
     } else {
-      window.open('about:blank', '_blank')
+      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
     }
     showPaymentModal.value = false
   } catch (err: unknown) {
@@ -86,9 +101,11 @@ interface ProcessedPlan {
   promos: unknown[]
   features: string[]
   gymName: string | undefined
+  gymId: number | string | undefined
 }
 
 const membershipPlans = ref<ProcessedPlan[]>([])
+const membershipLoading = ref(true)
 
 const defaultFeatures = [
   'Unlimited gym access',
@@ -124,6 +141,7 @@ const staticPresale: Record<string, { promo?: string; description?: string } | u
 
 onMounted(async () => {
   try {
+    membershipLoading.value = true
     const plans = await getMemberships()
     membershipPlans.value = plans.map((p) => {
       const planRaw = p as Record<string, unknown>
@@ -173,10 +191,15 @@ onMounted(async () => {
         gymName: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
           ? String((planRaw['gym'] as Record<string, unknown>)['name'])
           : undefined,
+        gymId: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['id']
+          ? (planRaw['gym'] as Record<string, unknown>)['id'] as number | string
+          : undefined,
       }
     })
   } catch (err) {
     console.warn('Failed to load memberships', err)
+  } finally {
+    membershipLoading.value = false
   }
 })
 
@@ -258,98 +281,30 @@ const benefits = [
     <section class="section-padding relative overflow-hidden" style="margin-top: -1px">
       <ParticleBackground />
 
-      <!-- Bonus Merchandise (static) -->
-      <div class="container-custom">
-        <div
-          v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
-          class="-mx-5 relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-transparent"
-        >
-          <!-- Background glow -->
-          <div
-            class="absolute -top-8 -left-8 w-56 h-56 bg-[radial-gradient(ellipse,rgba(230,33,41,0.13)_0%,transparent_70%)] pointer-events-none"
-          ></div>
-          <div
-            class="absolute -bottom-12 right-0 w-72 h-72 bg-[radial-gradient(ellipse,rgba(230,33,41,0.06)_0%,transparent_70%)] pointer-events-none"
-          ></div>
-          <!-- Subtle grid texture -->
-          <div
-            class="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style="
-              background-image:
-                linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-              background-size: 32px 32px;
-            "
-          ></div>
-
-          <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-8 p-6 md:p-8">
-            <!-- Image block -->
-            <div class="relative flex-shrink-0">
-              <div
-                class="w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(230,33,41,0.1)]"
-              >
-                <img
-                  src="/image.png"
-                  alt="Arletta T-shirt"
-                  class="w-3/4 h-3/4 object-contain"
-                />
-              </div>
-              <!-- Gift badge -->
-              <div
-                class="absolute -top-2.5 -right-2.5 w-9 h-9 rounded-full bg-(--primary) border-2 border-[#0e0e11] flex items-center justify-center shadow-[0_0_14px_rgba(230,33,41,0.55)]"
-              >
-                <i class="pi pi-gift text-white text-xs"></i>
-              </div>
-            </div>
-
-            <!-- Text -->
-            <div class="flex-1 min-w-0 text-center md:text-left">
-              <div
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-(--primary)/15 border border-(--primary)/30 text-[10px] font-bold tracking-[0.14em] uppercase text-(--primary) mb-3"
-              >
-                <span
-                  class="w-1.5 h-1.5 rounded-full bg-(--primary) shadow-[0_0_5px_var(--primary)]"
-                ></span>
-                Limited Offer
-              </div>
-
-              <h3
-                class="text-xl md:text-[1.4rem] font-extrabold text-white tracking-tight leading-tight mb-2"
-              >
-                Bonus Merchandise — <span class="text-(--primary)">Free T-shirt</span>
-              </h3>
-
-              <!-- Slots remaining -->
-              <div
-                class="mt-3.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs text-white/50"
-              >
-                <i class="pi pi-users text-[11px] text-white/30"></i>
-                <span><span class="text-white font-semibold">50 First</span> Member</span>
-              </div>
-            </div>
-
-            <!-- CTA -->
-            <div class="flex-shrink-0 flex flex-col items-center gap-1.5">
-              <button
-                class="group flex items-center gap-2 px-6 py-3 rounded-xl bg-(--primary) text-white text-sm font-bold shadow-[0_4px_20px_rgba(230,33,41,0.3)] hover:shadow-[0_6px_28px_rgba(230,33,41,0.5)] hover:-translate-y-0.5 transition-all duration-200"
-                @click="() => goToSignUp()"
-              >
-                <i class="pi pi-bolt text-xs"></i>
-                Join Now
-                <i
-                  class="pi pi-arrow-right text-[10px] opacity-50 group-hover:translate-x-0.5 transition-transform duration-150"
-                ></i>
-              </button>
-              <span class="text-[11px] text-white/25">No commitment required</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="container-custom relative z-10 py-12">
         <div class="h-12"></div>
         <div class="-mx-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <!-- Skeleton loading state -->
+          <template v-if="membershipLoading">
+            <div v-for="i in 3" :key="i" class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6">
+              <div class="text-center space-y-3">
+                <Skeleton width="60%" height="1.75rem" class="mx-auto" />
+                <Skeleton width="80%" height="0.875rem" class="mx-auto" />
+                <Skeleton width="40%" height="0.75rem" class="mx-auto" />
+                <Skeleton width="50%" height="2.25rem" class="mx-auto mt-4" />
+              </div>
+              <div class="space-y-3">
+                <div v-for="j in 5" :key="j" class="flex items-center gap-3">
+                  <Skeleton shape="circle" size="1.25rem" />
+                  <Skeleton width="75%" height="0.875rem" />
+                </div>
+              </div>
+              <Skeleton width="100%" height="2.75rem" borderRadius="8px" class="mt-auto" />
+            </div>
+          </template>
+          <!-- Actual cards -->
           <PricingCard
+            v-else
             v-for="plan in membershipPlans"
             :key="plan.name"
             :plan="plan"
@@ -382,14 +337,16 @@ const benefits = [
         </p>
         <div class="grid grid-cols-1 gap-3">
           <Button
-            label="Midtrans - Credit/Debit Card"
+            label="Virtual Account (Bank Transfer)"
+            icon="pi pi-building"
             class="btn"
-            @click="proceedToPayment('Midtrans - Card')"
+            @click="proceedToPayment('va')"
           />
           <Button
-            label="Midtrans - Bank Transfer"
+            label="QRIS"
+            icon="pi pi-qrcode"
             class="btn"
-            @click="proceedToPayment('Midtrans - Bank')"
+            @click="proceedToPayment('qris')"
           />
           <Button
             label="Cancel"

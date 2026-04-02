@@ -29,8 +29,22 @@ const handleLogin = async () => {
       life: 3000,
     })
 
-    const roleName = String(user.role ?? '').toLowerCase()
-    const role: 'member' | 'pt' = roleName.includes('personal trainer') || roleName === 'pt' ? 'pt' : 'member'
+    // Detect role: check 'roles' array first (Spatie format), then fallback to 'role' string
+    let isPt = false
+    const rolesArr = (user as Record<string, unknown>).roles
+    if (Array.isArray(rolesArr) && rolesArr.length > 0) {
+      for (const r of rolesArr) {
+        const name = typeof r === 'string' ? r : String((r as Record<string, unknown>).name ?? '')
+        if (name.toLowerCase().includes('personal trainer') || name.toLowerCase() === 'pt') {
+          isPt = true
+          break
+        }
+      }
+    } else {
+      const roleName = String(user.role ?? '').toLowerCase()
+      isPt = roleName.includes('personal trainer') || roleName === 'pt'
+    }
+    const role: 'member' | 'pt' = isPt ? 'pt' : 'member'
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),

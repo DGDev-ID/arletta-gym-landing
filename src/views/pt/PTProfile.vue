@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import Skeleton from 'primevue/skeleton'
+import Card from 'primevue/card'
 import authService from '@/services/authService'
 import { uploadFile } from '@/services/uploadService'
 import PTProfileCard from '@/components/pt/profile/PTProfileCard.vue'
@@ -184,22 +186,67 @@ const recentClients = ref<RecentClientItem[]>([])
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Profile Card skeleton while loading -->
           <template v-if="trainerLoading">
-            <div class="glass-card rounded-2xl p-6 flex flex-col items-center gap-4 animate-pulse">
-              <div class="w-24 h-24 rounded-full bg-white/10" />
-              <div class="h-4 w-32 rounded bg-white/10" />
-              <div class="h-3 w-24 rounded bg-white/10" />
-              <div class="w-full h-16 rounded bg-white/10" />
-            </div>
+            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+              <template #content>
+                <div class="flex flex-col items-center gap-4">
+                  <Skeleton shape="circle" size="6rem" />
+                  <Skeleton width="55%" height="1.25rem" />
+                  <Skeleton width="35%" height="0.875rem" />
+                  <div class="grid grid-cols-3 gap-4 w-full mt-2">
+                    <div v-for="i in 3" :key="i" class="text-center space-y-1">
+                      <Skeleton width="60%" height="1.5rem" class="mx-auto" />
+                      <Skeleton width="80%" height="0.75rem" class="mx-auto" />
+                    </div>
+                  </div>
+                  <Skeleton width="100%" height="2.5rem" borderRadius="8px" class="mt-2" />
+                </div>
+              </template>
+            </Card>
+            <!-- Today's Schedule skeleton -->
+            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+              <template #content>
+                <div class="space-y-4">
+                  <Skeleton width="50%" height="1.25rem" />
+                  <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <Skeleton shape="circle" size="2.5rem" />
+                    <div class="flex-1 space-y-1">
+                      <Skeleton width="55%" height="0.875rem" />
+                      <Skeleton width="40%" height="0.75rem" />
+                    </div>
+                    <Skeleton width="4rem" height="1.5rem" borderRadius="9999px" />
+                  </div>
+                </div>
+              </template>
+            </Card>
+            <!-- Clients skeleton -->
+            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+              <template #content>
+                <div class="space-y-4">
+                  <Skeleton width="40%" height="1.25rem" />
+                  <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                    <Skeleton shape="circle" size="2.5rem" />
+                    <div class="flex-1 space-y-1">
+                      <Skeleton width="50%" height="0.875rem" />
+                      <Skeleton width="70%" height="0.5rem" borderRadius="9999px" />
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
           </template>
           <template v-else>
             <PTProfileCard :trainer="trainerCardData" @edit="openEdit" />
           </template>
 
           <!-- Today's Schedule -->
+          <template v-if="!trainerLoading">
           <TodayScheduleCard :today-schedule="todaySchedule" />
+          </template>
 
           <!-- My Clients -->
+          <template v-if="!trainerLoading">
           <ClientsCard :recent-clients="recentClients" />
+          </template>
         </div>
       </div>
     </div>

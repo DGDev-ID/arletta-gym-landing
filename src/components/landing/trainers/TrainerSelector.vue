@@ -56,12 +56,12 @@ const emit = defineEmits<{
       mask: { class: 'backdrop-blur-md !bg-black/75' },
       header: {
         class:
-          '!flex items-center gap-3 !px-6 !pt-5 !pb-4 border-b border-white/[0.07] bg-black/30 flex-shrink-0 !rounded-none',
+          '!flex items-center gap-3 !px-6 !pt-5 !pb-4 border-b border-white/[0.07] bg-black/30 shrink-0 !rounded-none',
       },
       content: { class: '!p-0 bg-transparent overflow-y-auto flex-1' },
       footer: {
         class:
-          '!flex items-center gap-3 !px-5 !pt-1.5 !pb-[18px] border-t border-white/[0.07] bg-black/30 flex-shrink-0 !rounded-none !m-0',
+          '!flex items-center gap-3 !px-5 !pt-4 !pb-[18px] border-t border-white/[0.07] bg-black/30 shrink-0 !rounded-none !m-0',
       },
     }"
   >
@@ -85,7 +85,7 @@ const emit = defineEmits<{
 
       <div
         v-if="tempPackage"
-        class="flex items-center gap-1.5 mr-3 px-3 py-1.5 bg-[rgba(230,33,41,0.12)] border border-[rgba(230,33,41,0.3)] rounded-full text-xs text-white/80 whitespace-nowrap flex-shrink-0"
+        class="flex items-center gap-1.5 mr-3 px-3 py-1.5 bg-[rgba(230,33,41,0.12)] border border-[rgba(230,33,41,0.3)] rounded-full text-xs text-white/80 whitespace-nowrap shrink-0"
       >
         <i class="pi pi-box text-(--primary) text-[0.7rem]"></i>
         <span>{{ tempPackage.name }}</span>
@@ -95,7 +95,7 @@ const emit = defineEmits<{
       </div>
 
       <button
-        class="w-8 h-8 rounded-full border border-white/10 bg-white/5 text-white/50 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 hover:bg-white/10 hover:text-white hover:border-white/25"
+        class="w-8 h-8 rounded-full border border-white/10 bg-white/5 text-white/50 flex items-center justify-center cursor-pointer transition-all shrink-0 hover:bg-white/10 hover:text-white hover:border-white/25"
         @click="emit('update:visible', false)"
       >
         <i class="pi pi-times text-xs"></i>
@@ -206,46 +206,51 @@ const emit = defineEmits<{
     </div>
 
     <template #footer>
-      <div
-        v-if="selectedTrainer"
-        class="flex items-center gap-2 flex-1 pt-3 min-w-0 animate-[fadeSlideIn_0.3s_ease]"
-      >
-        <img
-          :src="selectedTrainer.image"
-          :alt="selectedTrainer.name"
-          class="w-8 h-8 rounded-full object-cover border-2 border-(--primary) flex-shrink-0"
-        />
-        <div>
-          <div class="text-xs font-bold text-white">{{ selectedTrainer.name }}</div>
-          <div class="text-[0.68rem] text-white/40">{{ selectedTrainer.role }}</div>
-        </div>
-        <i class="pi pi-arrow-right text-[0.7rem] text-white/20 flex-shrink-0"></i>
-        <div v-if="tempPackage" class="min-w-0">
-          <div class="text-xs font-bold text-white">{{ tempPackage.name }}</div>
-          <div class="text-[0.68rem] font-semibold text-(--primary)">
-            Rp {{ tempPackage.price.toLocaleString('id-ID') }}
+      <div class="flex flex-col gap-3 w-full">
+        <!-- Selected trainer summary (only when a trainer is chosen) -->
+        <div
+          v-if="selectedTrainer"
+          class="flex items-center gap-2 px-1 min-w-0 animate-[fadeSlideIn_0.3s_ease]"
+        >
+          <img
+            :src="selectedTrainer.image"
+            :alt="selectedTrainer.name"
+            class="w-8 h-8 rounded-full object-cover border-2 border-(--primary) shrink-0"
+          />
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-white truncate">{{ selectedTrainer.name }}</div>
+            <div class="text-[0.68rem] text-white/40">{{ selectedTrainer.role }}</div>
+          </div>
+          <i class="pi pi-arrow-right text-[0.7rem] text-white/20 shrink-0 mx-1"></i>
+          <div v-if="tempPackage" class="min-w-0 flex-1">
+            <div class="text-xs font-bold text-white truncate">{{ tempPackage.name }}</div>
+            <div class="text-[0.68rem] font-semibold text-(--primary)">
+              Rp {{ tempPackage.price.toLocaleString('id-ID') }}
+            </div>
           </div>
         </div>
-      </div>
-      <div v-else class="flex items-center gap-1.5 text-xs text-white/25 flex-1">
-        <i class="pi pi-info-circle text-[0.7rem]"></i>
-        Silakan pilih salah satu trainer untuk melanjutkan
-      </div>
-      <div class="flex gap-2 flex-shrink-0 pt-3">
-        <Button
-          label="Batal"
-          severity="secondary"
-          outlined
-          @click="emit('update:visible', false)"
-        />
-        <Button
-          label="Lanjut ke Pembayaran"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          class="btn"
-          :disabled="!selectedTrainer"
-          @click="emit('proceed')"
-        />
+        <div v-else class="flex items-center gap-1.5 text-xs text-white/25 px-1">
+          <i class="pi pi-info-circle text-[0.7rem]"></i>
+          Silakan pilih salah satu trainer untuk melanjutkan
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2 justify-end">
+          <Button
+            label="Batal"
+            severity="secondary"
+            outlined
+            @click="emit('update:visible', false)"
+          />
+          <Button
+            label="Lanjut ke Pembayaran"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            class="btn"
+            :disabled="!selectedTrainer"
+            @click="emit('proceed')"
+          />
+        </div>
       </div>
     </template>
   </Dialog>

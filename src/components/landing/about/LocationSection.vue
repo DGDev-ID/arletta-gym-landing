@@ -42,9 +42,9 @@
               </div>
               <div>
                 <h4 class="text-white font-medium mb-1">Hours</h4>
-                <p class="text-(--text-muted)">
-                  Members: 24/7 Access<br />Staffed Hours: Mon-Fri 6AM-10PM, Sat-Sun 8AM-8PM
-                </p>
+                  <p class="text-(--text-muted)">
+                    Operating hours: Daily 08:00 - 23:00
+                  </p>
               </div>
             </div>
             <div

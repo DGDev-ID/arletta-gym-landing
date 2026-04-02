@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import Skeleton from 'primevue/skeleton'
 interface ClassItem {
   id: number
   name: string
@@ -37,11 +38,13 @@ const activeDay = ref('monday')
 const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 const classes = ref<ClassItem[]>([])
+const classesLoading = ref(true)
 
 const schedule = ref<Record<string, ScheduleItem[]>>({})
 
 onMounted(async () => {
   try {
+    classesLoading.value = true
     const classesData = await getClasses()
     // map to expected UI shape (keep fields the UI expects)
     classes.value = Array.isArray(classesData)
@@ -123,6 +126,8 @@ onMounted(async () => {
     }
   } catch {
     // categories stays empty; ClassCategories component handles empty gracefully
+  } finally {
+    classesLoading.value = false
   }
 })
 
@@ -156,9 +161,38 @@ const filterByCategory = (category: string) => {
     />
 
     <!-- Class Cards -->
-    <ClassCards :classes="filteredClasses" @book="goToSignUp" />
+    <section v-if="classesLoading" class="section-padding">
+      <div class="container-custom">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="i in 6" :key="i" class="dark-card rounded-2xl overflow-hidden">
+            <Skeleton width="100%" height="12rem" borderRadius="0" />
+            <div class="p-5 space-y-3">
+              <Skeleton width="70%" height="1.25rem" />
+              <Skeleton width="50%" height="0.875rem" />
+              <Skeleton width="90%" height="0.75rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="8px" class="mt-4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <ClassCards v-else :classes="filteredClasses" @book="goToSignUp" />
 
     <!-- Weekly Schedule -->
+    <section v-if="classesLoading" class="section-padding">
+      <div class="container-custom">
+        <div class="flex gap-3 mb-6 overflow-x-auto">
+          <Skeleton v-for="i in 7" :key="i" width="6rem" height="2.25rem" borderRadius="9999px" />
+        </div>
+        <div class="space-y-3">
+          <div v-for="i in 4" :key="i" class="flex items-center gap-4 p-4 rounded-xl bg-white/5">
+            <Skeleton width="5rem" height="1rem" />
+            <Skeleton width="40%" height="1rem" />
+            <Skeleton width="20%" height="1rem" class="ml-auto" />
+          </div>
+        </div>
+      </div>
+    </section>
     <WeeklySchedule
       :days="days"
       :schedule="schedule"

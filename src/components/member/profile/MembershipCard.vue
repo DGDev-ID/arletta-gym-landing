@@ -18,6 +18,7 @@ interface Props {
 }
 
 defineProps<Props>()
+const emit = defineEmits<{ (e: 'renew'): void }>()
 </script>
 
 <template>
@@ -110,6 +111,7 @@ defineProps<Props>()
         label="Renew Membership"
         icon="pi pi-refresh"
         class="btn btn-red mt-6 w-full py-2.5"
+        @click="emit('renew')"
       />
     </template>
   </Card>

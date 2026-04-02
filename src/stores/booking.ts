@@ -350,12 +350,42 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
       return
     }
 
-    // Note: BE GET /bookings does not include waitlist entries (separate table).
-    // Waitlist items are managed locally or require a dedicated endpoint.
     if (isPT) {
       ptSessions.value.push(item)
     } else {
       bookedClasses.value.push(item)
     }
   })
+
+  // Fetch waitlist entries from dedicated endpoint
+  try {
+    const waitlistData = await bookingService.getWaitlist()
+    if (Array.isArray(waitlistData)) {
+      waitlistData.forEach((w: unknown) => {
+        const entry = (w ?? {}) as Record<string, unknown>
+        const s = (entry.schedule ?? {}) as Record<string, unknown>
+        const start = String(s.start_time ?? '')
+        const end = String(s.end_time ?? '')
+        const time = start && end ? `${start} - ${end}` : start
+
+        const item: BookedClass = {
+          id: Number(entry.id ?? 0),
+          classId: Number(s.id ?? 0),
+          name: String(s.class_name ?? ''),
+          trainer: String(s.trainer_name ?? ''),
+          trainerAvatar: s.trainer_name ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}` : '',
+          date: String(s.date ?? ''),
+          time: time,
+          location: String(s.location ?? ''),
+          type: 'class',
+          status: 'waitlist',
+          bookedAt: String(entry.created_at ?? ''),
+          canCancel: true, // user can always leave a waitlist
+        }
+        waitingList.value.push(item)
+      })
+    }
+  } catch {
+    // Waitlist fetch failed silently — the tab will just show empty
+  }
 }

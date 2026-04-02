@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import Skeleton from 'primevue/skeleton'
 import { getClasses } from '@/services/scheduleService'
 
 const programs = ref<Array<{ title: string; description: string; icon?: string; image?: string }>>([])
@@ -41,7 +42,16 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div v-if="loading" class="col-span-full text-center text-(--text-muted)">Loading programs...</div>
+            <template v-if="loading">
+              <div v-for="i in 4" :key="i" class="dark-card rounded-2xl overflow-hidden">
+                <Skeleton width="100%" height="12rem" borderRadius="0" />
+                <div class="p-5 space-y-3">
+                  <Skeleton width="65%" height="1.125rem" />
+                  <Skeleton width="90%" height="0.75rem" />
+                  <Skeleton width="75%" height="0.75rem" />
+                </div>
+              </div>
+            </template>
             <div
               v-for="program in programs"
               :key="program.title"

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import Skeleton from 'primevue/skeleton'
 import HeroTrainers from '@/components/landing/trainers/HeroTrainers.vue'
 import StatsBlock from '@/components/landing/trainers/StatsBlock.vue'
 import TrainersGrid from '@/components/landing/trainers/TrainersGrid.vue'
@@ -14,6 +15,7 @@ import TrainerSelectorDialog from '@/components/landing/trainers/TrainerSelector
 import authState from '@/stores/auth'
 import { getTrainers, getTrainerStats } from '@/services/trainerService'
 import { getPtPackages } from '@/services/ptPackageService'
+import { createPayment } from '@/services/paymentService'
 
 const router = useRouter()
 const toast = useToast()
@@ -81,6 +83,7 @@ type PtPackageUI = {
   shareable: boolean
   features: string[]
   promo?: string
+  gymId?: number | string
   gymName?: string
   maxPerson?: number
   promos?: Array<{ type?: string; value?: number; unique_code?: string }>
@@ -110,6 +113,7 @@ onMounted(async () => {
 
       // Gym metadata
       const gym = pr['gym'] as Record<string, unknown> | null | undefined
+      const gymId = gym ? (gym['id'] as number | string | undefined) : undefined
       const gymName = gym ? String(gym['name'] ?? '') : undefined
 
       // Promos from active_promos
@@ -130,6 +134,7 @@ onMounted(async () => {
         shareable: maxPerson > 1,
         features: Array.isArray(pr['features']) ? (pr['features'] as string[]) : [],
         promo: promos.length > 0 && promos[0] ? `${promos[0].type ?? 'Promo'} ${promos[0].value ?? ''}`.trim() : undefined,
+        gymId: gymId || undefined,
         gymName: gymName || undefined,
         maxPerson: maxPerson > 1 ? maxPerson : undefined,
         promos,
@@ -195,18 +200,70 @@ const proceedWithTrainer = () => {
   showDPModal.value = true
 }
 
-type PaymentConfirm = { paymentType: 'dp' | 'full' | string; pkg?: { name?: string } | null }
+type PaymentConfirm = {
+  paymentType: 'dp' | 'full' | string
+  dpPercent?: number
+  paymentMethod?: 'va' | 'qris' | string
+  pkg?: { name?: string } | null
+}
 
-const confirmDPPayment = (data: PaymentConfirm) => {
-  const typeLabel = data.paymentType === 'dp' ? 'DP' : 'Full Payment'
-  toast.add({
-    severity: 'info',
-    summary: 'Proceeding to payment',
-    detail: `Opening ${typeLabel} checkout for ${data.pkg?.name ?? 'selected package'} with ${selectedTrainer.value?.name ?? 'selected trainer'}...`,
-    life: 3000,
-  })
-  window.open('about:blank', '_blank')
-  showDPModal.value = false
+const paymentLoading = ref(false)
+
+const confirmDPPayment = async (data: PaymentConfirm) => {
+  if (!selectedPackage.value || !selectedPackage.value.id) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No package selected', life: 4000 })
+    return
+  }
+  if (!selectedPackage.value.gymId) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Gym information is missing for this package', life: 4000 })
+    return
+  }
+
+  const method = data.paymentMethod ?? 'va'
+  const ptPaymentType = data.paymentType === 'dp' ? 'dp_payment' : 'full_payment'
+
+  paymentLoading.value = true
+  try {
+    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+
+    const payload: Record<string, unknown> = {
+      gym_id: Number(selectedPackage.value.gymId),
+      transaction_type: 'pt',
+      type_id: Number(selectedPackage.value.id),
+      payment_method: method,
+      payment_type: ptPaymentType,
+    }
+
+    if (ptPaymentType === 'dp_payment' && data.dpPercent) {
+      payload.dp_percent = data.dpPercent
+    }
+
+    // Include promo code if package has one
+    if (selectedPackage.value.promos && selectedPackage.value.promos.length > 0 && selectedPackage.value.promos[0]?.unique_code) {
+      payload.promo_code = selectedPackage.value.promos[0].unique_code
+    }
+
+    const resp = await createPayment(payload)
+
+    if (resp.payment_url) {
+      window.open(resp.payment_url, '_blank')
+    } else if ((resp as Record<string, unknown>).snap_token) {
+      // Midtrans snap token — open Midtrans Snap checkout page
+      const snapToken = (resp as Record<string, unknown>).snap_token as string
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${snapToken}`, '_blank')
+    } else if (resp.token) {
+      window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
+    } else {
+      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
+    }
+
+    showDPModal.value = false
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    toast.add({ severity: 'error', summary: 'Payment failed', detail: message, life: 5000 })
+  } finally {
+    paymentLoading.value = false
+  }
 }
 </script>
 
@@ -219,7 +276,19 @@ const confirmDPPayment = (data: PaymentConfirm) => {
     />
 
     <!-- Stats Section -->
-    <StatsBlock :stats="stats" />
+    <template v-if="statsLoading">
+      <section class="py-12 border-y border-white/10">
+        <div class="container-custom">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div v-for="i in 4" :key="i" class="text-center space-y-2">
+              <Skeleton width="4rem" height="2.25rem" class="mx-auto" />
+              <Skeleton width="6rem" height="0.875rem" class="mx-auto" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </template>
+    <StatsBlock v-else :stats="stats" />
 
     <!-- Private Training Packages -->
     <section class="relative overflow-hidden" style="margin-top: -1px">
@@ -235,7 +304,30 @@ const confirmDPPayment = (data: PaymentConfirm) => {
           </p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
+          <!-- Skeleton packages -->
+          <template v-if="ptPackagesLoading">
+            <div v-for="i in 3" :key="i" class="rounded-2xl p-6 flex flex-col gap-5" style="background: linear-gradient(145deg, #1a1a1a 0%, #111 100%)">
+              <div class="text-center space-y-2">
+                <Skeleton width="5rem" height="0.75rem" class="mx-auto" />
+                <Skeleton width="70%" height="1.5rem" class="mx-auto" />
+                <Skeleton width="40%" height="0.875rem" class="mx-auto" />
+              </div>
+              <Skeleton width="3rem" height="1px" class="mx-auto" />
+              <div class="text-center space-y-1">
+                <Skeleton width="60%" height="2rem" class="mx-auto" />
+                <Skeleton width="40%" height="0.75rem" class="mx-auto" />
+              </div>
+              <div class="space-y-2">
+                <div v-for="j in 3" :key="j" class="flex items-center gap-2">
+                  <Skeleton shape="circle" size="1rem" />
+                  <Skeleton width="75%" height="0.875rem" />
+                </div>
+              </div>
+              <Skeleton width="100%" height="2.75rem" borderRadius="8px" class="mt-auto" />
+            </div>
+          </template>
           <PTPackageCard
+            v-else
             v-for="pkg in ptPackages"
             :key="pkg.name"
             :pkg="pkg"
@@ -257,7 +349,25 @@ const confirmDPPayment = (data: PaymentConfirm) => {
           coach that matches your goals and book a session or package.
         </p>
       </div>
-      <TrainersGrid :trainers="trainers" @open="openTrainerModal" />
+      <!-- Trainers grid skeleton -->
+      <template v-if="loadingTrainers">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-10">
+          <div v-for="i in 6" :key="i" class="glass-card rounded-2xl overflow-hidden">
+            <Skeleton width="100%" height="16rem" borderRadius="0" />
+            <div class="p-6 space-y-3">
+              <Skeleton width="60%" height="1.25rem" />
+              <Skeleton width="40%" height="0.875rem" />
+              <div class="flex gap-2">
+                <Skeleton width="4rem" height="1.5rem" borderRadius="9999px" />
+                <Skeleton width="5rem" height="1.5rem" borderRadius="9999px" />
+              </div>
+              <Skeleton width="100%" height="2rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="8px" />
+            </div>
+          </div>
+        </div>
+      </template>
+      <TrainersGrid v-else :trainers="trainers" @open="openTrainerModal" />
     </section>
 
     <!-- Trainer detail modal (Meet Our Trainers grid) -->

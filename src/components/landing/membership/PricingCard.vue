@@ -30,17 +30,6 @@ const onSignup = () => {
         <i class="pi pi-map-marker mr-1" style="font-size: 0.65rem" />{{ props.plan.gymName }}
       </p>
 
-      <!-- Promo badges -->
-      <div class="mb-4 flex flex-wrap justify-center gap-2">
-        <div
-          v-for="(promo, idx) in (props.plan.promos && props.plan.promos.length ? props.plan.promos : (props.plan.promo ? [{ label: props.plan.promo }] : []))"
-          :key="(promo && promo.label) || idx"
-          class="inline-block bg-(--primary) text-white text-xs font-semibold px-3 py-1 rounded-full"
-        >
-          {{ promo.label }}
-        </div>
-      </div>
-
       <div class="flex items-baseline justify-center gap-2 whitespace-nowrap">
         <span class="text-2xl md:text-3xl lg:text-4xl font-black text-white">{{
           formatPrice(props.plan.price)
