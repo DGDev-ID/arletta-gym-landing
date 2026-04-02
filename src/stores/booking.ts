@@ -428,16 +428,35 @@ export const isClassBooked = (classId: number, date: string, time: string): bool
 
 // Computed
 export const upcomingClasses = computed(() => {
-  const today = new Date().toISOString().split('T')[0] ?? ''
+  const now = new Date()
+  const today = now.toISOString().split('T')[0] ?? ''
+  const currentTime = now.toTimeString().slice(0, 8) // HH:mm:ss
   return [...bookedClasses.value, ...ptSessions.value]
-    .filter((b) => b.date >= today && b.status !== 'cancelled')
+    .filter((b) => {
+      if (b.status === 'cancelled') return false
+      if (b.date > today) return true
+      if (b.date === today) {
+        const endTime = (b as Record<string, unknown>).endTime as string | undefined
+        return (endTime ?? b.time ?? '') > currentTime
+      }
+      return false
+    })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 })
 
 export const upcomingWaitingList = computed(() => {
-  const today = new Date().toISOString().split('T')[0] ?? ''
+  const now = new Date()
+  const today = now.toISOString().split('T')[0] ?? ''
+  const currentTime = now.toTimeString().slice(0, 8)
   return waitingList.value
-    .filter((b) => b.date >= today)
+    .filter((b) => {
+      if (b.date > today) return true
+      if (b.date === today) {
+        const endTime = (b as Record<string, unknown>).endTime as string | undefined
+        return (endTime ?? b.time ?? '') > currentTime
+      }
+      return false
+    })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 })
 
