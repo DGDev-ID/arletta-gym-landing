@@ -3,7 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
-import { getTrainerMe, getTrainerSchedules, getTrainerClientsAll, createSession, updateSession, cancelSession } from '@/services/trainerService'
+import authState from '@/stores/auth'
+import { getTrainerMe, getTrainerSchedules, getTrainerClients, createSession, updateSession, cancelSession } from '@/services/trainerService'
 import CancelConfirmModal from '@/components/booking/CancelConfirmModal.vue'
 import PTStatsSection from '@/components/pt/schedule/PTStatsSection.vue'
 import TabNavigation from '@/components/member/schedule/TabNavigation.vue'
@@ -283,20 +284,21 @@ onMounted(async () => {
     upcomingLoading.value = true
     historyLoading.value = true
     // get current trainer id and store it
-    const trainer = await getTrainerMe()
-    const id = (trainer?.id ?? trainer?.trainer_id) as string | number | undefined
+    const trainerData = await getTrainerMe() as unknown as Record<string, unknown>
+    const trainerObj = (trainerData?.['trainer'] ?? trainerData) as Record<string, unknown>
+    const id = (trainerObj?.['id'] ?? trainerData?.['id'] ?? authState.user?.id) as string | number | undefined
     if (!id) return
     currentTrainerId.value = id
-    // populate members dropdown from server
+    // populate members dropdown from trainer's own clients
     try {
-      const all = await getTrainerClientsAll()
+      const all = await getTrainerClients(id)
       members.value = (all || []).map((m: Record<string, unknown>) => ({
-        id: Number(m.id ?? m.member_id ?? 0),
+        id: Number(m.id ?? m.member_id ?? m.client_id ?? 0),
         name: String(m.name ?? m.full_name ?? m.fullName ?? 'Unknown'),
         avatar: String(m.avatar ?? m.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(m.name ?? 'member'))}`),
       }))
     } catch (err) {
-      console.error('Failed to load members for AddSessionModal', err)
+      console.error('Failed to load clients for AddSessionModal', err)
     }
     // load schedules using shared helper
     await reloadSchedules()
