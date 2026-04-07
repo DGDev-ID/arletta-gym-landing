@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Skeleton from 'primevue/skeleton'
+import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 import authState from '@/stores/auth'
 import HeroMembership from '@/components/landing/membership/HeroMembership.vue'
 import BenefitsBar from '@/components/landing/membership/BenefitsBar.vue'
 import PricingCard from '@/components/landing/membership/PricingCard.vue'
 import { getMemberships } from '@/services/membershipService'
+import { getGyms, type Gym } from '@/services/gymService'
 import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import AdditionalPerks from '@/components/landing/membership/AdditionalPerks.vue'
 import FAQSection from '@/components/landing/membership/FAQSection.vue'
@@ -59,14 +61,14 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     if (!selectedPlan.value || !selectedPlan.value.id) {
       throw new Error('No membership plan selected')
     }
-    if (!selectedPlan.value.gymId) {
-      throw new Error('Gym information is missing for this plan')
+    if (!selectedGymId.value) {
+      throw new Error('Please select a gym branch first')
     }
 
     toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
 
     const payloadPayment: Record<string, unknown> = {
-      gym_id: Number(selectedPlan.value.gymId),
+      gym_id: Number(selectedGymId.value),
       transaction_type: 'membership',
       type_id: Number(selectedPlan.value.id),
       payment_method: method,
@@ -100,12 +102,13 @@ interface ProcessedPlan {
   promo: string
   promos: unknown[]
   features: string[]
-  gymName: string | undefined
-  gymId: number | string | undefined
 }
 
 const membershipPlans = ref<ProcessedPlan[]>([])
 const membershipLoading = ref(true)
+const gyms = ref<Gym[]>([])
+const selectedGymId = ref<number | null>(null)
+const gymsLoading = ref(false)
 
 const defaultFeatures = [
   'Unlimited gym access',
@@ -139,10 +142,12 @@ const staticPresale: Record<string, { promo?: string; description?: string } | u
   '1 month': staticPresaleByMonths[1],
 }
 
-onMounted(async () => {
+const loadMemberships = async () => {
   try {
     membershipLoading.value = true
-    const plans = await getMemberships()
+    const params: Record<string, unknown> = {}
+    if (selectedGymId.value) params.gym_id = selectedGymId.value
+    const plans = await getMemberships(params)
     membershipPlans.value = plans.map((p) => {
       const planRaw = p as Record<string, unknown>
       const rawPromos =
@@ -164,7 +169,7 @@ onMounted(async () => {
         console.debug('Unexpected promos shape for plan', p.id, rawPromos)
       }
 
-  const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
+      const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
 
       const period = p.duration_in_days
         ? p.duration_in_days % 30 === 0
@@ -172,10 +177,9 @@ onMounted(async () => {
           : `${p.duration_in_days} days`
         : null
 
-  // overlay static presale promo/description when available; prefer numeric months mapping
-  const durationDays = planRaw['duration_in_days'] as number | undefined
-  const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
-  const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
+      const durationDays = planRaw['duration_in_days'] as number | undefined
+      const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
+      const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
       return {
         id: planRaw['id'] as number | string | undefined,
         name: String(planRaw['name'] ?? ''),
@@ -188,12 +192,6 @@ onMounted(async () => {
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
-        gymName: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
-          ? String((planRaw['gym'] as Record<string, unknown>)['name'])
-          : undefined,
-        gymId: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['id']
-          ? (planRaw['gym'] as Record<string, unknown>)['id'] as number | string
-          : undefined,
       }
     })
   } catch (err) {
@@ -201,6 +199,24 @@ onMounted(async () => {
   } finally {
     membershipLoading.value = false
   }
+}
+
+onMounted(async () => {
+  gymsLoading.value = true
+  try {
+    const gymList = await getGyms()
+    gyms.value = gymList
+    if (gymList.length) selectedGymId.value = gymList[0]?.id ?? null
+  } catch (err) {
+    console.warn('Failed to load gyms', err)
+  } finally {
+    gymsLoading.value = false
+  }
+  await loadMemberships()
+})
+
+watch(selectedGymId, () => {
+  loadMemberships()
 })
 
 const additionalPerks = [
@@ -283,6 +299,20 @@ const benefits = [
 
       <div class="container-custom relative z-10 py-12">
         <div class="h-12"></div>
+
+        <!-- Gym Branch Filter -->
+        <div class="flex justify-center mb-8">
+          <Select
+            v-model="selectedGymId"
+            :options="gyms"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Select Gym Branch"
+            :loading="gymsLoading"
+            class="w-full max-w-xs"
+          />
+        </div>
+
         <div class="-mx-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Skeleton loading state -->
           <template v-if="membershipLoading">

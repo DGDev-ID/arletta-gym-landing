@@ -20,4 +20,24 @@ export async function getPtPackage(id) {
   return data.data
 }
 
-export default { getPtPackages, getPtPackage }
+/**
+ * GET /api/members/me/pt-packages
+ * Returns purchased PT packages for the current member (auth required)
+ */
+export async function getMemberPtPackages() {
+  const { data } = await api.get('/members/me/pt-packages')
+  if (!data.success) throw new Error(data.message ?? 'Failed to fetch your PT packages')
+  return data.data
+}
+
+/**
+ * POST /api/members/me/pt-packages/plot-trainer
+ * Assign a trainer to a purchased PT package
+ */
+export async function plotTrainer(payload) {
+  const { data } = await api.post('/members/me/pt-packages/plot-trainer', payload)
+  if (!data.success) throw new Error(data.message ?? 'Failed to assign trainer')
+  return data.data
+}
+
+export default { getPtPackages, getPtPackage, getMemberPtPackages, plotTrainer }

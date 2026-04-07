@@ -5,7 +5,6 @@ import authService from '@/services/authService'
 import { uploadFile } from '@/services/uploadService'
 import { getMemberships } from '@/services/membershipService'
 import { createSignature, createPayment } from '@/services/paymentService'
-import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
@@ -49,9 +48,12 @@ interface MemberMeResponse {
 import ProfileCard from '@/components/member/profile/ProfileCard.vue'
 import MembershipCard from '@/components/member/profile/MembershipCard.vue'
 import ScheduleCard from '@/components/member/profile/ScheduleCard.vue'
+import EmergencyContactSection from '@/components/member/profile/EmergencyContactSection.vue'
+import PTPackagesSection from '@/components/member/profile/PTPackagesSection.vue'
 
 // Member state (will be fetched from API)
 const profileLoading = ref(true)
+const emergencyRef = ref<InstanceType<typeof EmergencyContactSection> | null>(null)
 const member = ref({
   name: '',
   email: '',
@@ -174,9 +176,11 @@ onMounted(async () => {
     // Load emergency contact data
     const ec = data?.emergencyContact ?? null
     if (ec) {
-      emergency_name.value = ec.emergency_name ?? ''
-      emergency_phone.value = ec.emergency_phone ?? ''
-      emergency_relation.value = ec.emergency_relation ?? ''
+      emergencyRef.value?.setValues(
+        ec.emergency_name ?? '',
+        ec.emergency_phone ?? '',
+        ec.emergency_relation ?? '',
+      )
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -186,28 +190,8 @@ onMounted(async () => {
   }
 })
 
-// Emergency contact form
+// Emergency contact is now handled by EmergencyContactSection component
 const toast = useToast()
-const emergency_name = ref('')
-const emergency_phone = ref('')
-const emergency_relation = ref('')
-const submittingEmergency = ref(false)
-
-const submitEmergency = async () => {
-  submittingEmergency.value = true
-  try {
-    await authService.emergencyContact({ emergency_name: emergency_name.value, emergency_phone: emergency_phone.value, emergency_relation: emergency_relation.value })
-    toast.add({ severity: 'success', summary: 'Saved', detail: 'Emergency contact saved.', life: 3000 })
-    emergency_name.value = ''
-    emergency_phone.value = ''
-    emergency_relation.value = ''
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e)
-    toast.add({ severity: 'error', summary: 'Failed', detail: msg, life: 6000 })
-  } finally {
-    submittingEmergency.value = false
-  }
-}
 
 // ── Renew Membership Flow ──────────────────────────────────────────
 interface MembershipPlan {
@@ -404,104 +388,10 @@ const formatDuration = (days?: number) => {
           </template>
         </div>
 
-        <!-- Emergency Contact Section -->
-        <div class="mt-10">
-          <h2 class="text-white font-bold text-lg mb-5 flex items-center gap-2">
-            <i class="pi pi-heart-fill text-(--primary)" />
-            Emergency Contact
-          </h2>
-
-          <Card
-            class="glass-card max-w-2xl"
-            :pt="{
-              root: { class: 'bg-transparent border-0' },
-              body: { class: 'p-0' },
-              content: { class: 'p-0' },
-            }"
-          >
-            <template #content>
-              <div class="p-6">
-                <!-- Info hint -->
-                <div class="flex items-start gap-3 mb-6 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                  <i class="pi pi-info-circle text-amber-400 mt-0.5 shrink-0" />
-                  <p class="text-sm text-amber-200">
-                    Kontak darurat akan dihubungi jika terjadi situasi yang tidak diinginkan selama sesi latihan.
-                  </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <!-- Name -->
-                  <div class="space-y-2">
-                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
-                      <i class="pi pi-user text-(--primary) text-xs" />
-                      Name
-                    </label>
-                    <InputText
-                      v-model="emergency_name"
-                      placeholder="Contact name"
-                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
-                    />
-                  </div>
-
-                  <!-- Phone -->
-                  <div class="space-y-2">
-                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
-                      <i class="pi pi-phone text-(--primary) text-xs" />
-                      Phone
-                    </label>
-                    <InputText
-                      v-model="emergency_phone"
-                      placeholder="+62 8xx xxxx xxxx"
-                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
-                    />
-                  </div>
-
-                  <!-- Relation -->
-                  <div class="space-y-2">
-                    <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
-                      <i class="pi pi-users text-(--primary) text-xs" />
-                      Relation
-                    </label>
-                    <InputText
-                      v-model="emergency_relation"
-                      placeholder="e.g. Parent, Sibling"
-                      class="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/50"
-                    />
-                  </div>
-                </div>
-
-                <!-- Saved preview (shown when data exists) -->
-                <div
-                  v-if="emergency_name || emergency_phone || emergency_relation"
-                  class="mt-5 p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-3"
-                >
-                  <div class="w-9 h-9 rounded-full bg-(--primary)/20 flex items-center justify-center shrink-0">
-                    <i class="pi pi-user text-(--primary) text-sm" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-white text-sm font-medium truncate">{{ emergency_name || '—' }}</p>
-                    <p class="text-(--text-muted) text-xs truncate">
-                      {{ emergency_phone || '—' }}
-                      <span v-if="emergency_relation" class="mx-1">·</span>
-                      {{ emergency_relation }}
-                    </p>
-                  </div>
-                  <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full shrink-0">Saved</span>
-                </div>
-
-                <div class="mt-5 flex justify-end border-t border-white/10 pt-5">
-                  <Button
-                    :label="submittingEmergency ? 'Saving…' : 'Save Emergency Contact'"
-                    icon="pi pi-save"
-                    :loading="submittingEmergency"
-                    :disabled="submittingEmergency"
-                    class="px-5"
-                    @click="submitEmergency"
-                  />
-                </div>
-              </div>
-            </template>
-          </Card>
+        <!-- Emergency Contact & PT Packages side by side -->
+        <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <EmergencyContactSection ref="emergencyRef" />
+          <PTPackagesSection />
         </div>
       </div>
     </div>

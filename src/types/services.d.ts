@@ -1,6 +1,21 @@
 // Lightweight type declarations for JS service modules used by the app.
 // Keep these minimal and lint-friendly so vue-tsc can check usages.
 
+declare module '@/services/gymService' {
+  export interface Gym {
+    id: number
+    name: string
+    address?: string
+  }
+
+  export function getGyms(): Promise<Gym[]>
+
+  const _default: {
+    getGyms: () => Promise<Gym[]>
+  }
+  export default _default
+}
+
 declare module '@/services/authService' {
   export interface AuthUser {
     id: number | string
@@ -46,7 +61,8 @@ declare module '@/services/membershipService' {
     name?: string
     price?: number
     duration_in_days?: number
-    gym?: { name?: string } | null
+    gym_id?: number | string
+    gym?: { id?: number; name?: string } | null
     active_promos?: unknown
     membershipPromos?: unknown
     membership_promos?: unknown
@@ -54,11 +70,11 @@ declare module '@/services/membershipService' {
     [key: string]: unknown
   }
 
-  export function getMemberships(): Promise<MembershipRaw[]>
+  export function getMemberships(params?: Record<string, unknown>): Promise<MembershipRaw[]>
   export function getMembership(id: string | number): Promise<MembershipRaw>
 
   const _default: {
-    getMemberships: () => Promise<MembershipRaw[]>
+    getMemberships: (params?: Record<string, unknown>) => Promise<MembershipRaw[]>
     getMembership: (id: string | number) => Promise<MembershipRaw>
   }
   export default _default
