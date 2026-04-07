@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Skeleton from 'primevue/skeleton'
-import Select from 'primevue/select'
 import { getMemberPtPackages, plotTrainer } from '@/services/ptPackageService'
 import { getTrainers } from '@/services/trainerService'
-import { getGyms, type Gym } from '@/services/gymService'
 
 const toast = useToast()
 
@@ -19,6 +17,7 @@ interface MemberPtPkg {
   totalSessions: number
   remainingSessions: number
   status: string
+  gymId: number | null
   gymName: string
   trainerName: string | null
   trainerId: number | null
@@ -44,6 +43,7 @@ const loadPackages = async () => {
         totalSessions: Number(ptPkg['duration_in_sessions'] ?? r['total_sessions'] ?? 0),
         remainingSessions: Number(r['remaining_sessions'] ?? 0),
         status: String(r['status'] ?? 'active'),
+        gymId: gym['id'] ? Number(gym['id']) : null,
         gymName: String(gym['name'] ?? ''),
         trainerName: trainer ? String(trainer['name'] ?? '') : null,
         trainerId: trainer ? Number(trainer['id']) : null,
@@ -70,37 +70,18 @@ interface TrainerOption {
   specializations: string[]
 }
 
-const gyms = ref<Gym[]>([])
-const selectedGymId = ref<number | null>(null)
-const gymsLoading = ref(false)
-
 const trainers = ref<TrainerOption[]>([])
 const trainersLoading = ref(false)
 const selectedTrainerId = ref<number | null>(null)
 
 const assigningPackageId = ref<number | null>(null)
+const assigningGymId = ref<number | null>(null)
 const showTrainerPicker = ref(false)
 
-const loadGyms = async () => {
-  gymsLoading.value = true
-  try {
-    gyms.value = await getGyms()
-    if (gyms.value.length) selectedGymId.value = gyms.value[0]?.id ?? null
-  } catch {
-    // ignore
-  } finally {
-    gymsLoading.value = false
-  }
-}
-
-const loadTrainers = async () => {
-  if (!selectedGymId.value) {
-    trainers.value = []
-    return
-  }
+const loadTrainers = async (gymId: number) => {
   trainersLoading.value = true
   try {
-    const raw = await getTrainers({ gym_id: selectedGymId.value })
+    const raw = await getTrainers({ gym_id: gymId })
     const list = Array.isArray(raw) ? raw : []
     trainers.value = list.map((t) => ({
       id: Number(t.id ?? 0),
@@ -115,17 +96,12 @@ const loadTrainers = async () => {
   }
 }
 
-watch(selectedGymId, () => {
-  selectedTrainerId.value = null
-  loadTrainers()
-})
-
 const openTrainerPicker = async (pkg: MemberPtPkg) => {
   assigningPackageId.value = pkg.id
+  assigningGymId.value = pkg.gymId
   selectedTrainerId.value = null
   showTrainerPicker.value = true
-  if (!gyms.value.length) await loadGyms()
-  if (selectedGymId.value) await loadTrainers()
+  if (pkg.gymId) await loadTrainers(pkg.gymId)
 }
 
 // ── Confirmation modal ─────────────────────────────────────
@@ -239,9 +215,9 @@ const sessionPercent = (remaining: number, total: number) =>
               </div>
               <span
                 class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                :class="pkg.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'"
+                :class="pkg.status === 'done_payment' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'"
               >
-                {{ pkg.status }}
+                {{ pkg.status === 'done_payment' ? 'Paid' : 'Installment (DP)' }}
               </span>
             </div>
 
@@ -274,9 +250,9 @@ const sessionPercent = (remaining: number, total: number) =>
               <i class="pi pi-lock text-(--text-muted) text-xs" title="Trainer cannot be changed" />
             </div>
 
-            <!-- Assign trainer button (only if no trainer assigned) -->
+            <!-- Assign trainer button (only if no trainer assigned & fully paid) -->
             <Button
-              v-if="!pkg.trainerName"
+              v-if="!pkg.trainerName && pkg.status === 'done_payment'"
               label="Choose Trainer"
               icon="pi pi-user-plus"
               class="w-full"
@@ -284,6 +260,15 @@ const sessionPercent = (remaining: number, total: number) =>
               outlined
               @click="openTrainerPicker(pkg)"
             />
+
+            <!-- Installment notice (cannot choose trainer yet) -->
+            <div
+              v-if="!pkg.trainerName && pkg.status !== 'done_payment'"
+              class="flex items-center gap-2.5 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20"
+            >
+              <i class="pi pi-info-circle text-yellow-400 shrink-0" />
+              <p class="text-yellow-200 text-xs">Complete your payment first before choosing a personal trainer.</p>
+            </div>
           </div>
         </template>
       </Card>
@@ -305,20 +290,6 @@ const sessionPercent = (remaining: number, total: number) =>
       }"
     >
       <div class="space-y-5">
-        <!-- Gym selector -->
-        <div class="space-y-2">
-          <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest">Gym Branch</label>
-          <Select
-            v-model="selectedGymId"
-            :options="gyms"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select Gym Branch"
-            :loading="gymsLoading"
-            class="w-full"
-          />
-        </div>
-
         <!-- Trainer list -->
         <div class="space-y-2">
           <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest">Select Trainer</label>
