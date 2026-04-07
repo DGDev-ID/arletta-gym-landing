@@ -55,7 +55,7 @@ export async function fetchMe(): Promise<void> {
       name: String(obj['name'] ?? ''),
       email: String(obj['email'] ?? ''),
       role,
-      avatar: String(userDetail['avatar'] ?? obj['avatar'] ?? ''),
+      avatar: String(userDetail['photo'] ?? userDetail['avatar'] ?? obj['avatar'] ?? ''),
     })
   } catch {
     // silently ignore — user not authenticated or token invalid

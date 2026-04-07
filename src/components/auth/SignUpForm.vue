@@ -129,12 +129,15 @@ const handleSignUp = async () => {
     }
 
     // Optionally set user into auth store (consistent with login behavior)
+    const userObj = user as Record<string, unknown>
+    const userDetailReg = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<string, unknown>
+    const photoUrlReg = String(userDetailReg['photo'] ?? userObj['avatar'] ?? '')
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
       email: String(user.email ?? ''),
       role: (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt',
-      avatar: String(user.avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`),
+      avatar: photoUrlReg || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
     })
 
     toast.add({ severity: 'success', summary: 'Account created', detail: 'Registration successful', life: 3000 })

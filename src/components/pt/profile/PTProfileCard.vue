@@ -32,10 +32,17 @@ const emit = defineEmits<{ (e: 'edit'): void }>()
       <div class="text-center">
         <div class="relative inline-block">
           <img
+            v-if="trainer.avatar"
             :src="trainer.avatar"
             :alt="trainer.name"
-            class="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-(--primary)"
+            class="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-(--primary) object-cover"
           />
+          <div
+            v-else
+            class="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-(--primary) bg-(--primary)/20 flex items-center justify-center"
+          >
+            <span class="text-3xl font-bold text-(--primary)">{{ trainer.name?.charAt(0).toUpperCase() }}</span>
+          </div>
           <span
             class="absolute -bottom-1 right-0 bg-(--primary) text-white text-xs font-bold px-2 py-1 rounded"
           >

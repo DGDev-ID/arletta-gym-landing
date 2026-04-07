@@ -71,10 +71,17 @@ const handleLogout = () => {
     >
       <div class="relative">
         <img
+          v-if="user.avatar"
           :src="user.avatar"
           :alt="user.name"
-          class="w-9 h-9 rounded-full border-2 border-(--primary)"
+          class="w-9 h-9 rounded-full border-2 border-(--primary) object-cover"
         />
+        <div
+          v-else
+          class="w-9 h-9 rounded-full border-2 border-(--primary) bg-(--primary)/20 flex items-center justify-center"
+        >
+          <span class="text-sm font-bold text-(--primary)">{{ user.name?.charAt(0).toUpperCase() }}</span>
+        </div>
         <!-- PT Badge -->
         <span
           class="absolute -bottom-1 -right-1 bg-(--primary) text-white text-[10px] font-bold px-1.5 py-0.5 rounded"

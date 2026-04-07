@@ -45,12 +45,15 @@ const handleLogin = async () => {
       isPt = roleName.includes('personal trainer') || roleName === 'pt'
     }
     const role: 'member' | 'pt' = isPt ? 'pt' : 'member'
+    const userObj = user as Record<string, unknown>
+    const userDetail = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<string, unknown>
+    const photoUrl = String(userDetail['photo'] ?? userObj['photo'] ?? userObj['avatar'] ?? '')
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
   email: String((user as { email?: string }).email ?? ''),
       role,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
+      avatar: photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
     })
 
     router.push(role === 'pt' ? '/pt/profile' : '/member/profile')

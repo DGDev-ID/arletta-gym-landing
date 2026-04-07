@@ -61,7 +61,7 @@ const saveProfile = async () => {
       name:   String(tRec.name         ?? editTrainer.value.name   ?? ''),
       email:  String(tRec.email        ?? editTrainer.value.email  ?? ''),
       phone:  String(tRec.phone_number ?? tRec.phone ?? editTrainer.value.phone ?? ''),
-      avatar: String(tRec.photo_url    ?? tRec.avatar ?? editTrainer.value.avatar ?? ''),
+      avatar: String(tRec.photo         ?? tRec.photo_url    ?? tRec.avatar ?? editTrainer.value.avatar ?? ''),
     }
     toast.add({ severity: 'success', summary: 'Saved', detail: 'Profile updated.', life: 3000 })
     showEdit.value = false
@@ -112,7 +112,7 @@ onMounted(async () => {
       email:              String(raw['email']              ?? ''),
       phone:              String(raw['phone']              ?? raw['phone_number'] ?? ''),
       specialty:          String(raw['specialty']          ?? ''),
-      avatar:             String(raw['avatar']             ?? raw['photo_url']   ?? ''),
+      avatar:             String(raw['avatar']             ?? raw['photo']       ?? raw['photo_url']   ?? ''),
       rating:             Number(raw['rating']             ?? 0),
       totalClients:       Number(raw['totalClients']       ?? raw['total_clients']      ?? 0),
       completedSessions:  Number(raw['completedSessions']  ?? raw['completed_sessions'] ?? 0),
