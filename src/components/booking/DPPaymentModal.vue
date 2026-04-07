@@ -122,7 +122,7 @@ const handleClose = () => {
           <span
             class="inline-block w-1.5 h-1.5 rounded-full bg-(--primary) shadow-[0_0_6px_var(--primary)]"
           ></span>
-          Langkah {{ step === 1 ? '2' : '3' }} dari 3
+          Langkah {{ step === 1 ? '1' : '2' }} dari 2
         </div>
         <h2 class="text-2xl font-extrabold text-white leading-tight tracking-tight mb-1">
           <template v-if="step === 1">
