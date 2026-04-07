@@ -149,8 +149,8 @@ const filterByCategory = (category: string) => {
   <div class="min-h-screen bg-(--bg-dark)">
     <!-- Hero Section -->
     <HeroClass
-      title="Class Programs"
-      subtitle="From high-energy cardio to mindful yoga, find the perfect class to match your fitness goals. Expert instructors, motivating atmosphere, results guaranteed."
+      title="Program Kelas"
+      subtitle="Dari kardio berenergi tinggi hingga yoga yang menenangkan, temukan kelas yang sempurna sesuai tujuan kebugaran Anda. Instruktur ahli, suasana memotivasi, hasil terjamin."
     />
 
     <!-- Class Categories -->

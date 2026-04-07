@@ -185,10 +185,7 @@ const loadMemberships = async () => {
         name: String(planRaw['name'] ?? ''),
         price: planRaw['price'] as number | string | undefined,
         period: period,
-        description:
-          overlay?.description ?? (planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
-            ? `${(planRaw['gym'] as Record<string, unknown>)['name']} plan`
-            : 'Premium membership plan'),
+        description: String(planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium'),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
@@ -222,63 +219,58 @@ watch(selectedGymId, () => {
 const additionalPerks = [
   {
     icon: 'pi-shield',
-    title: 'Freeze Membership',
-    description: 'Freeze your membership for up to 3 months per year at no extra cost',
+    title: 'Pembekuan Membership',
+    description: 'Bekukan keanggotaan Anda hingga 3 bulan per tahun tanpa biaya tambahan',
   },
   {
     icon: 'pi-users',
-    title: 'Bring a Friend',
-    description: '2 guest passes per month so you can bring a workout buddy',
+    title: 'Ajak Teman',
+    description: '2 tiket tamu per bulan agar Anda bisa mengajak teman berolahraga bersama',
   },
   {
     icon: 'pi-calendar',
-    title: 'No Lock-in',
-    description: 'Flexible month-to-month; cancel anytime after 3 months',
+    title: 'Tanpa Kontrak',
+    description: 'Fleksibel per bulan; batalkan kapan saja setelah 3 bulan',
   },
   {
     icon: 'pi-mobile',
-    title: 'Mobile App Premium',
-    description: 'Full access to tracking, class booking and workout programs',
+    title: 'Aplikasi Mobile Premium',
+    description: 'Akses penuh untuk pelacakan, pemesanan kelas, dan program latihan',
   },
 ]
 
 const faqs = [
   {
-    question: 'Can I freeze my membership?',
+    question: 'Apakah saya bisa membekukan membership saya?',
     answer:
-      'Yes — you can freeze your membership for up to 3 months per year at no extra cost. Contact the front desk or use the mobile app to request a freeze.',
+      'Ya — Anda dapat membekukan membership hingga 3 bulan per tahun tanpa biaya tambahan. Hubungi resepsionis atau gunakan aplikasi mobile untuk mengajukan pembekuan.',
   },
   {
-    question: 'Is there a joining fee?',
+    question: 'Apakah ada biaya pendaftaran?',
     answer:
-      'We often run promotions with no joining fee. The standard joining fee is Rp 150.000, which includes your fitness assessment and orientation session.',
+      'Kami sering menjalankan promosi tanpa biaya pendaftaran. Biaya pendaftaran standar adalah Rp 150.000, termasuk penilaian kebugaran dan sesi orientasi.',
   },
   {
-    question: 'How do I cancel my membership?',
+    question: 'Bagaimana cara membatalkan keanggotaan saya?',
     answer:
-      'You can cancel your membership with 30 days notice. There are no cancellation fees for members who have been with us for more than 3 months.',
+      'Anda dapat membatalkan membership dengan pemberitahuan 30 hari sebelumnya. Tidak ada biaya pembatalan bagi anggota yang sudah bergabung lebih dari 3 bulan.',
   },
   {
-    question: 'Do you offer corporate memberships?',
+    question: 'Bisakah saya mencoba sebelum mendaftar?',
     answer:
-      'Yes — we offer custom corporate packages for companies with 10+ employees. Contact our sales team for a tailored quote.',
-  },
-  {
-    question: 'Can I try before I sign up?',
-    answer:
-      'Yes! We offer a 1-day free trial so you can experience our facilities and classes. Sign up via the website or visit the gym in person.',
+      'Tentu! Kami menawarkan uji coba gratis 1 hari agar Anda dapat merasakan fasilitas dan kelas kami. Daftar melalui website atau kunjungi gym secara langsung.',
   },
 ]
 
 const benefits = [
   {
     icon: 'pi-clock',
-    title: '24/7 Access',
-    description: 'Work out anytime that fits your schedule',
+    title: 'Akses 24/7',
+    description: 'Berolahraga kapan saja sesuai jadwal Anda',
   },
-  { icon: 'pi-shield', title: 'No Lock-in', description: 'Flexible month-to-month memberships' },
-  { icon: 'pi-users', title: 'Community', description: 'Join a supportive fitness community' },
-  { icon: 'pi-mobile', title: 'Mobile App', description: 'Track progress and book classes easily' },
+  { icon: 'pi-shield', title: 'Tanpa Kontrak', description: 'Keanggotaan fleksibel per bulan' },
+  { icon: 'pi-users', title: 'Komunitas', description: 'Bergabung dengan komunitas kebugaran yang suportif' },
+  { icon: 'pi-mobile', title: 'Aplikasi Mobile', description: 'Lacak kemajuan dan pesan kelas dengan mudah' },
 ]
 </script>
 
@@ -286,8 +278,8 @@ const benefits = [
   <div class="min-h-screen bg-(--bg-dark)">
     <!-- Hero Section -->
     <HeroMembership
-      title="Premium Membership"
-      subtitle="One membership for all your fitness needs. Unlimited access to premium facilities and high-quality classes."
+      title="Membership Premium"
+      subtitle="Satu keanggotaan untuk semua kebutuhan kebugaran Anda. Akses tak terbatas ke fasilitas premium dan kelas berkualitas tinggi."
     />
 
     <!-- Benefits Bar -->
@@ -302,15 +294,18 @@ const benefits = [
 
         <!-- Gym Branch Filter -->
         <div class="flex justify-center mb-8">
-          <Select
-            v-model="selectedGymId"
-            :options="gyms"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select Gym Branch"
-            :loading="gymsLoading"
-            class="w-full max-w-xs"
-          />
+          <div class="w-full max-w-xs">
+            <Select
+              v-model="selectedGymId"
+              :options="gyms"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select Gym Branch"
+              :loading="gymsLoading"
+              class="w-full"
+            />
+            <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+          </div>
         </div>
 
         <div class="-mx-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -357,17 +352,17 @@ const benefits = [
     <Dialog
       :visible="showPaymentModal"
       @update:visible="(v) => (showPaymentModal = v)"
-      header="Choose payment method"
+      header="Pilih Metode Pembayaran"
       :modal="true"
       class="w-full max-w-md"
     >
       <div class="space-y-4 p-4">
         <p class="text-(--text-secondary)">
-          Choose a payment method to complete your membership purchase.
+          Pilih metode pembayaran untuk menyelesaikan pembelian keanggotaan Anda.
         </p>
         <div class="grid grid-cols-1 gap-3">
           <Button
-            label="Virtual Account (Bank Transfer)"
+            label="Virtual Account (Transfer Bank)"
             icon="pi pi-building"
             class="btn"
             @click="proceedToPayment('va')"
@@ -379,7 +374,7 @@ const benefits = [
             @click="proceedToPayment('qris')"
           />
           <Button
-            label="Cancel"
+            label="Batal"
             class="p-button-text text-(--text-secondary)"
             @click="showPaymentModal = false"
           />

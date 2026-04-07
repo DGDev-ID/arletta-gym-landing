@@ -9,7 +9,7 @@ const props = defineProps<{ values: { icon: string; title: string; description: 
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-3xl font-bold text-white text-center mb-12"
       >
-        Our Values
+        Nilai-Nilai Kami
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div

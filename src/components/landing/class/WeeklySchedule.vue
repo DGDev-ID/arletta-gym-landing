@@ -118,9 +118,9 @@ const joinWaitingList = () => {
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-center mb-4"
       >
-        <h2 class="text-3xl font-bold text-white mb-4">Weekly Schedule</h2>
+        <h2 class="text-3xl font-bold text-white mb-4">Jadwal Mingguan</h2>
         <p class="text-(--text-secondary) mb-12 max-w-2xl mx-auto">
-          Plan your week ahead. All classes are included with Pro and Elite memberships.
+          Rencanakan minggu Anda. Semua kelas termasuk dalam keanggotaan Pro dan Elite.
         </p>
       </div>
 
@@ -147,8 +147,8 @@ const joinWaitingList = () => {
         <table class="w-full">
           <thead>
             <tr class="border-b border-white/10">
-              <th class="text-left py-4 px-6 text-(--text-secondary) font-medium">Time</th>
-              <th class="text-left py-4 px-6 text-(--text-secondary) font-medium">Class</th>
+              <th class="text-left py-4 px-6 text-(--text-secondary) font-medium">Waktu</th>
+              <th class="text-left py-4 px-6 text-(--text-secondary) font-medium">Kelas</th>
               <th class="text-left py-4 px-6 text-(--text-secondary) font-medium">Trainer</th>
               <th class="py-4 px-6"></th>
             </tr>
@@ -169,7 +169,7 @@ const joinWaitingList = () => {
                   :disabled="authState.user?.role === 'pt'"
                   :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
                   @click="handleBookSchedule(item)"
-                  label="Book"
+                  label="Pesan"
                 />
               </td>
             </tr>

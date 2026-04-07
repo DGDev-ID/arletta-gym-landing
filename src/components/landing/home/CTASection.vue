@@ -32,18 +32,17 @@ const goToSignUp = () => {
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="heading-lg text-white mb-6"
       >
-        Start Your Fitness Journey <span class="text-gradient">Today</span>
+        Start Your Fitness Journey <span class="text-gradient">Sekarang</span>
       </h2>
       <p
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-lg text-(--text-secondary) max-w-2xl mx-auto mb-10"
       >
-        Don't wait for tomorrow. Take the first step towards a stronger, healthier you. Join our
-        community of fitness enthusiasts now.
+        Jangan tunda sampai besok. Ambil langkah pertama menuju diri yang lebih kuat dan lebih sehat. Bergabunglah dengan komunitas pecinta kebugaran kami sekarang.
       </p>
       <div v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }">
         <Button
-          label="Register Now"
+          label="Daftar Sekarang"
           icon="pi pi-arrow-right"
           iconPos="right"
           class="btn px-10 py-4 text-lg font-semibold"

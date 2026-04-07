@@ -11,7 +11,7 @@
             v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
             class="text-3xl font-bold text-white mb-6"
           >
-            Visit Us
+            Kunjungi Kami
           </h2>
           <div class="space-y-6">
             <div
@@ -24,7 +24,7 @@
                 <i class="pi pi-map-marker text-(--primary)"></i>
               </div>
               <div>
-                <h4 class="text-white font-medium mb-1">Address</h4>
+                <h4 class="text-white font-medium mb-1">Alamat</h4>
                 <p class="text-(--text-muted)">
                   Gang Kelapa Gading RT 02 / RW 01, Kel. Wates, Kec. Ngaliyan,<br />Semarang Barat,
                   Jawa Tengah
@@ -41,7 +41,7 @@
                 <i class="pi pi-clock text-(--primary)"></i>
               </div>
               <div>
-                <h4 class="text-white font-medium mb-1">Hours</h4>
+                <h4 class="text-white font-medium mb-1">Jam Operasional</h4>
                   <p class="text-(--text-muted)">
                     Operating hours: Daily 08:00 - 23:00
                   </p>
@@ -57,7 +57,7 @@
                 <i class="pi pi-phone text-(--primary)"></i>
               </div>
               <div>
-                <h4 class="text-white font-medium mb-1">Contact</h4>
+                <h4 class="text-white font-medium mb-1">Kontak</h4>
                 <p class="text-(--text-muted)">
                   Phone: 0851-6860-2728<br />Email: gym@arlettaluxury.com<br />Instagram:
                   @arletta.gym

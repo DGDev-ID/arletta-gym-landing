@@ -274,8 +274,8 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
   <div class="min-h-screen bg-(--bg-dark)">
     <!-- Hero Section -->
     <HeroTrainers
-      title="Personal Trainers & Packages"
-      subtitle="Explore our private training packages or book one-on-one sessions with our certified trainers — flexible plans to fit your goals and schedule."
+      title="Trainer & Paket Personal"
+      subtitle="Jelajahi paket latihan privat kami atau pesan sesi one-on-one bersama trainer bersertifikat — rencana fleksibel sesuai tujuan dan jadwal Anda."
     />
 
     <!-- Stats Section -->
@@ -301,23 +301,26 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
           class="text-center mb-6 py-12"
           v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         >
-          <h2 class="text-3xl font-bold text-white mb-4">Private Training Packages</h2>
+          <h2 class="text-3xl font-bold text-white mb-4">Paket Latihan Privat</h2>
           <p class="text-(--text-secondary)">
-            Choose a package that fits your goals — 1-on-1 or share with a partner.
+            Pilih paket yang sesuai tujuan Anda — 1-on-1 atau bersama partner.
           </p>
         </div>
 
         <!-- Gym Branch Filter -->
         <div class="flex justify-center mb-8">
-          <Select
-            v-model="selectedGymId"
-            :options="gyms"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select Gym Branch"
-            :loading="gymsLoading"
-            class="w-full max-w-xs"
-          />
+          <div class="w-full max-w-xs">
+            <Select
+              v-model="selectedGymId"
+              :options="gyms"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Select Gym Branch"
+              :loading="gymsLoading"
+              class="w-full"
+            />
+            <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
@@ -360,10 +363,10 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
         class="text-center mb-6 pt-12"
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
       >
-        <h2 class="text-3xl font-bold text-white mb-4">Meet Our Trainers</h2>
+        <h2 class="text-3xl font-bold text-white mb-4">Kenali Trainer Kami</h2>
         <p class="text-(--text-secondary)">
-          Our trainers specialize across strength, endurance, mobility, and wellness — choose the
-          coach that matches your goals and book a session or package.
+          Trainer kami berspesialisasi dalam kekuatan, daya tahan, mobilitas, dan kesehatan — pilih
+          pelatih yang sesuai tujuan Anda dan pesan sesi atau paket.
         </p>
       </div>
       <!-- Trainers grid skeleton -->

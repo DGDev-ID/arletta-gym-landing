@@ -171,7 +171,7 @@ const joinWaitingList = () => {
             </div>
 
             <Button
-              label="Book Class"
+              label="Pesan Kelas"
               outlined
               :disabled="authState.user?.role === 'pt'"
               :class="[

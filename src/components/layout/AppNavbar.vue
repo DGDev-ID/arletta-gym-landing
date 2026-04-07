@@ -34,14 +34,14 @@ const toggleMobileMenu = () => {
 }
 
 const memberMenuItems = [
-  { label: 'Profile', icon: 'pi-user', route: '/member/profile' },
-  { label: 'My Schedule', icon: 'pi-calendar', route: '/member/schedule' },
+  { label: 'Profil Saya', icon: 'pi-user', route: '/member/profile' },
+  { label: 'Jadwal Saya', icon: 'pi-calendar', route: '/member/schedule' },
 ]
 
 const ptMenuItems = [
-  { label: 'Profile', icon: 'pi-user', route: '/pt/profile' },
-  { label: 'My Clients', icon: 'pi-users', route: '/pt/clients' },
-  { label: 'My Schedule', icon: 'pi-calendar', route: '/pt/schedule' },
+  { label: 'Profil Saya', icon: 'pi-user', route: '/pt/profile' },
+  { label: 'Klien Saya', icon: 'pi-users', route: '/pt/clients' },
+  { label: 'Jadwal Saya', icon: 'pi-calendar', route: '/pt/schedule' },
 ]
 
 const menuItems = computed(() => (authState.user?.role === 'pt' ? ptMenuItems : memberMenuItems))
@@ -90,7 +90,7 @@ const handleLogout = () => {
               @click="goToLogin"
             />
             <Button
-              label="Sign Up"
+              label="Daftar"
               outlined
               class="px-5 py-2.5 text-sm font-semibold border-white/20 text-white hover:bg-white/10"
               @click="goToSignUp"
@@ -167,7 +167,7 @@ const handleLogout = () => {
                 @click="goToLogin"
               />
               <Button
-                label="Sign Up"
+                label="Daftar"
                 outlined
                 class="w-full py-3 text-sm font-semibold border-white/20 text-white hover:bg-white/10"
                 @click="goToSignUp"
@@ -226,7 +226,7 @@ const handleLogout = () => {
                         authState.user?.role === 'pt' ? 'pi-star-fill' : 'pi-user',
                       ]"
                     ></i>
-                    {{ authState.user?.role === 'pt' ? 'Personal Trainer' : 'Member' }}
+                    {{ authState.user?.role === 'pt' ? 'Personal Trainer' : 'Anggota' }}
                   </div>
                 </div>
               </div>
@@ -313,7 +313,7 @@ const handleLogout = () => {
                 >
                   <i class="pi pi-sign-out text-sm text-red-400"></i>
                 </div>
-                <span>Logout</span>
+                <span>Keluar</span>
                 <i
                   class="pi pi-arrow-right text-[10px] text-red-400/40 ml-auto group-hover:text-red-400/70 transition-colors"
                 ></i>

@@ -108,7 +108,7 @@ const loadMemberships = async () => {
         name: String(planRaw['name'] ?? ''),
         price: planRaw['price'] as number | string | undefined,
         period: period,
-        description: overlay?.description ?? 'Premium membership plan',
+        description: String(planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium'),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
@@ -223,24 +223,27 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
         class="text-center mb-12"
       >
         <h2 class="heading-lg text-white mb-4">
-          Become a <span class="text-gradient">Member</span>
+          Jadilah <span class="text-gradient">Member</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          One membership, unlimited possibilities. Get full access to everything we offer.
+          Satu keanggotaan, kemungkinan tak terbatas. Dapatkan akses penuh ke semua yang kami tawarkan.
         </p>
       </div>
 
       <!-- Gym Branch Filter -->
       <div class="flex justify-center mb-8">
-        <Select
-          v-model="selectedGymId"
-          :options="gyms"
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Select Gym Branch"
-          :loading="gymsLoading"
-          class="w-full max-w-xs"
-        />
+        <div class="w-full max-w-xs">
+          <Select
+            v-model="selectedGymId"
+            :options="gyms"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Select Gym Branch"
+            :loading="gymsLoading"
+            class="w-full"
+          />
+          <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+        </div>
       </div>
 
       <!-- On mobile: stretch to section edges. On md+: normal grid -->
@@ -276,17 +279,17 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     <Dialog
       :visible="showPaymentModal"
       @update:visible="(v) => (showPaymentModal = v)"
-      header="Choose payment method"
+      header="Pilih Metode Pembayaran"
       :modal="true"
       class="w-full max-w-md"
     >
       <div class="space-y-4 p-4">
         <p class="text-(--text-secondary)">
-          Choose a payment method to complete your membership purchase.
+          Pilih metode pembayaran untuk menyelesaikan pembelian keanggotaan Anda.
         </p>
         <div class="grid grid-cols-1 gap-3">
           <Button
-            label="Virtual Account (Bank Transfer)"
+            label="Virtual Account (Transfer Bank)"
             icon="pi pi-building"
             class="btn"
             @click="proceedToPayment('va')"
@@ -298,7 +301,7 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
             @click="proceedToPayment('qris')"
           />
           <Button
-            label="Cancel"
+            label="Batal"
             class="p-button-text text-(--text-secondary)"
             @click="showPaymentModal = false"
           />

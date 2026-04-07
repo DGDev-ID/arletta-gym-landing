@@ -16,7 +16,7 @@ const toggleFaq = (index: number) => {
           v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
           class="text-2xl font-bold text-white text-center mb-12"
         >
-          Frequently Asked Questions
+          Pertanyaan yang Sering Diajukan
         </h2>
 
         <div class="space-y-4">

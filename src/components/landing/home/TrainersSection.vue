@@ -68,11 +68,10 @@ onMounted(async () => {
         class="text-center mb-12"
       >
         <h2 class="heading-lg text-white mb-4">
-          Meet Our <span class="text-gradient">Expert Trainers</span>
+          Kenali <span class="text-gradient">Trainer Ahli Kami</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          Our certified personal trainers are here to guide you on your fitness journey with
-          personalized programs and expert knowledge.
+          Trainer personal bersertifikat kami siap membimbing Anda dalam perjalanan kebugaran dengan program yang dipersonalisasi dan pengetahuan ahli.
         </p>
       </div>
 
@@ -134,7 +133,7 @@ onMounted(async () => {
               </div>
               <div v-if="trainer.clients" class="flex items-center gap-1.5">
                 <i class="pi pi-users text-(--text-muted) text-sm"></i>
-                <span class="text-(--text-muted)">{{ trainer.clients }}+ clients</span>
+                <span class="text-(--text-muted)">{{ trainer.clients }}+ klien</span>
               </div>
               <div v-if="trainer.experience" class="flex items-center gap-1.5">
                 <i class="pi pi-clock text-(--text-muted) text-sm"></i>
@@ -171,7 +170,7 @@ onMounted(async () => {
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
       >
         <Button
-          label="Meet All Trainers"
+          label="Lihat Semua Trainer"
           icon="pi pi-arrow-right"
           iconPos="right"
           class="btn px-8 py-3"

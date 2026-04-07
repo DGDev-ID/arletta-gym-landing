@@ -149,7 +149,7 @@ const sessionPercent = (remaining: number, total: number) =>
   <div>
     <h2 class="text-white font-bold text-lg mb-5 flex items-center gap-2">
       <i class="pi pi-bolt text-(--primary)" />
-      My PT Packages
+      Paket PT Saya
     </h2>
 
     <!-- Skeleton loading -->
@@ -188,10 +188,10 @@ const sessionPercent = (remaining: number, total: number) =>
       <template #content>
         <div class="text-center py-8">
           <i class="pi pi-inbox text-4xl text-(--text-muted) mb-3 block" />
-          <p class="text-(--text-muted)">You haven't purchased any PT packages yet.</p>
-          <p class="text-(--text-muted) text-sm mt-1">Visit the
-            <router-link to="/personal-trainers" class="text-(--primary) hover:underline">Personal Trainers</router-link>
-            page to browse packages.
+          <p class="text-(--text-muted)">Anda belum membeli paket PT apa pun.</p>
+          <p class="text-(--text-muted) text-sm mt-1">Kunjungi halaman
+            <router-link to="/personal-trainers" class="text-(--primary) hover:underline">Personal Trainer</router-link>
+            untuk melihat paket yang tersedia.
           </p>
         </div>
       </template>
@@ -224,7 +224,7 @@ const sessionPercent = (remaining: number, total: number) =>
             <!-- Sessions progress -->
             <div>
               <div class="flex justify-between text-xs mb-1.5">
-                <span class="text-(--text-muted)">Remaining sessions</span>
+                <span class="text-(--text-muted)">Sisa sesi</span>
                 <span class="text-white font-semibold">{{ pkg.remainingSessions }} / {{ pkg.totalSessions }}</span>
               </div>
               <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
@@ -247,13 +247,13 @@ const sessionPercent = (remaining: number, total: number) =>
                 <p class="text-white text-sm font-medium truncate">{{ pkg.trainerName }}</p>
                 <p class="text-(--text-muted) text-xs">Personal Trainer</p>
               </div>
-              <i class="pi pi-lock text-(--text-muted) text-xs" title="Trainer cannot be changed" />
+              <i class="pi pi-lock text-(--text-muted) text-xs" title="Trainer tidak dapat diubah" />
             </div>
 
             <!-- Assign trainer button (only if no trainer assigned & fully paid) -->
             <Button
               v-if="!pkg.trainerName && pkg.status === 'done_payment'"
-              label="Choose Trainer"
+              label="Pilih Trainer"
               icon="pi pi-user-plus"
               class="w-full"
               severity="secondary"
@@ -267,7 +267,7 @@ const sessionPercent = (remaining: number, total: number) =>
               class="flex items-center gap-2.5 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20"
             >
               <i class="pi pi-info-circle text-yellow-400 shrink-0" />
-              <p class="text-yellow-200 text-xs">Complete your payment first before choosing a personal trainer.</p>
+              <p class="text-yellow-200 text-xs">Selesaikan pembayaran terlebih dahulu sebelum memilih personal trainer.</p>
             </div>
           </div>
         </template>
@@ -278,7 +278,7 @@ const sessionPercent = (remaining: number, total: number) =>
     <Dialog
       :visible="showTrainerPicker"
       @update:visible="(v) => (showTrainerPicker = v)"
-      header="Choose Your Personal Trainer"
+      header="Pilih Personal Trainer Anda"
       modal
       :style="{ width: '540px' }"
       :breakpoints="{ '640px': '92vw' }"
@@ -292,7 +292,7 @@ const sessionPercent = (remaining: number, total: number) =>
       <div class="space-y-5">
         <!-- Trainer list -->
         <div class="space-y-2">
-          <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest">Select Trainer</label>
+          <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest">Pilih Trainer</label>
 
           <div v-if="trainersLoading" class="space-y-3">
             <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
@@ -306,7 +306,7 @@ const sessionPercent = (remaining: number, total: number) =>
 
           <div v-else-if="trainers.length === 0" class="text-center py-6 text-(--text-muted)">
             <i class="pi pi-users text-3xl mb-2 block" />
-            <p class="text-sm">No trainers available for this branch.</p>
+            <p class="text-sm">Tidak ada trainer yang tersedia untuk cabang ini.</p>
           </div>
 
           <div v-else class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
@@ -339,14 +339,14 @@ const sessionPercent = (remaining: number, total: number) =>
         <!-- Action buttons -->
         <div class="flex gap-3 border-t border-white/10 pt-4">
           <Button
-            label="Cancel"
+            label="Batal"
             severity="secondary"
             outlined
             class="flex-1"
             @click="showTrainerPicker = false"
           />
           <Button
-            label="Confirm Trainer"
+            label="Konfirmasi Trainer"
             icon="pi pi-check"
             class="flex-1"
             :disabled="!selectedTrainerId"
@@ -360,7 +360,7 @@ const sessionPercent = (remaining: number, total: number) =>
     <Dialog
       :visible="showConfirmModal"
       @update:visible="(v) => (showConfirmModal = v)"
-      header="Confirm Trainer Selection"
+      header="Konfirmasi Pilihan Trainer"
       modal
       :style="{ width: '420px' }"
       :breakpoints="{ '640px': '92vw' }"
@@ -375,17 +375,17 @@ const sessionPercent = (remaining: number, total: number) =>
         <div class="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <i class="pi pi-exclamation-triangle text-amber-400 text-xl mt-0.5 shrink-0" />
           <div>
-            <p class="text-white font-semibold text-sm">Are you sure?</p>
+            <p class="text-white font-semibold text-sm">Apakah Anda yakin?</p>
             <p class="text-amber-200 text-sm mt-1">
-              You are about to assign <span class="font-bold text-white">{{ confirmTrainerName }}</span> as your personal trainer.
-              <strong>This selection cannot be changed</strong> once confirmed.
+              Anda akan memilih <span class="font-bold text-white">{{ confirmTrainerName }}</span> sebagai personal trainer Anda.
+              <strong>Pilihan ini tidak dapat diubah</strong> setelah dikonfirmasi.
             </p>
           </div>
         </div>
 
         <div class="flex gap-3">
           <Button
-            label="Cancel"
+            label="Batal"
             severity="secondary"
             outlined
             class="flex-1"
@@ -393,7 +393,7 @@ const sessionPercent = (remaining: number, total: number) =>
             @click="showConfirmModal = false"
           />
           <Button
-            label="Yes, Assign Trainer"
+            label="Ya, Pilih Trainer"
             icon="pi pi-check"
             class="flex-1"
             :loading="confirmLoading"

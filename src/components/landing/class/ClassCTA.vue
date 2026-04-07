@@ -38,16 +38,16 @@ const emit = defineEmits<{ signup: [] }>()
       class="container-custom relative z-10 text-center text-white"
     >
       <h2 class="text-3xl font-bold text-white mb-4">
-        {{ title || 'Ready to Join a Class?' }}
+        {{ title || 'Siap Bergabung dengan Kelas?' }}
       </h2>
       <p class="text-white/80 mb-8 max-w-xl mx-auto">
         {{
           subtitle ||
-          'Become a member today and get unlimited access to all our group classes. First class is on us.'
+          'Jadilah member hari ini dan dapatkan akses tak terbatas ke semua kelas grup kami. Kelas pertama gratis untuk Anda.'
         }}
       </p>
       <Button
-        label="Sign Up Now"
+        label="Daftar Sekarang"
         icon="pi pi-arrow-right"
         iconPos="right"
         class="bg-white text-(--primary) px-8 py-3 font-semibold hover:bg-white/90"
