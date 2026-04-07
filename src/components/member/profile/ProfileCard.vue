@@ -29,17 +29,10 @@ const emit = defineEmits<{ (e: 'edit'): void }>()
     <template #content>
       <div class="text-center">
         <img
-          v-if="member.avatar"
           :src="member.avatar"
           :alt="member.name"
           class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-(--primary) object-cover"
         />
-        <div
-          v-else
-          class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-(--primary) bg-(--primary)/20 flex items-center justify-center"
-        >
-          <span class="text-3xl font-bold text-(--primary)">{{ member.name?.charAt(0).toUpperCase() }}</span>
-        </div>
         <h2 class="text-xl font-semibold text-white mb-1">{{ member.name }}</h2>
         <p class="text-(--text-muted) text-sm mb-4">
           Member since

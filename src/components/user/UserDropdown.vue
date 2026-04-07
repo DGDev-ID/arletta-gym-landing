@@ -67,7 +67,7 @@ const handleLogout = () => {
       <img
         :src="user.avatar"
         :alt="user.name"
-        class="w-9 h-9 rounded-full border-2 border-(--primary)"
+        class="w-9 h-9 rounded-full border-2 border-(--primary) object-cover"
       />
       <span class="hidden md:block text-sm font-medium text-white">{{ user.name }}</span>
       <i class="pi pi-chevron-down text-xs text-(--text-secondary)"></i>

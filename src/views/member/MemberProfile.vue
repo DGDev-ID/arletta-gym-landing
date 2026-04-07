@@ -683,10 +683,6 @@ const formatDuration = (days?: number) => {
                     disabled
                   />
                 </div>
-                <div class="sm:col-span-2 space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Avatar URL</label>
-                  <input v-model="editMember.avatar" class="input w-full" placeholder="https://…" />
-                </div>
               </div>
             </div>
 
