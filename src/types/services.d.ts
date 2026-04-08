@@ -31,8 +31,9 @@ declare module '@/services/authService' {
   export function registerAndPersist(payload: Record<string, unknown>): Promise<{ user: AuthUser; token: string }>
   export function loginAndPersist(email: string, password: string): Promise<{ user: AuthUser; token: string }>
   export function persistToken(token?: string | null): void
-  export function forgotPassword(email: string): Promise<unknown>
-  export function resetPassword(payload: { token: string; email: string; password: string; password_confirmation: string }): Promise<unknown>
+  export function forgotPasswordSendOtp(email: string): Promise<unknown>
+  export function forgotPasswordSubmitToken(email: string, token: string): Promise<unknown>
+  export function forgotPasswordChangePassword(payload: { email: string; token: string; password: string; password_confirmation: string }): Promise<unknown>
   export function emergencyContact(payload: Record<string, unknown>): Promise<unknown>
   export function me(): Promise<unknown>
   export function memberMe(): Promise<unknown>
@@ -45,8 +46,9 @@ declare module '@/services/authService' {
     registerAndPersist: (payload: Record<string, unknown>) => Promise<{ user: AuthUser; token: string }>
     loginAndPersist: (email: string, password: string) => Promise<{ user: AuthUser; token: string }>
     persistToken: (token?: string | null) => void
-    forgotPassword: (email: string) => Promise<unknown>
-    resetPassword: (payload: { token: string; email: string; password: string; password_confirmation: string }) => Promise<unknown>
+    forgotPasswordSendOtp: (email: string) => Promise<unknown>
+    forgotPasswordSubmitToken: (email: string, token: string) => Promise<unknown>
+    forgotPasswordChangePassword: (payload: { email: string; token: string; password: string; password_confirmation: string }) => Promise<unknown>
     emergencyContact: (payload: Record<string, unknown>) => Promise<unknown>
   me: () => Promise<unknown>
   memberMe: () => Promise<unknown>

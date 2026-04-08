@@ -2,20 +2,29 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { forgotPassword as apiForgotPassword } from '@/services/authService'
+import {
+  forgotPasswordSendOtp,
+  forgotPasswordSubmitToken,
+  forgotPasswordChangePassword,
+} from '@/services/authService'
 
 const router = useRouter()
 const toast = useToast()
 
+// Step: 1 = email, 2 = token verification, 3 = new password
+const step = ref(1)
+
 const email = ref('')
+const token = ref('')
+const password = ref('')
+const passwordConfirmation = ref('')
 const isLoading = ref(false)
-const emailSent = ref(false)
 
 const goHome = () => router.push('/')
 const goToLogin = () => router.push('/login')
-const openEmailApp = () => window.open('mailto:', '_blank')
 
 function getErrorMessage(e: unknown): string {
   if (!e) return ''
@@ -39,33 +48,98 @@ function getErrorMessage(e: unknown): string {
   }
 }
 
-const handleSubmit = async () => {
+// Step 1: Send OTP
+const handleSendOtp = async () => {
   if (!email.value) return
-
   isLoading.value = true
   try {
-    await apiForgotPassword(email.value)
-    emailSent.value = true
-    toast.add({ severity: 'success', summary: 'Email Sent', detail: 'Password reset instructions have been sent to your email.', life: 3000 })
+    await forgotPasswordSendOtp(email.value)
+    step.value = 2
+    toast.add({
+      severity: 'success',
+      summary: 'OTP Terkirim',
+      detail: 'Kode OTP telah dikirim ke email Anda.',
+      life: 3000,
+    })
   } catch (err) {
-    console.warn('Forgot password failed', err)
-    const msg = getErrorMessage(err) || 'Unable to send reset link'
-    toast.add({ severity: 'error', summary: 'Failed to send', detail: msg, life: 5000 })
+    const msg = getErrorMessage(err) || 'Gagal mengirim OTP'
+    toast.add({ severity: 'error', summary: 'Gagal', detail: msg, life: 5000 })
   } finally {
     isLoading.value = false
   }
 }
 
-const handleResend = async () => {
+// Resend OTP
+const handleResendOtp = async () => {
   if (!email.value) return
   isLoading.value = true
   try {
-    await apiForgotPassword(email.value)
-    toast.add({ severity: 'success', summary: 'Email Resent', detail: 'Password reset instructions have been resent to your email.', life: 3000 })
+    await forgotPasswordSendOtp(email.value)
+    toast.add({
+      severity: 'success',
+      summary: 'OTP Dikirim Ulang',
+      detail: 'Kode OTP baru telah dikirim ke email Anda.',
+      life: 3000,
+    })
   } catch (err) {
-    console.warn('Resend failed', err)
-    const msg = getErrorMessage(err) || 'Unable to resend link'
-    toast.add({ severity: 'error', summary: 'Failed to resend', detail: msg, life: 5000 })
+    const msg = getErrorMessage(err) || 'Gagal mengirim ulang OTP'
+    toast.add({ severity: 'error', summary: 'Gagal', detail: msg, life: 5000 })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Step 2: Submit Token
+const handleSubmitToken = async () => {
+  if (!email.value || !token.value) return
+  isLoading.value = true
+  try {
+    await forgotPasswordSubmitToken(email.value, token.value)
+    step.value = 3
+    toast.add({
+      severity: 'success',
+      summary: 'Token Valid',
+      detail: 'Token berhasil diverifikasi. Silakan buat kata sandi baru.',
+      life: 3000,
+    })
+  } catch (err) {
+    const msg = getErrorMessage(err) || 'Token tidak valid'
+    toast.add({ severity: 'error', summary: 'Gagal', detail: msg, life: 5000 })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Step 3: Change Password
+const handleChangePassword = async () => {
+  if (!password.value || !passwordConfirmation.value) return
+  if (password.value !== passwordConfirmation.value) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Kata sandi tidak cocok',
+      detail: 'Pastikan konfirmasi kata sandi sama.',
+      life: 3000,
+    })
+    return
+  }
+  isLoading.value = true
+  try {
+    await forgotPasswordChangePassword({
+      email: email.value,
+      token: token.value,
+      password: password.value,
+      password_confirmation: passwordConfirmation.value,
+    })
+    toast.add({
+      severity: 'success',
+      summary: 'Berhasil',
+      detail: 'Kata sandi berhasil diubah. Silakan login.',
+      life: 3000,
+    })
+    router.push('/login')
+  } catch (err) {
+    const msg = getErrorMessage(err) || 'Gagal mengubah kata sandi'
+    toast.add({ severity: 'error', summary: 'Gagal', detail: msg, life: 5000 })
   } finally {
     isLoading.value = false
   }
@@ -94,7 +168,7 @@ const handleResend = async () => {
       </div>
     </div>
 
-    <!-- Right Side - Forgot Password Form -->
+    <!-- Right Side - Form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 overflow-y-auto">
       <div class="w-full max-w-md">
         <!-- Back to home -->
@@ -103,7 +177,7 @@ const handleResend = async () => {
           @click="goHome"
         >
           <i class="pi pi-arrow-left"></i>
-          <span>Back to Home</span>
+          <span>Kembali ke Beranda</span>
         </button>
 
         <!-- Mobile Logo -->
@@ -114,26 +188,30 @@ const handleResend = async () => {
           </h2>
         </div>
 
-        <!-- Content based on state -->
-        <div v-if="!emailSent">
-          <!-- Forgot Password Text -->
+        <!-- Step indicator -->
+        <div class="flex items-center gap-2 mb-6">
+          <div
+            v-for="s in 3"
+            :key="s"
+            class="flex-1 h-1 rounded-full transition-all duration-300"
+            :class="s <= step ? 'bg-(--primary)' : 'bg-white/10'"
+          ></div>
+        </div>
+        <p class="text-xs text-(--text-muted) mb-6">Langkah {{ step }} dari 3</p>
+
+        <!-- ========== STEP 1: Enter Email ========== -->
+        <div v-if="step === 1">
           <div class="mb-8">
-            <h1 class="text-3xl font-bold text-white mb-2">Forgot Password?</h1>
+            <h1 class="text-3xl font-bold text-white mb-2">Lupa Kata Sandi?</h1>
             <p class="text-(--text-secondary)">
-              No worries! Enter your email address and we'll send you reset instructions.
+              Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mereset kata sandi.
             </p>
           </div>
 
-          <!-- Forgot Password Form -->
-          <form
-            @submit.prevent="handleSubmit"
-            class="space-y-6 animate-fadeinup"
-            style="animation-delay: 0.08s"
-          >
-            <!-- Email -->
+          <form @submit.prevent="handleSendOtp" class="space-y-6 animate-fadeinup">
             <div class="space-y-2">
               <label for="email" class="block text-sm font-medium text-(--text-secondary)">
-                Email Address
+                Alamat Email
               </label>
               <div class="relative">
                 <i
@@ -143,79 +221,230 @@ const handleResend = async () => {
                   id="email"
                   v-model="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="anda@contoh.com"
                   class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all"
                 />
               </div>
             </div>
 
-            <!-- Submit Button -->
             <Button
               type="submit"
-              :label="isLoading ? 'Sending...' : 'Send Reset Instructions'"
+              :label="isLoading ? 'Mengirim...' : 'Kirim Kode OTP'"
               :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-send'"
               iconPos="right"
               :disabled="isLoading || !email"
               class="btn w-full py-3.5 text-base font-semibold"
             />
 
-            <!-- Back to Login -->
             <p class="text-center text-(--text-secondary)">
-              Remember your password?
+              Ingat kata sandi Anda?
               <button
                 type="button"
                 class="text-(--primary) font-medium hover:underline ml-1"
                 @click="goToLogin"
               >
-                Sign in
+                Masuk
               </button>
             </p>
           </form>
         </div>
 
-        <!-- Email Sent State -->
-        <div v-else class="text-center animate-fadeinup">
-          <div
-            class="w-20 h-20 bg-(--primary)/20 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <i class="pi pi-envelope text-4xl text-(--primary)"></i>
+        <!-- ========== STEP 2: Enter Token ========== -->
+        <div v-else-if="step === 2">
+          <div class="mb-8">
+            <div
+              class="w-16 h-16 bg-(--primary)/20 rounded-full flex items-center justify-center mb-4"
+            >
+              <i class="pi pi-key text-3xl text-(--primary)"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Verifikasi Token</h1>
+            <p class="text-(--text-secondary)">
+              Masukkan kode token yang telah dikirim ke
+              <span class="text-white font-medium">{{ email }}</span>
+            </p>
           </div>
-          <h1 class="text-3xl font-bold text-white mb-2">Check Your Email</h1>
-          <p class="text-(--text-secondary) mb-8">
-            We've sent password reset instructions to
-            <span class="text-white font-medium">{{ email }}</span>
-          </p>
 
-          <div class="space-y-4">
+          <form @submit.prevent="handleSubmitToken" class="space-y-6 animate-fadeinup">
+            <!-- Email (disabled) -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-(--text-secondary)">
+                Alamat Email
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <InputText
+                  :model-value="email"
+                  disabled
+                  class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Token -->
+            <div class="space-y-2">
+              <label for="token" class="block text-sm font-medium text-(--text-secondary)">
+                Kode Token
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-key absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <InputText
+                  id="token"
+                  v-model="token"
+                  type="text"
+                  placeholder="Masukkan kode token"
+                  class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all"
+                />
+              </div>
+            </div>
+
             <Button
-              label="Open Email App"
-              icon="pi pi-external-link"
+              type="submit"
+              :label="isLoading ? 'Memverifikasi...' : 'Verifikasi Token'"
+              :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
               iconPos="right"
+              :disabled="isLoading || !token"
               class="btn w-full py-3.5 text-base font-semibold"
-              @click="openEmailApp"
             />
 
-            <p class="text-(--text-secondary) text-sm">
-              Didn't receive the email?
+            <p class="text-(--text-secondary) text-sm text-center">
+              Tidak menerima kode?
               <button
                 type="button"
                 class="text-(--primary) font-medium hover:underline ml-1"
                 :disabled="isLoading"
-                @click="handleResend"
+                @click="handleResendOtp"
               >
-                {{ isLoading ? 'Resending...' : 'Click to resend' }}
+                {{ isLoading ? 'Mengirim ulang...' : 'Kirim ulang' }}
               </button>
             </p>
+          </form>
+        </div>
 
-            <button
-              type="button"
-              class="text-(--text-secondary) hover:text-white transition-colors text-sm"
-              @click="goToLogin"
+        <!-- ========== STEP 3: New Password ========== -->
+        <div v-else>
+          <div class="mb-8">
+            <div
+              class="w-16 h-16 bg-(--primary)/20 rounded-full flex items-center justify-center mb-4"
             >
-              <i class="pi pi-arrow-left mr-2"></i>
-              Back to sign in
-            </button>
+              <i class="pi pi-lock text-3xl text-(--primary)"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Buat Kata Sandi Baru</h1>
+            <p class="text-(--text-secondary)">
+              Masukkan kata sandi baru untuk akun Anda.
+            </p>
           </div>
+
+          <form @submit.prevent="handleChangePassword" class="space-y-6 animate-fadeinup">
+            <!-- Email (disabled) -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-(--text-secondary)">
+                Alamat Email
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <InputText
+                  :model-value="email"
+                  disabled
+                  class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Token (disabled) -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-(--text-secondary)">
+                Kode Token
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-key absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <InputText
+                  :model-value="token"
+                  disabled
+                  class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- New Password -->
+            <div class="space-y-2">
+              <label for="password" class="block text-sm font-medium text-(--text-secondary)">
+                Kata Sandi Baru
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-lock absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <Password
+                  id="password"
+                  v-model="password"
+                  placeholder="Masukkan kata sandi baru"
+                  :feedback="false"
+                  toggleMask
+                  :pt="{
+                    root: { class: 'w-full' },
+                    pcInput: {
+                      root: {
+                        class:
+                          'w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all',
+                      },
+                    },
+                    maskIcon: { class: 'text-(--text-muted) right-4' },
+                    unmaskIcon: { class: 'text-(--text-muted) right-4' },
+                  }"
+                />
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="space-y-2">
+              <label
+                for="passwordConfirmation"
+                class="block text-sm font-medium text-(--text-secondary)"
+              >
+                Konfirmasi Kata Sandi
+              </label>
+              <div class="relative">
+                <i
+                  class="pi pi-lock absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"
+                ></i>
+                <Password
+                  id="passwordConfirmation"
+                  v-model="passwordConfirmation"
+                  placeholder="Konfirmasi kata sandi baru"
+                  :feedback="false"
+                  toggleMask
+                  :pt="{
+                    root: { class: 'w-full' },
+                    pcInput: {
+                      root: {
+                        class:
+                          'w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-(--text-muted) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) transition-all',
+                      },
+                    },
+                    maskIcon: { class: 'text-(--text-muted) right-4' },
+                    unmaskIcon: { class: 'text-(--text-muted) right-4' },
+                  }"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              :label="isLoading ? 'Menyimpan...' : 'Ubah Kata Sandi'"
+              :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+              iconPos="right"
+              :disabled="isLoading || !password || !passwordConfirmation"
+              class="btn w-full py-3.5 text-base font-semibold"
+            />
+          </form>
         </div>
       </div>
     </div>
@@ -223,8 +452,16 @@ const handleResend = async () => {
 </template>
 
 <style scoped>
-/* Ensure PrimeVue inputs have enough left padding so icons don't overlap placeholder text */
 :deep(.p-inputtext) {
+  padding-left: 3rem !important;
+}
+
+:deep(.p-password) {
+  width: 100%;
+}
+
+:deep(.p-password-input) {
+  width: 100%;
   padding-left: 3rem !important;
 }
 </style>
