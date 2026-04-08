@@ -232,6 +232,7 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
       type_id: Number(selectedPackage.value.id),
       payment_method: method,
       payment_type: ptPaymentType,
+      trainer_id: selectedTrainer.value?.id ?? undefined,
     }
 
     if (ptPaymentType === 'dp_payment' && data.dpPercent) {
