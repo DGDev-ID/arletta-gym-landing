@@ -9,7 +9,7 @@ const props = defineProps<{ timeline: { year: string; event: string }[] }>()
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-3xl font-bold text-white text-center mb-12"
       >
-        Our Journey
+        Perjalanan Kami
       </h2>
       <div class="max-w-3xl mx-auto">
         <div class="relative">

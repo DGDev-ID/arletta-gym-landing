@@ -31,7 +31,7 @@ const emit = defineEmits<{ (e: 'edit'): void }>()
         <img
           :src="member.avatar"
           :alt="member.name"
-          class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-(--primary)"
+          class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-(--primary) object-cover"
         />
         <h2 class="text-xl font-semibold text-white mb-1">{{ member.name }}</h2>
         <p class="text-(--text-muted) text-sm mb-4">

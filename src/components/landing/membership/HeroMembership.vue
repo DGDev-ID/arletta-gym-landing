@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps({
-  title: { type: String, default: 'Premium Membership' },
+  title: { type: String, default: 'Keanggotaan Premium' },
   subtitle: { type: String, default: '' },
   image: {
     type: String,

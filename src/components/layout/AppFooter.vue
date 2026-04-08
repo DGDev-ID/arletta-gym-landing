@@ -30,9 +30,8 @@ const socialLinks = [
             <img src="/logo-gym-wtext.svg" alt="Arletta Gym" class="h-10 w-auto" />
           </RouterLink>
           <p class="text-(--text-secondary) max-w-md mb-6 leading-relaxed">
-            Transform your body and elevate your life at Arletta Gym. We provide world-class
-            facilities, expert trainers, and a supportive community to help you achieve your fitness
-            goals.
+            Transformasikan tubuh Anda dan tingkatkan kualitas hidup di Arletta Gym. Kami menyediakan fasilitas kelas dunia,
+            trainer ahli, dan komunitas yang suportif untuk membantu Anda mencapai tujuan kebugaran.
           </p>
           <!-- Social Links -->
           <div class="flex gap-3">
@@ -52,7 +51,7 @@ const socialLinks = [
 
         <!-- Quick Links -->
         <div>
-          <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+          <h4 class="text-white font-semibold mb-4">Tautan Cepat</h4>
           <ul class="space-y-3">
             <li v-for="link in quickLinks" :key="link.name">
               <RouterLink
@@ -67,7 +66,7 @@ const socialLinks = [
 
         <!-- Contact Info -->
         <div>
-          <h4 class="text-white font-semibold mb-4">Contact Us</h4>
+          <h4 class="text-white font-semibold mb-4">Hubungi Kami</h4>
           <ul class="space-y-3 text-(--text-secondary)">
             <li class="flex items-start gap-3">
               <i class="pi pi-map-marker text-(--primary) mt-1"></i>
@@ -103,11 +102,11 @@ const socialLinks = [
         class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
       >
         <p class="text-(--text-muted) text-sm">
-          &copy; {{ currentYear }} Arletta Gym. All rights reserved.
+          &copy; {{ currentYear }} Arletta Gym. Hak cipta dilindungi.
         </p>
         <div class="flex gap-6 text-sm text-(--text-muted)">
-          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+          <a href="#" class="hover:text-white transition-colors">Kebijakan Privasi</a>
+          <a href="#" class="hover:text-white transition-colors">Syarat & Ketentuan</a>
         </div>
       </div>
     </div>

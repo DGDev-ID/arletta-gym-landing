@@ -7,7 +7,7 @@ import Menu from 'primevue/menu'
 
 interface User {
   name: string
-  photo_url?: string
+  avatar?: string
 }
 
 defineProps<{
@@ -20,12 +20,12 @@ const toast = useToast()
 
 const menuItems = ref([
   {
-    label: 'My Profile',
+    label: 'Profil Saya',
     icon: 'pi pi-user',
     command: () => router.push('/member/profile'),
   },
   {
-    label: 'My Schedule',
+    label: 'Jadwal Saya',
     icon: 'pi pi-calendar',
     command: () => router.push('/member/schedule'),
   },
@@ -33,7 +33,7 @@ const menuItems = ref([
     separator: true,
   },
   {
-    label: 'Logout',
+    label: 'Keluar',
     icon: 'pi pi-sign-out',
     command: () => handleLogout(),
   },
@@ -47,8 +47,8 @@ const handleLogout = () => {
   // Show toast for sign out
   toast.add({
     severity: 'success',
-    summary: 'Signed out',
-    detail: 'You have been signed out successfully.',
+    summary: 'Berhasil keluar',
+    detail: 'Anda telah berhasil keluar.',
     life: 3000,
   })
   // Perform logout and redirect
@@ -65,9 +65,9 @@ const handleLogout = () => {
       aria-label="User menu"
     >
       <img
-        :src="user.photo_url"
+        :src="user.avatar"
         :alt="user.name"
-        class="w-9 h-9 rounded-full border-2 border-(--primary)"
+        class="w-9 h-9 rounded-full border-2 border-(--primary) object-cover"
       />
       <span class="hidden md:block text-sm font-medium text-white">{{ user.name }}</span>
       <i class="pi pi-chevron-down text-xs text-(--text-secondary)"></i>

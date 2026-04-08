@@ -10,7 +10,7 @@ const props = defineProps<{ perks?: Perk[] }>()
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-2xl md:text-3xl font-bold text-white text-center mb-12"
       >
-        Member Benefits
+        Keuntungan Member
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
         <div

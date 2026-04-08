@@ -34,7 +34,7 @@ const emit = defineEmits<{ (e: 'edit'): void }>()
           <img
             :src="trainer.avatar"
             :alt="trainer.name"
-            class="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-(--primary)"
+            class="w-24 h-24 rounded-full mx-auto mb-2 border-4 border-(--primary) object-cover"
           />
           <span
             class="absolute -bottom-1 right-0 bg-(--primary) text-white text-xs font-bold px-2 py-1 rounded"

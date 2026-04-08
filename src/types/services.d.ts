@@ -1,6 +1,21 @@
 // Lightweight type declarations for JS service modules used by the app.
 // Keep these minimal and lint-friendly so vue-tsc can check usages.
 
+declare module '@/services/gymService' {
+  export interface Gym {
+    id: number
+    name: string
+    address?: string
+  }
+
+  export function getGyms(): Promise<Gym[]>
+
+  const _default: {
+    getGyms: () => Promise<Gym[]>
+  }
+  export default _default
+}
+
 declare module '@/services/authService' {
   export interface AuthUser {
     id: number | string
@@ -16,8 +31,9 @@ declare module '@/services/authService' {
   export function registerAndPersist(payload: Record<string, unknown>): Promise<{ user: AuthUser; token: string }>
   export function loginAndPersist(email: string, password: string): Promise<{ user: AuthUser; token: string }>
   export function persistToken(token?: string | null): void
-  export function forgotPassword(email: string): Promise<unknown>
-  export function resetPassword(payload: { token: string; email: string; password: string; password_confirmation: string }): Promise<unknown>
+  export function forgotPasswordSendOtp(email: string): Promise<unknown>
+  export function forgotPasswordSubmitToken(email: string, token: string): Promise<unknown>
+  export function forgotPasswordChangePassword(payload: { email: string; token: string; password: string; password_confirmation: string }): Promise<unknown>
   export function emergencyContact(payload: Record<string, unknown>): Promise<unknown>
   export function me(): Promise<unknown>
   export function memberMe(): Promise<unknown>
@@ -30,8 +46,9 @@ declare module '@/services/authService' {
     registerAndPersist: (payload: Record<string, unknown>) => Promise<{ user: AuthUser; token: string }>
     loginAndPersist: (email: string, password: string) => Promise<{ user: AuthUser; token: string }>
     persistToken: (token?: string | null) => void
-    forgotPassword: (email: string) => Promise<unknown>
-    resetPassword: (payload: { token: string; email: string; password: string; password_confirmation: string }) => Promise<unknown>
+    forgotPasswordSendOtp: (email: string) => Promise<unknown>
+    forgotPasswordSubmitToken: (email: string, token: string) => Promise<unknown>
+    forgotPasswordChangePassword: (payload: { email: string; token: string; password: string; password_confirmation: string }) => Promise<unknown>
     emergencyContact: (payload: Record<string, unknown>) => Promise<unknown>
   me: () => Promise<unknown>
   memberMe: () => Promise<unknown>
@@ -46,7 +63,8 @@ declare module '@/services/membershipService' {
     name?: string
     price?: number
     duration_in_days?: number
-    gym?: { name?: string } | null
+    gym_id?: number | string
+    gym?: { id?: number; name?: string } | null
     active_promos?: unknown
     membershipPromos?: unknown
     membership_promos?: unknown
@@ -54,11 +72,11 @@ declare module '@/services/membershipService' {
     [key: string]: unknown
   }
 
-  export function getMemberships(): Promise<MembershipRaw[]>
+  export function getMemberships(params?: Record<string, unknown>): Promise<MembershipRaw[]>
   export function getMembership(id: string | number): Promise<MembershipRaw>
 
   const _default: {
-    getMemberships: () => Promise<MembershipRaw[]>
+    getMemberships: (params?: Record<string, unknown>) => Promise<MembershipRaw[]>
     getMembership: (id: string | number) => Promise<MembershipRaw>
   }
   export default _default

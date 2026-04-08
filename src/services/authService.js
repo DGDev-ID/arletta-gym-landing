@@ -59,17 +59,25 @@ export async function registerAndPersist(payload) {
 	return res
 }
 
-export async function forgotPassword(email) {
-	const { data } = await api.post('/auth/forgot-password', { email })
+export async function forgotPasswordSendOtp(email) {
+	const { data } = await api.post('/auth/forgot-password/send-otp', { email })
 	if (!data.success && data.message) {
 		throw new Error(data.message)
 	}
 	return data
 }
 
-export async function resetPassword(payload) {
-	// payload must include: token, email, password, password_confirmation
-	const { data } = await api.post('/auth/reset-password', payload)
+export async function forgotPasswordSubmitToken(email, token) {
+	const { data } = await api.post('/auth/forgot-password/submit-token', { email, token })
+	if (!data.success && data.message) {
+		throw new Error(data.message)
+	}
+	return data
+}
+
+export async function forgotPasswordChangePassword(payload) {
+	// payload: { email, token, password, password_confirmation }
+	const { data } = await api.post('/auth/forgot-password/change-password', payload)
 	if (!data.success && data.message) {
 		throw new Error(data.message)
 	}
@@ -110,4 +118,4 @@ export async function updateUserMe(payload) {
 	return data.data
 }
 
-export default { login, logout, register, forgotPassword, resetPassword, emergencyContact, me, memberMe, updateUserMe, persistToken, loginAndPersist, registerAndPersist }
+export default { login, logout, register, forgotPasswordSendOtp, forgotPasswordSubmitToken, forgotPasswordChangePassword, emergencyContact, me, memberMe, updateUserMe, persistToken, loginAndPersist, registerAndPersist }

@@ -24,8 +24,8 @@ const handleLogin = async () => {
   isLoading.value = false
     toast.add({
       severity: 'success',
-      summary: 'Login Successful',
-      detail: `Welcome back, ${user.name}!`,
+      summary: 'Login Berhasil',
+      detail: `Selamat datang kembali, ${user.name}!`,
       life: 3000,
     })
 
@@ -45,12 +45,15 @@ const handleLogin = async () => {
       isPt = roleName.includes('personal trainer') || roleName === 'pt'
     }
     const role: 'member' | 'pt' = isPt ? 'pt' : 'member'
+    const userObj = user as Record<string, unknown>
+    const userDetail = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<string, unknown>
+    const photoUrl = String(userDetail['photo'] ?? userObj['photo'] ?? userObj['avatar'] ?? '')
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
   email: String((user as { email?: string }).email ?? ''),
       role,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
+      avatar: photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
     })
 
     router.push(role === 'pt' ? '/pt/profile' : '/member/profile')
@@ -59,8 +62,8 @@ const handleLogin = async () => {
     // simple feedback — in a real app show toast/error
     toast.add({
       severity: 'error',
-      summary: 'Login Failed',
-      detail: 'Invalid email or password. Please try again.',
+      summary: 'Login Gagal',
+      detail: 'Email atau kata sandi tidak valid. Silakan coba lagi.',
       life: 3000,
     })
     console.warn('Login failed', err)
@@ -87,7 +90,7 @@ const goToForgotPassword = () => {
     <!-- Email -->
     <div class="space-y-2">
       <label for="email" class="block text-sm font-medium text-(--text-secondary)">
-        Email Address
+        Alamat Email
       </label>
       <div class="relative">
         <i
@@ -107,13 +110,13 @@ const goToForgotPassword = () => {
     <div class="space-y-2">
       <div class="flex justify-between">
         <label for="password" class="block text-sm font-medium text-(--text-secondary)">
-          Password
+          Kata Sandi
         </label>
         <a
           @click="goToForgotPassword"
           class="text-sm text-(--primary) hover:underline cursor-pointer"
         >
-          Forgot password?
+          Lupa kata sandi?
         </a>
       </div>
       <div class="relative">
@@ -144,7 +147,7 @@ const goToForgotPassword = () => {
     <!-- Submit Button -->
     <Button
       type="submit"
-      :label="isLoading ? 'Signing in...' : 'Sign In'"
+      :label="isLoading ? 'Sedang masuk...' : 'Masuk'"
       :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-sign-in'"
       iconPos="right"
       :disabled="isLoading || !email || !password"
@@ -160,9 +163,9 @@ const goToForgotPassword = () => {
 
     <!-- Sign Up Link -->
     <p class="text-center text-(--text-secondary)">
-      Don't have an account?
+      Belum punya akun?
       <button class="text-(--primary) font-medium hover:underline ml-1" @click="goToSignUp">
-        Sign up for free
+        Daftar gratis
       </button>
     </p>
   </form>

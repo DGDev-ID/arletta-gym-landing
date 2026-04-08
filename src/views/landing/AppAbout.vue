@@ -12,41 +12,41 @@ const router = useRouter()
 const goToSignUp = () => router.push('/signup')
 
 const story = {
-  title: 'Our Story',
-  content: `Founded in 2026, Arletta Gym began with a simple vision: to create a fitness space where everyone feels welcome, supported, and empowered to achieve their goals. What started as a small neighborhood gym has grown into a thriving fitness community.
+  title: 'Cerita Kami',
+  content: `Didirikan pada tahun 2026, Arletta Gym lahir dari sebuah visi sederhana: menciptakan ruang kebugaran di mana setiap orang merasa diterima, didukung, dan berdaya untuk mencapai tujuan mereka. Apa yang bermula sebagai gym kecil di lingkungan sekitar kini telah berkembang menjadi komunitas kebugaran yang penuh semangat.
 
-Our founder, James Arletta, a former professional athlete, wanted to bring the same level of training excellence he experienced to everyday people. He believed that with the right environment, equipment, and guidance, anyone could transform their life through fitness.
+Pendiri kami, James Arletta, seorang mantan atlet profesional, ingin menghadirkan standar pelatihan terbaik yang pernah ia rasakan kepada masyarakat umum. Ia percaya bahwa dengan lingkungan, peralatan, dan bimbingan yang tepat, siapa pun bisa mengubah hidupnya melalui kebugaran.
 
-Today, we continue that mission with state-of-the-art facilities, world-class trainers, and a community that celebrates every victory—big or small.`,
+Hari ini, kami terus menjalankan misi tersebut dengan fasilitas berteknologi mutakhir, trainer kelas dunia, dan komunitas yang merayakan setiap pencapaian — sekecil apa pun.`,
 }
 
 const values = [
   {
     icon: 'pi-heart',
-    title: 'Community First',
+    title: 'Komunitas Utama',
     description:
-      'We believe fitness is better together. Our gym is a place where friendships are forged and everyone supports each other.',
+      'Kami percaya kebugaran lebih bermakna bersama. Gym kami adalah tempat di mana persahabatan terjalin dan semua orang saling mendukung.',
   },
   {
     icon: 'pi-star',
-    title: 'Excellence',
+    title: 'Keunggulan',
     description:
-      'From our equipment to our trainers, we maintain the highest standards to deliver exceptional results.',
+      'Dari peralatan hingga trainer kami, kami menjaga standar tertinggi untuk memberikan hasil yang luar biasa.',
   },
   {
     icon: 'pi-users',
-    title: 'Inclusivity',
+    title: 'Inklusivitas',
     description:
-      'Everyone belongs here. We welcome all fitness levels, body types, and backgrounds.',
+      'Semua orang disambut di sini. Kami menerima semua level kebugaran, tipe tubuh, dan latar belakang.',
   },
   {
     icon: 'pi-chart-line',
-    title: 'Results-Driven',
-    description: 'We measure our success by your progress. Your goals become our goals.',
+    title: 'Berorientasi Hasil',
+    description: 'Kami mengukur keberhasilan kami dari kemajuan Anda. Tujuan Anda adalah tujuan kami.',
   },
 ]
 
-const timeline = [{ year: '2026', event: 'Grand Opening on April' }]
+const timeline = [{ year: '2026', event: 'Grand Opening bulan April' }]
 
 const team = [
   {
@@ -75,8 +75,8 @@ const showTeam = false
   <div class="min-h-screen bg-(--bg-dark)">
     <!-- Hero Section (component) -->
     <HeroAbout
-      :title="'About Arletta Gym'"
-      :subtitle="'More than a gym. We\'re a community dedicated to helping you become the strongest version of yourself.'"
+      :title="'Tentang Arletta Gym'"
+      :subtitle="'Lebih dari sekadar gym. Kami adalah komunitas yang berdedikasi untuk membantu Anda menjadi versi terkuat dari diri sendiri.'"
     />
 
     <!-- Story Section (component) -->

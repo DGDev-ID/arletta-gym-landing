@@ -8,8 +8,9 @@ export interface AuthUser {
 export function login(email: string, password: string): Promise<{ user: AuthUser; token: string }>
 export function logout(): Promise<void>
 export function register(payload: Record<string, unknown>): Promise<{ user: AuthUser; token: string }>
-export function forgotPassword(email: string): Promise<unknown>
-export function resetPassword(payload: Record<string, unknown>): Promise<unknown>
+export function forgotPasswordSendOtp(email: string): Promise<unknown>
+export function forgotPasswordSubmitToken(email: string, token: string): Promise<unknown>
+export function forgotPasswordChangePassword(payload: { email: string; token: string; password: string; password_confirmation: string }): Promise<unknown>
 export function emergencyContact(payload: Record<string, unknown>): Promise<unknown>
 export function me(): Promise<unknown>
 export function memberMe(): Promise<unknown>
@@ -22,8 +23,9 @@ export default {
   login,
   logout,
   register,
-  forgotPassword,
-  resetPassword,
+  forgotPasswordSendOtp,
+  forgotPasswordSubmitToken,
+  forgotPasswordChangePassword,
   emergencyContact,
   me,
   memberMe,

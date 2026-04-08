@@ -129,20 +129,23 @@ const handleSignUp = async () => {
     }
 
     // Optionally set user into auth store (consistent with login behavior)
+    const userObj = user as Record<string, unknown>
+    const userDetailReg = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<string, unknown>
+    const photoUrlReg = String(userDetailReg['photo'] ?? userObj['avatar'] ?? '')
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
       email: String(user.email ?? ''),
       role: (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt',
-      avatar: String(user.avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`),
+      avatar: photoUrlReg || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
     })
 
-    toast.add({ severity: 'success', summary: 'Account created', detail: 'Registration successful', life: 3000 })
+    toast.add({ severity: 'success', summary: 'Akun berhasil dibuat', detail: 'Pendaftaran berhasil', life: 3000 })
     showVerificationModal.value = true
   } catch (err) {
     console.warn('Registration failed', err)
     const errorMsg = getErrorMessage(err) || 'Please check your input'
-    toast.add({ severity: 'error', summary: 'Registration failed', detail: errorMsg, life: 5000 })
+    toast.add({ severity: 'error', summary: 'Pendaftaran gagal', detail: errorMsg, life: 5000 })
   } finally {
     isLoading.value = false
   }
@@ -174,7 +177,7 @@ const goToLogin = () => {
     <!-- Full Name -->
     <div class="space-y-2">
       <label for="name" class="block text-sm font-medium text-(--text-secondary)">
-        Full Name
+        Nama Lengkap
       </label>
       <div class="relative">
         <i
@@ -193,7 +196,7 @@ const goToLogin = () => {
     <!-- Email -->
     <div class="space-y-2">
       <label for="email" class="block text-sm font-medium text-(--text-secondary)">
-        Email Address
+        Alamat Email
       </label>
       <div class="relative">
         <i
@@ -212,7 +215,7 @@ const goToLogin = () => {
     <!-- Password -->
     <div class="space-y-2">
       <label for="password" class="block text-sm font-medium text-(--text-secondary)">
-        Password
+        Kata Sandi
       </label>
       <div class="relative">
         <i
@@ -221,7 +224,7 @@ const goToLogin = () => {
         <Password
           id="password"
           v-model="password"
-          placeholder="Create a password"
+          placeholder="Buat kata sandi"
           :feedback="false"
           toggleMask
           :pt="{
@@ -242,7 +245,7 @@ const goToLogin = () => {
     <!-- Confirm Password -->
     <div class="space-y-2">
       <label for="confirmPassword" class="block text-sm font-medium text-(--text-secondary)">
-        Confirm Password
+        Konfirmasi Kata Sandi
       </label>
       <div class="relative">
         <i
@@ -251,7 +254,7 @@ const goToLogin = () => {
         <Password
           id="confirmPassword"
           v-model="confirmPassword"
-          placeholder="Confirm your password"
+          placeholder="Konfirmasi kata sandi Anda"
           :feedback="false"
           toggleMask
           :pt="{
@@ -271,7 +274,7 @@ const goToLogin = () => {
 
     <!-- Personal Information Section -->
     <div class="pt-4 border-t border-white/10">
-      <h3 class="text-lg font-semibold text-white mb-4">Personal Information</h3>
+      <h3 class="text-lg font-semibold text-white mb-4">Informasi Pribadi</h3>
 
       <!-- Alamat - Using PrimeVue Textarea -->
       <div class="space-y-2 mb-4">
@@ -572,7 +575,7 @@ const goToLogin = () => {
 
     <Button
       type="submit"
-      :label="isLoading ? 'Creating account...' : 'Create Account'"
+      :label="isLoading ? 'Membuat akun...' : 'Buat Akun'"
       :icon="isLoading ? 'pi pi-spin pi-spinner' : 'pi pi-user-plus'"
       iconPos="right"
       :disabled="
@@ -590,9 +593,9 @@ const goToLogin = () => {
 
     <!-- Login Link -->
     <p class="text-center text-(--text-secondary) pb-8">
-      Already have an account?
+      Sudah punya akun?
       <button class="text-(--primary) font-medium hover:underline ml-1" @click="goToLogin">
-        Sign in
+        Masuk
       </button>
     </p>
   </form>

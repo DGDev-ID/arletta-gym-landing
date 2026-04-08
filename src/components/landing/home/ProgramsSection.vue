@@ -33,11 +33,10 @@ onMounted(async () => {
         class="text-center mb-12"
       >
         <h2 class="heading-lg text-white mb-4">
-          Our <span class="text-gradient">Class Programs</span>
+          Program <span class="text-gradient">Kelas Kami</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          From high-intensity workouts to mindful movement, we have programs designed to help you
-          reach your fitness goals.
+          Dari latihan intensitas tinggi hingga gerakan yang penuh kesadaran, kami memiliki program yang dirancang untuk membantu Anda mencapai tujuan kebugaran.
         </p>
       </div>
 

@@ -42,16 +42,16 @@ const emit = defineEmits<{ signup: [] }>()
       class="container-custom relative z-10 text-center text-white"
     >
       <h2 class="text-3xl font-bold text-white mb-4">
-        {{ title || 'Train with the Best' }}
+        {{ title || 'Berlatih Bersama yang Terbaik' }}
       </h2>
       <p class="text-white/80 mb-8 max-w-xl mx-auto">
         {{
           subtitle ||
-          'Get personalized attention and expert guidance. Book your first session today and start your transformation journey.'
+          'Dapatkan perhatian personal dan bimbingan ahli. Pesan sesi pertama Anda hari ini dan mulailah perjalanan transformasi Anda.'
         }}
       </p>
       <Button
-        label="Meet Our Trainers"
+        label="Kenali Trainer Kami"
         icon="pi pi-arrow-right"
         iconPos="right"
         class="bg-white text-(--primary) px-8 py-3 font-semibold hover:bg-white/90"

@@ -20,17 +20,17 @@ const toast = useToast()
 
 const menuItems = ref([
   {
-    label: 'My Profile',
+    label: 'Profil Saya',
     icon: 'pi pi-user',
     command: () => router.push('/pt/profile'),
   },
   {
-    label: 'My Clients',
+    label: 'Klien Saya',
     icon: 'pi pi-users',
     command: () => router.push('/pt/clients'),
   },
   {
-    label: 'My Schedule',
+    label: 'Jadwal Saya',
     icon: 'pi pi-calendar',
     command: () => router.push('/pt/schedule'),
   },
@@ -52,8 +52,8 @@ const handleLogout = () => {
   // Show toast for sign out
   toast.add({
     severity: 'success',
-    summary: 'Signed out',
-    detail: 'You have been signed out successfully.',
+    summary: 'Berhasil keluar',
+    detail: 'Anda telah berhasil keluar.',
     life: 3000,
   })
   // Perform logout and redirect
@@ -73,7 +73,7 @@ const handleLogout = () => {
         <img
           :src="user.avatar"
           :alt="user.name"
-          class="w-9 h-9 rounded-full border-2 border-(--primary)"
+          class="w-9 h-9 rounded-full border-2 border-(--primary) object-cover"
         />
         <!-- PT Badge -->
         <span

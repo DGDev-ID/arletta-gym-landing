@@ -42,19 +42,19 @@ const emit = defineEmits<{ signup: [] }>()
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-3xl font-bold text-white mb-4"
       >
-        {{ title || 'Ready to Start Your Fitness Journey?' }}
+        {{ title || 'Siap Memulai Perjalanan Kebugaranmu?' }}
       </h2>
       <p
         v-animateonscroll="{ enterClass: 'animate-fadein', leaveClass: 'animate-fadeout' }"
         class="text-white/80 mb-8 max-w-xl mx-auto"
       >
         {{
-          subtitle || 'Join thousands of members who have transformed their lives at Arletta Gym.'
+          subtitle || 'Bergabunglah bersama ribuan anggota yang telah mengubah hidup mereka di Arletta Gym.'
         }}
       </p>
       <Button
         v-animateonscroll="{ enterClass: 'animate-scalein', leaveClass: 'animate-fadeout' }"
-        label="Sign Up Now"
+        label="Daftar Sekarang"
         icon="pi pi-arrow-right"
         iconPos="right"
         class="bg-white text-(--primary) px-8 py-3 font-semibold hover:bg-white/90"

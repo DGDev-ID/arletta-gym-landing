@@ -107,8 +107,9 @@ onMounted(async () => {
     clientsLoading.value = true
     allMembersLoading.value = true
 
-    const trainerData = await getTrainerMe()
-    const idVal = (trainerData?.trainer?.id ?? trainerData?.id ?? trainerData?.trainer_id) as unknown as string | number | undefined
+    const trainerData = await getTrainerMe() as unknown as Record<string, unknown>
+    const trainerObj = (trainerData?.['trainer'] ?? trainerData) as Record<string, unknown>
+    const idVal = (trainerObj?.['id'] ?? trainerData?.['id'] ?? trainerData?.['trainer_id']) as string | number | undefined
     if (idVal !== undefined && idVal !== null) {
       const list = await getTrainerClients(idVal)
       clients.value = (list || []).map((c: Record<string, unknown>) => ({

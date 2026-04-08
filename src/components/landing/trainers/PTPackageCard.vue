@@ -46,9 +46,6 @@ const formatPrice = (price: number) =>
         </div>
         <h4 class="text-2xl font-black text-white">{{ pkg.name }}</h4>
         <p class="text-sm mt-1" style="color: var(--text-muted)">{{ pkg.sessions }} sessions</p>
-        <p v-if="pkg.gymName" class="text-xs mt-1" style="color: var(--text-muted)">
-          <i class="pi pi-map-marker mr-1" style="font-size: 0.65rem" />{{ pkg.gymName }}
-        </p>
       </div>
 
       <!-- Promo badge -->

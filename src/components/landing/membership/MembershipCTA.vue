@@ -51,15 +51,15 @@ const emit = defineEmits<{ signup: [] }>()
       class="container-custom relative z-10 text-center text-white"
     >
       <h2 class="text-3xl font-bold text-white mb-4">
-        {{ title || 'Ready to Start Your Fitness Journey?' }}
+        {{ title || 'Siap Memulai Perjalanan Kebugaranmu?' }}
       </h2>
       <p class="text-white/80 mb-8 max-w-xl mx-auto">
         {{
-          subtitle || 'Join thousands of members who have transformed their lives at Arletta Gym..'
+          subtitle || 'Bergabunglah bersama ribuan anggota yang telah mengubah hidup mereka di Arletta Gym..'
         }}
       </p>
       <Button
-        label="Sign Up Now"
+        label="Daftar Sekarang"
         icon="pi pi-arrow-right"
         iconPos="right"
         :disabled="authState.user?.role === 'pt'"

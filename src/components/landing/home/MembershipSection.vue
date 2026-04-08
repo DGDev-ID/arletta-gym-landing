@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import Select from 'primevue/select'
 import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
 import authState from '@/stores/auth'
@@ -10,6 +11,7 @@ import ParticleBackground from '@/components/common/ParticleBackground.vue'
 import PricingCard from '@/components/landing/membership/PricingCard.vue'
 import SignatureVerificationModal from '@/components/booking/SignatureVerificationModal.vue'
 import { getMemberships } from '@/services/membershipService'
+import { getGyms, type Gym } from '@/services/gymService'
 import { createSignature, createPayment } from '@/services/paymentService'
 
 interface ProcessedPlan {
@@ -21,12 +23,15 @@ interface ProcessedPlan {
   promo: string
   promos: unknown[]
   features: string[]
-  gymName: string | undefined
-  gymId: number | string | undefined
 }
 
 const membershipPlans = ref<ProcessedPlan[]>([])
 const membershipLoading = ref(true)
+
+// Gym filter
+const gyms = ref<Gym[]>([])
+const selectedGymId = ref<number | null>(null)
+const gymsLoading = ref(false)
 
 const defaultFeatures = [
   'Unlimited gym access',
@@ -58,16 +63,19 @@ const staticPresale: Record<string, { promo?: string; description?: string } | u
   '1 month': staticPresaleByMonths[1],
 }
 
-onMounted(async () => {
+const loadMemberships = async () => {
   try {
     membershipLoading.value = true
-    const plans = await getMemberships()
-    membershipPlans.value = plans.map((p) => {
+    membershipPlans.value = []
+    const params: Record<string, unknown> = {}
+    if (selectedGymId.value) params.gym_id = selectedGymId.value
+    const plans = await getMemberships(params)
+    membershipPlans.value = plans.map((p: unknown) => {
       const planRaw = p as Record<string, unknown>
       const rawPromos =
         (planRaw['active_promos'] as unknown) || (planRaw['membershipPromos'] as unknown) ||
         (planRaw['membership_promos'] as unknown) || (planRaw['promos'] as unknown) || []
-      const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr) => {
+      const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr: unknown) => {
         const promoObj = pr as Record<string, unknown>
         const pivot = (promoObj['pivot'] as Record<string, unknown> | undefined) ?? undefined
         const type = (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
@@ -80,7 +88,7 @@ onMounted(async () => {
       })
 
       if (!promos.length && rawPromos && Object.keys(rawPromos).length) {
-        console.debug('Unexpected promos shape for plan', p.id, rawPromos)
+        console.debug('Unexpected promos shape for plan', (planRaw as Record<string, unknown>)['id'], rawPromos)
       }
 
       const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
@@ -91,7 +99,6 @@ onMounted(async () => {
           : `${planRaw['duration_in_days']} days`
         : null
 
-      // overlay static presale promo/description when available; prefer numeric months mapping
       const durationDays = planRaw['duration_in_days'] as number | undefined
       const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
       const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
@@ -101,19 +108,10 @@ onMounted(async () => {
         name: String(planRaw['name'] ?? ''),
         price: planRaw['price'] as number | string | undefined,
         period: period,
-        description:
-          overlay?.description ?? (planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
-            ? `${(planRaw['gym'] as Record<string, unknown>)['name']} plan`
-            : 'Premium membership plan'),
+        description: String(planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium'),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
-        gymName: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['name']
-          ? String((planRaw['gym'] as Record<string, unknown>)['name'])
-          : undefined,
-        gymId: planRaw['gym'] && (planRaw['gym'] as Record<string, unknown>)['id']
-          ? (planRaw['gym'] as Record<string, unknown>)['id'] as number | string
-          : undefined,
       }
     })
   } catch (err) {
@@ -121,6 +119,29 @@ onMounted(async () => {
   } finally {
     membershipLoading.value = false
   }
+}
+
+onMounted(async () => {
+  // Load gyms for dropdown filter
+  gymsLoading.value = true
+  try {
+    gyms.value = await getGyms()
+    // Auto-select first gym
+    if (gyms.value.length > 0) {
+      selectedGymId.value = gyms.value[0]?.id ?? null
+    }
+  } catch (err) {
+    console.warn('Failed to load gyms', err)
+  } finally {
+    gymsLoading.value = false
+  }
+  // Load memberships for the selected gym (or all if no gym selected)
+  await loadMemberships()
+})
+
+// Reload memberships when gym changes
+watch(selectedGymId, () => {
+  loadMemberships()
 })
 
 const router = useRouter()
@@ -160,14 +181,14 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     if (!selectedPlan.value || !selectedPlan.value.id) {
       throw new Error('No membership plan selected')
     }
-    if (!selectedPlan.value.gymId) {
-      throw new Error('Gym information is missing for this plan')
+    if (!selectedGymId.value) {
+      throw new Error('Please select a gym branch first')
     }
 
     toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
 
     const payloadPayment: Record<string, unknown> = {
-      gym_id: Number(selectedPlan.value.gymId),
+      gym_id: Number(selectedGymId.value),
       transaction_type: 'membership',
       type_id: Number(selectedPlan.value.id),
       payment_method: method,
@@ -202,11 +223,27 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
         class="text-center mb-12"
       >
         <h2 class="heading-lg text-white mb-4">
-          Become a <span class="text-gradient">Member</span>
+          Jadilah <span class="text-gradient">Member</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          One membership, unlimited possibilities. Get full access to everything we offer.
+          Satu keanggotaan, kemungkinan tak terbatas. Dapatkan akses penuh ke semua yang kami tawarkan.
         </p>
+      </div>
+
+      <!-- Gym Branch Filter -->
+      <div class="flex justify-center mb-8">
+        <div class="w-full max-w-xs">
+          <Select
+            v-model="selectedGymId"
+            :options="gyms"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Select Gym Branch"
+            :loading="gymsLoading"
+            class="w-full"
+          />
+          <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+        </div>
       </div>
 
       <!-- On mobile: stretch to section edges. On md+: normal grid -->
@@ -242,17 +279,17 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     <Dialog
       :visible="showPaymentModal"
       @update:visible="(v) => (showPaymentModal = v)"
-      header="Choose payment method"
+      header="Pilih Metode Pembayaran"
       :modal="true"
       class="w-full max-w-md"
     >
       <div class="space-y-4 p-4">
         <p class="text-(--text-secondary)">
-          Choose a payment method to complete your membership purchase.
+          Pilih metode pembayaran untuk menyelesaikan pembelian keanggotaan Anda.
         </p>
         <div class="grid grid-cols-1 gap-3">
           <Button
-            label="Virtual Account (Bank Transfer)"
+            label="Virtual Account (Transfer Bank)"
             icon="pi pi-building"
             class="btn"
             @click="proceedToPayment('va')"
@@ -264,7 +301,7 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
             @click="proceedToPayment('qris')"
           />
           <Button
-            label="Cancel"
+            label="Batal"
             class="p-button-text text-(--text-secondary)"
             @click="showPaymentModal = false"
           />

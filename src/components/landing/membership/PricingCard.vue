@@ -26,9 +26,6 @@ const onSignup = () => {
     <div class="text-center mb-8">
       <h3 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ props.plan.name }}</h3>
       <p class="text-(--text-muted) text-sm mb-4">{{ props.plan.description }}</p>
-      <p v-if="props.plan.gymName" class="text-(--text-muted) text-xs mb-4">
-        <i class="pi pi-map-marker mr-1" style="font-size: 0.65rem" />{{ props.plan.gymName }}
-      </p>
 
       <div class="flex items-baseline justify-center gap-2 whitespace-nowrap">
         <span class="text-2xl md:text-3xl lg:text-4xl font-black text-white">{{
@@ -52,7 +49,7 @@ const onSignup = () => {
 
     <div class="mt-auto">
       <Button
-        label="Sign Up Now"
+        label="Daftar Sekarang"
         :disabled="authState.user?.role === 'pt'"
         :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"
         class="w-full py-3.5 text-base font-semibold"

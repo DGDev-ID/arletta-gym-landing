@@ -35,7 +35,7 @@ const props = defineProps<{ title: string; paragraphs: string[] }>()
             class="absolute -bottom-6 -left-6 bg-(--primary) text-white p-6 rounded-xl"
           >
             <div class="text-4xl font-bold">9+</div>
-            <div class="text-sm">Years of Excellence</div>
+            <div class="text-sm">Tahun Keunggulan</div>
           </div>
         </div>
       </div>

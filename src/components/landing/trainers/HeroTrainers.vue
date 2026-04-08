@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps({
-  title: { type: String, default: 'Our Personal Trainers' },
+  title: { type: String, default: 'Trainer Personal Kami' },
   subtitle: { type: String, default: '' },
   image: {
     type: String,
