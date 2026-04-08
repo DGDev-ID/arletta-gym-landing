@@ -193,6 +193,7 @@ const closeModal = () => {
 // Book Now → go straight to DPPaymentModal (no trainer selector)
 const showDPModal = ref(false)
 const selectedPackage = ref<PtPackageUI | null>(null)
+const selectedTrainer = ref<Trainer | null>(null)
 
 const openBooking = (pkg: PtPackageUI) => {
   if (!authState.isLoggedIn) {
