@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import Button from 'primevue/button'
-import { useToast } from 'primevue/usetoast'
-import { useRouter } from 'vue-router'
-import authState from '@/stores/auth'
-import BookingConfirmModal from '@/components/booking/BookingConfirmModal.vue'
+// no runtime Vue imports needed in this component
+// Booking removed from class cards: booking is handled via WeeklySchedule only
 
 type ClassItem = {
   id: number
@@ -23,88 +19,7 @@ type ClassItem = {
 const props = defineProps<{ classes?: ClassItem[] }>()
 defineEmits(['book'])
 
-const router = useRouter()
-const toast = useToast()
-const showBookingModal = ref(false)
-const selectedClass = ref<ClassItem | null>(null)
-
-// Transform class data to match BookingConfirmModal format
-const selectedClassForBooking = computed(() => {
-  if (!selectedClass.value) return null
-
-  // Generate a near future date for demo (tomorrow)
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const dateStr = tomorrow.toISOString().split('T')[0]
-
-  // Parse duration to get end time
-  const durationMinutes = parseInt(selectedClass.value.duration ?? '45') || 45
-  const startTime = '09:00'
-  const [hours = 0, minutes = 0] = startTime.split(':').map(Number)
-  const endHours = Math.floor((hours * 60 + minutes + durationMinutes) / 60)
-  const endMinutes = (minutes + durationMinutes) % 60
-  const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
-
-  return {
-    id: selectedClass.value.id,
-    name: selectedClass.value.name,
-    date: dateStr,
-    time: `${startTime} - ${endTime}`,
-    location: selectedClass.value.location ?? 'Studio A',
-    spotsLeft: selectedClass.value.spotsLeft ?? 10,
-    isFull: (selectedClass.value.spotsLeft ?? 10) === 0,
-    trainerAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedClass.value.trainer ?? 'Trainer'}`,
-    trainer: selectedClass.value.trainer ?? 'TBA',
-    totalSpots: selectedClass.value.totalSpots || 20,
-  }
-})
-
-const handleBookClass = (classItem: ClassItem) => {
-  if (!authState.isLoggedIn) {
-    // Not logged in, redirect to signup
-    router.push('/signup')
-    return
-  }
-
-  if (authState.user?.role === 'pt') {
-    // PT cannot book classes
-    toast.add({
-      severity: 'warn',
-      summary: 'Cannot Book',
-      detail:
-        'Personal trainers cannot book classes. You are assigned as a trainer by the receptionist.',
-      life: 4000,
-    })
-    return
-  }
-
-  // Member logged in, show booking modal
-  selectedClass.value = classItem
-  showBookingModal.value = true
-}
-
-const confirmBooking = () => {
-  toast.add({
-    severity: 'success',
-    summary: 'Class Booked!',
-    detail: `You have successfully booked ${selectedClass.value?.name}. Check your schedule for details.`,
-    life: 3000,
-  })
-  showBookingModal.value = false
-  // In real app, would call API to book the class
-  router.push('/member/schedule')
-}
-
-const joinWaitingList = () => {
-  toast.add({
-    severity: 'success',
-    summary: 'Joined Waitlist',
-    detail: `You've been added to the waitlist for ${selectedClass.value?.name}.`,
-    life: 3000,
-  })
-  showBookingModal.value = false
-  router.push('/member/schedule')
-}
+// Class cards are informational only on the landing page; booking is handled via WeeklySchedule
 </script>
 
 <template>
@@ -170,30 +85,12 @@ const joinWaitingList = () => {
               </div>
             </div>
 
-            <Button
-              label="Pesan Kelas"
-              outlined
-              :disabled="authState.user?.role === 'pt'"
-              :class="[
-                'w-full py-2 border-white/20 text-white',
-                authState.user?.role === 'pt'
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-white/10',
-              ]"
-              @click="handleBookClass(classItem)"
-            />
+            <!-- Booking removed: classes are booked via WeeklySchedule -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Booking Confirmation Modal -->
-    <BookingConfirmModal
-      v-model:visible="showBookingModal"
-      :classInfo="selectedClassForBooking"
-      :hasTimeConflict="false"
-      @confirm="confirmBooking"
-      @join-waitlist="joinWaitingList"
-    />
+    <!-- Booking modal removed from class cards; booking is available in WeeklySchedule -->
   </section>
 </template>
