@@ -100,8 +100,15 @@ const handleSignUp = async () => {
       phone_number: noHp.value || undefined,
       nik: noKtp.value || undefined,
       birth_place: tempatLahir.value || undefined,
-      birth_date: tanggalLahir.value ? new Date(tanggalLahir.value).toISOString().split('T')[0] : undefined,
-      gender: jenisKelamin.value === 'Laki-laki' ? 'male' : jenisKelamin.value === 'Perempuan' ? 'female' : undefined,
+      birth_date: tanggalLahir.value
+        ? new Date(tanggalLahir.value).toISOString().split('T')[0]
+        : undefined,
+      gender:
+        jenisKelamin.value === 'Laki-laki'
+          ? 'male'
+          : jenisKelamin.value === 'Perempuan'
+            ? 'female'
+            : undefined,
       address: alamat.value || undefined,
       emergency_name: emergencyName.value || undefined,
       emergency_phone: emergencyPhone.value || undefined,
@@ -125,22 +132,34 @@ const handleSignUp = async () => {
         } catch {}
       }
     } catch {
-      try { localStorage.setItem('auth_token', token) } catch {}
+      try {
+        localStorage.setItem('auth_token', token)
+      } catch {}
     }
 
     // Optionally set user into auth store (consistent with login behavior)
     const userObj = user as Record<string, unknown>
-    const userDetailReg = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<string, unknown>
+    const userDetailReg = (userObj['userDetail'] ?? userObj['user_detail'] ?? {}) as Record<
+      string,
+      unknown
+    >
     const photoUrlReg = String(userDetailReg['photo'] ?? userObj['avatar'] ?? '')
     setUser({
       id: Number(user.id),
       name: String(user.name ?? ''),
       email: String(user.email ?? ''),
       role: (user.role === 'pt' ? 'pt' : 'member') as 'member' | 'pt',
-      avatar: photoUrlReg || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
+      avatar:
+        photoUrlReg ||
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(user.name ?? ''))}`,
     })
 
-    toast.add({ severity: 'success', summary: 'Akun berhasil dibuat', detail: 'Pendaftaran berhasil', life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Akun berhasil dibuat',
+      detail: 'Pendaftaran berhasil',
+      life: 3000,
+    })
     showVerificationModal.value = true
   } catch (err) {
     console.warn('Registration failed', err)

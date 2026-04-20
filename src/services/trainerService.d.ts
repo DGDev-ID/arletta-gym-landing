@@ -58,9 +58,18 @@ declare module '@/services/trainerService' {
   export function getTrainerClientsAll(): Promise<unknown[]>
   export function getTrainerSchedules(id: number | string): Promise<unknown[]>
   export function getTrainerStats(): Promise<TrainerStats>
-  export function createSession(trainerId: number | string, payload: SessionPayload): Promise<unknown>
-  export function updateSession(sessionId: number | string, payload: SessionUpdatePayload): Promise<unknown>
-  export function cancelSession(sessionId: number | string, payload?: { reason?: string }): Promise<unknown>
+  export function createSession(
+    trainerId: number | string,
+    payload: SessionPayload,
+  ): Promise<unknown>
+  export function updateSession(
+    sessionId: number | string,
+    payload: SessionUpdatePayload,
+  ): Promise<unknown>
+  export function cancelSession(
+    sessionId: number | string,
+    payload?: { reason?: string },
+  ): Promise<unknown>
   export function deleteSession(sessionId: number | string): Promise<unknown>
 
   const _default: {

@@ -38,7 +38,10 @@ declare module '@/services/ptPackageService' {
   export function getPtPackages(params?: Record<string, unknown>): Promise<PtPackage[]>
   export function getPtPackage(id: number | string): Promise<PtPackage>
   export function getMemberPtPackages(): Promise<MemberPtPackage[]>
-  export function plotTrainer(payload: { pt_id: number; user_pt_package_id: number }): Promise<unknown>
+  export function plotTrainer(payload: {
+    pt_id: number
+    user_pt_package_id: number
+  }): Promise<unknown>
 
   const _default: {
     getPtPackages: typeof getPtPackages

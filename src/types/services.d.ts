@@ -27,13 +27,25 @@ declare module '@/services/authService' {
 
   export function login(email: string, password: string): Promise<{ user: AuthUser; token: string }>
   export function logout(): Promise<void>
-  export function register(payload: Record<string, unknown>): Promise<{ user: AuthUser; token: string }>
-  export function registerAndPersist(payload: Record<string, unknown>): Promise<{ user: AuthUser; token: string }>
-  export function loginAndPersist(email: string, password: string): Promise<{ user: AuthUser; token: string }>
+  export function register(
+    payload: Record<string, unknown>,
+  ): Promise<{ user: AuthUser; token: string }>
+  export function registerAndPersist(
+    payload: Record<string, unknown>,
+  ): Promise<{ user: AuthUser; token: string }>
+  export function loginAndPersist(
+    email: string,
+    password: string,
+  ): Promise<{ user: AuthUser; token: string }>
   export function persistToken(token?: string | null): void
   export function forgotPasswordSendOtp(email: string): Promise<unknown>
   export function forgotPasswordSubmitToken(email: string, token: string): Promise<unknown>
-  export function forgotPasswordChangePassword(payload: { email: string; token: string; password: string; password_confirmation: string }): Promise<unknown>
+  export function forgotPasswordChangePassword(payload: {
+    email: string
+    token: string
+    password: string
+    password_confirmation: string
+  }): Promise<unknown>
   export function emergencyContact(payload: Record<string, unknown>): Promise<unknown>
   export function me(): Promise<unknown>
   export function memberMe(): Promise<unknown>
@@ -43,16 +55,23 @@ declare module '@/services/authService' {
     login: (email: string, password: string) => Promise<{ user: AuthUser; token: string }>
     logout: () => Promise<void>
     register: (payload: Record<string, unknown>) => Promise<{ user: AuthUser; token: string }>
-    registerAndPersist: (payload: Record<string, unknown>) => Promise<{ user: AuthUser; token: string }>
+    registerAndPersist: (
+      payload: Record<string, unknown>,
+    ) => Promise<{ user: AuthUser; token: string }>
     loginAndPersist: (email: string, password: string) => Promise<{ user: AuthUser; token: string }>
     persistToken: (token?: string | null) => void
     forgotPasswordSendOtp: (email: string) => Promise<unknown>
     forgotPasswordSubmitToken: (email: string, token: string) => Promise<unknown>
-    forgotPasswordChangePassword: (payload: { email: string; token: string; password: string; password_confirmation: string }) => Promise<unknown>
+    forgotPasswordChangePassword: (payload: {
+      email: string
+      token: string
+      password: string
+      password_confirmation: string
+    }) => Promise<unknown>
     emergencyContact: (payload: Record<string, unknown>) => Promise<unknown>
-  me: () => Promise<unknown>
-  memberMe: () => Promise<unknown>
-  updateUserMe: (payload: Record<string, unknown>) => Promise<Record<string, unknown>>
+    me: () => Promise<unknown>
+    memberMe: () => Promise<unknown>
+    updateUserMe: (payload: Record<string, unknown>) => Promise<Record<string, unknown>>
   }
   export default _default
 }
@@ -74,10 +93,12 @@ declare module '@/services/membershipService' {
 
   export function getMemberships(params?: Record<string, unknown>): Promise<MembershipRaw[]>
   export function getMembership(id: string | number): Promise<MembershipRaw>
+  export function checkPossibleSchedule(membershipId: number | string): Promise<{ status: boolean; membership_end_at?: string }>
 
   const _default: {
     getMemberships: (params?: Record<string, unknown>) => Promise<MembershipRaw[]>
     getMembership: (id: string | number) => Promise<MembershipRaw>
+    checkPossibleSchedule: (membershipId: number | string) => Promise<{ status: boolean; membership_end_at?: string }>
   }
   export default _default
 }
@@ -98,8 +119,6 @@ declare module '@/services/trainerService' {
   export function getTrainerClients(id: string | number): Promise<Record<string, unknown>[]>
   export function getTrainerClientsAll(): Promise<Record<string, unknown>[]>
   export function getTrainerSchedules(id: string | number): Promise<Record<string, unknown>[]>
-
-  
 
   const _default: {
     getTrainers: (params?: Record<string, unknown>) => Promise<TrainerRaw[]>
@@ -156,30 +175,60 @@ declare module '@/services/bookingService' {
   }
 
   export function getBookings(params?: Record<string, unknown>): Promise<BookingRaw[]>
-  export function createBooking(payload: { schedule_id: number; booking_type?: string; notes?: string }): Promise<BookingRaw>
+  export function createBooking(payload: {
+    schedule_id: number
+    booking_type?: string
+    notes?: string
+  }): Promise<BookingRaw>
   export function joinWaitlist(schedule_id: number): Promise<{ id?: number; position?: number }>
   export function getWaitlist(): Promise<WaitlistEntryRaw[]>
-  export function cancelBooking(bookingId: number, payload: { verification: string; reason?: string }): Promise<unknown>
-  export function rescheduleBooking(bookingId: number, payload: { new_schedule_id: number; reason: string }): Promise<BookingRaw>
+  export function cancelBooking(
+    bookingId: number,
+    payload: { verification: string; reason?: string },
+  ): Promise<unknown>
+  export function rescheduleBooking(
+    bookingId: number,
+    payload: { new_schedule_id: number; reason: string },
+  ): Promise<BookingRaw>
 
   const _default: {
     getBookings: (params?: Record<string, unknown>) => Promise<BookingRaw[]>
-    createBooking: (payload: { schedule_id: number; booking_type?: string; notes?: string }) => Promise<BookingRaw>
+    createBooking: (payload: {
+      schedule_id: number
+      booking_type?: string
+      notes?: string
+    }) => Promise<BookingRaw>
     joinWaitlist: (schedule_id: number) => Promise<{ id?: number; position?: number }>
     getWaitlist: () => Promise<WaitlistEntryRaw[]>
-    cancelBooking: (bookingId: number, payload: { verification: string; reason?: string }) => Promise<unknown>
-    rescheduleBooking: (bookingId: number, payload: { new_schedule_id: number; reason: string }) => Promise<BookingRaw>
+    cancelBooking: (
+      bookingId: number,
+      payload: { verification: string; reason?: string },
+    ) => Promise<unknown>
+    rescheduleBooking: (
+      bookingId: number,
+      payload: { new_schedule_id: number; reason: string },
+    ) => Promise<BookingRaw>
   }
   export default _default
 }
 
 declare module '@/services/paymentService' {
-  export function createSignature(payload: { signature_data: string; membership_plan_id?: number }): Promise<{ id?: number; token?: string }>
-  export function createPayment(payload: Record<string, unknown>): Promise<{ payment_url?: string; token?: string; snap_token?: string }>
+  export function createSignature(payload: {
+    signature_data: string
+    membership_plan_id?: number
+  }): Promise<{ id?: number; token?: string }>
+  export function createPayment(
+    payload: Record<string, unknown>,
+  ): Promise<{ payment_url?: string; token?: string; snap_token?: string }>
 
   const _default: {
-    createSignature: (payload: { signature_data: string; membership_plan_id?: number }) => Promise<{ id?: number; token?: string }>
-    createPayment: (payload: Record<string, unknown>) => Promise<{ payment_url?: string; token?: string; snap_token?: string }>
+    createSignature: (payload: {
+      signature_data: string
+      membership_plan_id?: number
+    }) => Promise<{ id?: number; token?: string }>
+    createPayment: (
+      payload: Record<string, unknown>,
+    ) => Promise<{ payment_url?: string; token?: string; snap_token?: string }>
   }
   export default _default
 }

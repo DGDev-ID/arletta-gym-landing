@@ -49,7 +49,8 @@ const emit = defineEmits<{ signup: [] }>()
         class="text-white/80 mb-8 max-w-xl mx-auto"
       >
         {{
-          subtitle || 'Bergabunglah bersama ribuan anggota yang telah mengubah hidup mereka di Arletta Gym.'
+          subtitle ||
+          'Bergabunglah bersama ribuan anggota yang telah mengubah hidup mereka di Arletta Gym.'
         }}
       </p>
       <Button

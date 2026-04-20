@@ -36,7 +36,12 @@ const submitEmergency = async () => {
       emergency_phone: emergency_phone.value,
       emergency_relation: emergency_relation.value,
     })
-    toast.add({ severity: 'success', summary: 'Saved', detail: 'Emergency contact saved.', life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Saved',
+      detail: 'Emergency contact saved.',
+      life: 3000,
+    })
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     toast.add({ severity: 'error', summary: 'Failed', detail: msg, life: 6000 })
@@ -64,17 +69,22 @@ const submitEmergency = async () => {
       <template #content>
         <div class="p-6">
           <!-- Info hint -->
-          <div class="flex items-start gap-3 mb-6 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          <div
+            class="flex items-start gap-3 mb-6 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
+          >
             <i class="pi pi-info-circle text-amber-400 mt-0.5 shrink-0" />
             <p class="text-sm text-amber-200">
-              Kontak darurat akan dihubungi jika terjadi situasi yang tidak diinginkan selama sesi latihan.
+              Kontak darurat akan dihubungi jika terjadi situasi yang tidak diinginkan selama sesi
+              latihan.
             </p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <!-- Name -->
             <div class="space-y-2">
-              <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+              <label
+                class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5"
+              >
                 <i class="pi pi-user text-(--primary) text-xs" />
                 Name
               </label>
@@ -87,7 +97,9 @@ const submitEmergency = async () => {
 
             <!-- Phone -->
             <div class="space-y-2">
-              <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+              <label
+                class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5"
+              >
                 <i class="pi pi-phone text-(--primary) text-xs" />
                 Phone
               </label>
@@ -100,7 +112,9 @@ const submitEmergency = async () => {
 
             <!-- Relation -->
             <div class="space-y-2">
-              <label class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5">
+              <label
+                class="text-xs text-(--text-muted) font-semibold uppercase tracking-widest flex items-center gap-1.5"
+              >
                 <i class="pi pi-users text-(--primary) text-xs" />
                 Relation
               </label>
@@ -117,7 +131,9 @@ const submitEmergency = async () => {
             v-if="emergency_name || emergency_phone || emergency_relation"
             class="mt-5 p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-3"
           >
-            <div class="w-9 h-9 rounded-full bg-(--primary)/20 flex items-center justify-center shrink-0">
+            <div
+              class="w-9 h-9 rounded-full bg-(--primary)/20 flex items-center justify-center shrink-0"
+            >
               <i class="pi pi-user text-(--primary) text-sm" />
             </div>
             <div class="flex-1 min-w-0">
@@ -128,7 +144,9 @@ const submitEmergency = async () => {
                 {{ emergency_relation }}
               </p>
             </div>
-            <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full shrink-0">Saved</span>
+            <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full shrink-0"
+              >Saved</span
+            >
           </div>
 
           <div class="mt-5 flex justify-end border-t border-white/10 pt-5">

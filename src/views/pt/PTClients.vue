@@ -39,10 +39,11 @@ const filteredClients = computed(() => {
     const source = clients.value
     if (!searchQuery.value) return source
     const query = searchQuery.value.toLowerCase()
-    return source.filter((client) =>
-      String(client.name).toLowerCase().includes(query) ||
-      String(client.email).toLowerCase().includes(query) ||
-      String(client.currentGoal).toLowerCase().includes(query),
+    return source.filter(
+      (client) =>
+        String(client.name).toLowerCase().includes(query) ||
+        String(client.email).toLowerCase().includes(query) ||
+        String(client.currentGoal).toLowerCase().includes(query),
     )
   }
 
@@ -60,15 +61,16 @@ const filteredClients = computed(() => {
     currentGoal: String(m.currentGoal ?? ''),
     progress: Number(m.progress ?? 0),
     status: String(m.status ?? 'active'),
-  nextSession: (m['nextSession'] as string) ?? null,
+    nextSession: (m['nextSession'] as string) ?? null,
   })) as ClientLocal[]
 
   if (!searchQuery.value) return mapped
   const query = searchQuery.value.toLowerCase()
-  return mapped.filter((client) =>
-    String(client.name).toLowerCase().includes(query) ||
-    String(client.email).toLowerCase().includes(query) ||
-    String(client.currentGoal).toLowerCase().includes(query),
+  return mapped.filter(
+    (client) =>
+      String(client.name).toLowerCase().includes(query) ||
+      String(client.email).toLowerCase().includes(query) ||
+      String(client.currentGoal).toLowerCase().includes(query),
   )
 })
 
@@ -78,7 +80,9 @@ const allMembersLoading = ref(false)
 
 const activeClients = computed(() => clients.value.filter((c) => c.status === 'active').length)
 // inactiveClients count is not used in the UI; remove to avoid unused-variable errors
-const totalSessions = computed(() => clients.value.reduce((sum, c) => sum + (c.totalSessions || 0), 0))
+const totalSessions = computed(() =>
+  clients.value.reduce((sum, c) => sum + (c.totalSessions || 0), 0),
+)
 
 const avgProgress = computed(() => {
   if (clients.value.length === 0) return 0
@@ -107,15 +111,22 @@ onMounted(async () => {
     clientsLoading.value = true
     allMembersLoading.value = true
 
-    const trainerData = await getTrainerMe() as unknown as Record<string, unknown>
+    const trainerData = (await getTrainerMe()) as unknown as Record<string, unknown>
     const trainerObj = (trainerData?.['trainer'] ?? trainerData) as Record<string, unknown>
-    const idVal = (trainerObj?.['id'] ?? trainerData?.['id'] ?? trainerData?.['trainer_id']) as string | number | undefined
+    const idVal = (trainerObj?.['id'] ?? trainerData?.['id'] ?? trainerData?.['trainer_id']) as
+      | string
+      | number
+      | undefined
     if (idVal !== undefined && idVal !== null) {
       const list = await getTrainerClients(idVal)
       clients.value = (list || []).map((c: Record<string, unknown>) => ({
         id: Number(c.id ?? c.client_id ?? 0),
         name: String(c.name ?? c.full_name ?? 'Unknown'),
-        avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'client'))}`),
+        avatar: String(
+          c.avatar ??
+            c.photo ??
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'client'))}`,
+        ),
         email: String(c.email ?? c.contact_email ?? ''),
         phone: String(c.phone ?? c.contact_phone ?? ''),
         membershipType: String(c.membership_type ?? c.membershipType ?? 'Standard'),
@@ -135,7 +146,11 @@ onMounted(async () => {
       allMembers.value = (all || []).map((c: Record<string, unknown>) => ({
         id: Number(c.id ?? c.member_id ?? 0),
         name: String(c.name ?? c.full_name ?? 'Unknown'),
-        avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'member'))}`),
+        avatar: String(
+          c.avatar ??
+            c.photo ??
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'member'))}`,
+        ),
         email: String(c.email ?? c.contact_email ?? ''),
         phone: String(c.phone_number ?? c.phone ?? c.contact_phone ?? ''),
         membershipType: String(c.membership_type ?? c.membershipType ?? 'Standard'),

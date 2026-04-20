@@ -49,10 +49,7 @@ const formatPrice = (price: number) =>
       </div>
 
       <!-- Promo badge -->
-      <div
-        v-if="pkg.promos && pkg.promos.length"
-        class="flex justify-center"
-      >
+      <div v-if="pkg.promos && pkg.promos.length" class="flex justify-center">
         <span
           class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
           style="
@@ -62,7 +59,13 @@ const formatPrice = (price: number) =>
           "
         >
           <i class="pi pi-tag" style="font-size: 0.6rem" />
-          {{ pkg.promos[0].type === 'percent' ? `${pkg.promos[0].value}% off` : pkg.promos[0].type === 'fixed' ? `Diskon ${formatPrice(pkg.promos[0].value ?? 0)}` : `Promo ${pkg.promos[0].value ?? ''}` }}
+          {{
+            pkg.promos[0].type === 'percent'
+              ? `${pkg.promos[0].value}% off`
+              : pkg.promos[0].type === 'fixed'
+                ? `Diskon ${formatPrice(pkg.promos[0].value ?? 0)}`
+                : `Promo ${pkg.promos[0].value ?? ''}`
+          }}
         </span>
       </div>
 

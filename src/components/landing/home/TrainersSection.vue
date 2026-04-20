@@ -71,7 +71,8 @@ onMounted(async () => {
           Kenali <span class="text-gradient">Trainer Ahli Kami</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          Trainer personal bersertifikat kami siap membimbing Anda dalam perjalanan kebugaran dengan program yang dipersonalisasi dan pengetahuan ahli.
+          Trainer personal bersertifikat kami siap membimbing Anda dalam perjalanan kebugaran dengan
+          program yang dipersonalisasi dan pengetahuan ahli.
         </p>
       </div>
 
@@ -147,18 +148,19 @@ onMounted(async () => {
                 v-for="spec in trainer.specializations.slice(0, 2)"
                 :key="spec"
                 class="bg-white/10 text-(--text-secondary) text-xs px-3 py-1 rounded-full"
-              >{{ spec }}</span>
+                >{{ spec }}</span
+              >
               <span
                 v-if="trainer.specializations.length > 2"
                 class="bg-white/10 text-(--text-muted) text-xs px-3 py-1 rounded-full"
-              >+{{ trainer.specializations.length - 2 }}</span>
+                >+{{ trainer.specializations.length - 2 }}</span
+              >
             </div>
 
             <!-- Bio -->
-            <p
-              v-if="trainer.bio"
-              class="text-(--text-muted) text-sm line-clamp-2"
-            >{{ trainer.bio }}</p>
+            <p v-if="trainer.bio" class="text-(--text-muted) text-sm line-clamp-2">
+              {{ trainer.bio }}
+            </p>
           </div>
         </div>
       </div>

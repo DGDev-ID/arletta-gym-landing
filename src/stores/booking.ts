@@ -342,7 +342,10 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
     const category = String(s.category ?? '').toLowerCase()
     const className = String(s.class_name ?? '')
     // Detect PT sessions by category or class name
-    const isPT = category.includes('pt') || category.includes('personal') || className.toLowerCase().includes('personal training')
+    const isPT =
+      category.includes('pt') ||
+      category.includes('personal') ||
+      className.toLowerCase().includes('personal training')
 
     // Determine if the schedule date is in the past
     const scheduleDate = new Date(String(s.date ?? booking.date ?? ''))
@@ -353,12 +356,14 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
       classId: Number(s.id ?? 0),
       name: className,
       trainer: String(s.trainer_name ?? ''),
-      trainerAvatar: s.trainer_name ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}` : '',
+      trainerAvatar: s.trainer_name
+        ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}`
+        : '',
       date: String(s.date ?? booking.date ?? ''),
       time: time,
       location: String(s.location ?? ''),
       type: isPT ? 'pt-session' : 'class',
-      status: (status as unknown) as BookedClass['status'],
+      status: status as unknown as BookedClass['status'],
       bookedAt: String(booking.created_at ?? ''),
       canCancel: status === 'confirmed' ? canCancelClass(String(s.date ?? ''), time) : false,
     }
@@ -392,7 +397,9 @@ export async function loadBookingsFromApi(params?: Record<string, unknown>) {
           classId: Number(s.id ?? 0),
           name: String(s.class_name ?? ''),
           trainer: String(s.trainer_name ?? ''),
-          trainerAvatar: s.trainer_name ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}` : '',
+          trainerAvatar: s.trainer_name
+            ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(s.trainer_name))}`
+            : '',
           date: String(s.date ?? ''),
           time: time,
           location: String(s.location ?? ''),

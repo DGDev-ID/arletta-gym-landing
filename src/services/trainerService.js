@@ -101,4 +101,16 @@ export async function deleteSession(sessionId) {
   return data.data
 }
 
-export default { getTrainers, getTrainer, getTrainerMe, getTrainerClients, getTrainerClientsAll, getTrainerSchedules, getTrainerStats, createSession, updateSession, cancelSession, deleteSession }
+export default {
+  getTrainers,
+  getTrainer,
+  getTrainerMe,
+  getTrainerClients,
+  getTrainerClientsAll,
+  getTrainerSchedules,
+  getTrainerStats,
+  createSession,
+  updateSession,
+  cancelSession,
+  deleteSession,
+}

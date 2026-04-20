@@ -27,7 +27,12 @@ import {
   type AvailableClass,
   loadBookingsFromApi,
 } from '@/stores/booking'
-import { createBooking, joinWaitlist, cancelBooking as apiCancelBooking, rescheduleBooking as apiRescheduleBooking } from '@/services/bookingService'
+import {
+  createBooking,
+  joinWaitlist,
+  cancelBooking as apiCancelBooking,
+  rescheduleBooking as apiRescheduleBooking,
+} from '@/services/bookingService'
 import { getSchedules } from '@/services/scheduleService'
 
 const router = useRouter()
@@ -112,7 +117,9 @@ onMounted(async () => {
           id: Number(s['id'] ?? 0),
           name: String(cls['name'] ?? ''),
           trainer: trainerName,
-          trainerAvatar: trainerName ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(trainerName)}` : '',
+          trainerAvatar: trainerName
+            ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(trainerName)}`
+            : '',
           date: String(s['date'] ?? ''),
           time,
           location: String(s['location'] ?? ''),
@@ -276,7 +283,12 @@ const confirmCancel = async (payload?: { verification?: string; reason?: string 
   if (isPT) {
     // local PT cancel behavior
     cancelPTSession(selectedBookingForCancel.value.id)
-    toast.add({ severity: 'success', summary: 'PT Session Cancelled', detail: `PT session ${selectedBookingForCancel.value.name} cancelled.`, life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'PT Session Cancelled',
+      detail: `PT session ${selectedBookingForCancel.value.name} cancelled.`,
+      life: 3000,
+    })
     showCancelModal.value = false
     return
   }
@@ -292,7 +304,12 @@ const confirmCancel = async (payload?: { verification?: string; reason?: string 
         life: 3000,
       })
     } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Unable to leave waitlist', life: 3000 })
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to leave waitlist',
+        life: 3000,
+      })
     }
     showCancelModal.value = false
     return
@@ -353,12 +370,20 @@ const confirmBooking = async () => {
   try {
     const wasReschedule = Boolean(rescheduleTargetBookingId.value)
     if (wasReschedule && rescheduleTargetBookingId.value) {
-      await apiRescheduleBooking(rescheduleTargetBookingId.value, { new_schedule_id: selectedClassForBooking.value.id, reason: 'Rescheduled by member' })
+      await apiRescheduleBooking(rescheduleTargetBookingId.value, {
+        new_schedule_id: selectedClassForBooking.value.id,
+        reason: 'Rescheduled by member',
+      })
     } else {
       await createBooking({ schedule_id: selectedClassForBooking.value.id })
     }
     await loadBookingsFromApi()
-    toast.add({ severity: 'success', summary: wasReschedule ? 'Rescheduled' : 'Booked', detail: `You've ${wasReschedule ? 'rescheduled to' : 'booked'} ${selectedClassForBooking.value.name}.`, life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: wasReschedule ? 'Rescheduled' : 'Booked',
+      detail: `You've ${wasReschedule ? 'rescheduled to' : 'booked'} ${selectedClassForBooking.value.name}.`,
+      life: 3000,
+    })
     // clear target after success
     rescheduleTargetBookingId.value = null
   } catch (err: unknown) {
@@ -484,7 +509,10 @@ const tabs = [
 
       <!-- Tab Content -->
       <!-- Skeleton when bookings loading -->
-      <div v-if="bookingsLoading && (activeTab === 'upcoming' || activeTab === 'history')" class="space-y-4 mt-6">
+      <div
+        v-if="bookingsLoading && (activeTab === 'upcoming' || activeTab === 'history')"
+        class="space-y-4 mt-6"
+      >
         <div v-for="i in 3" :key="i" class="glass-card rounded-xl p-4 flex items-center gap-4">
           <Skeleton width="3rem" height="3rem" borderRadius="8px" />
           <div class="flex-1 space-y-2">

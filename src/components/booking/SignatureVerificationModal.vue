@@ -3,16 +3,20 @@ import { ref, computed, watch, nextTick } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
+import DatePicker from 'primevue/datepicker'
+import { checkPossibleSchedule } from '@/services/membershipService'
 
 const props = defineProps<{
   visible: boolean
   memberName?: string
   membershipPlan?: string
+  membershipId?: number | string | null
+  membershipDurationDays?: number | null
 }>()
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'confirmed', signatureData?: string): void
+  (e: 'confirmed', signatureData?: string, startAt?: string): void
 }>()
 
 const dialogVisible = computed({
@@ -20,25 +24,39 @@ const dialogVisible = computed({
   set: (value) => emit('update:visible', value),
 })
 
+// --- Schedule check state ---
+const scheduleLoading = ref(false)
+const scheduleStatus = ref<boolean | null>(null) // null = belum di-check
+const membershipEndAt = ref<string | null>(null) // jika status false
+const startDate = ref<Date | null>(null) // jika status true, input dari user
+
+const endDateDisplay = computed(() => {
+  if (scheduleStatus.value !== true || !startDate.value || !props.membershipDurationDays)
+    return null
+  const end = new Date(startDate.value)
+  end.setDate(end.getDate() + props.membershipDurationDays)
+  return end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+})
+
+const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+
+// --- Canvas ---
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const hasSignature = ref(false)
 const acceptedTerms = ref(false)
 const isDrawing = ref(false)
-
 let ctx: CanvasRenderingContext2D | null = null
 
 const initCanvas = () => {
   if (!canvasRef.value) return
   ctx = canvasRef.value.getContext('2d')
   if (!ctx) return
-
-  // Set canvas size
   const rect = canvasRef.value.parentElement?.getBoundingClientRect()
   if (rect) {
     canvasRef.value.width = rect.width
     canvasRef.value.height = 200
   }
-
   ctx.strokeStyle = '#ffffff'
   ctx.lineWidth = 2
   ctx.lineCap = 'round'
@@ -49,7 +67,6 @@ const startDrawing = (e: MouseEvent | TouchEvent) => {
   if (!ctx || !canvasRef.value) return
   isDrawing.value = true
   hasSignature.value = true
-
   const { x, y } = getPosition(e)
   ctx.beginPath()
   ctx.moveTo(x, y)
@@ -58,7 +75,6 @@ const startDrawing = (e: MouseEvent | TouchEvent) => {
 const draw = (e: MouseEvent | TouchEvent) => {
   if (!isDrawing.value || !ctx) return
   e.preventDefault()
-
   const { x, y } = getPosition(e)
   ctx.lineTo(x, y)
   ctx.stroke()
@@ -71,19 +87,11 @@ const stopDrawing = () => {
 const getPosition = (e: MouseEvent | TouchEvent) => {
   if (!canvasRef.value) return { x: 0, y: 0 }
   const rect = canvasRef.value.getBoundingClientRect()
-
   if (e instanceof TouchEvent) {
     const touch = e.touches[0] || e.changedTouches[0]
-    return {
-      x: (touch?.clientX ?? 0) - rect.left,
-      y: (touch?.clientY ?? 0) - rect.top,
-    }
+    return { x: (touch?.clientX ?? 0) - rect.left, y: (touch?.clientY ?? 0) - rect.top }
   }
-
-  return {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
-  }
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top }
 }
 
 const clearSignature = () => {
@@ -92,13 +100,22 @@ const clearSignature = () => {
   hasSignature.value = false
 }
 
-const isValid = computed(() => hasSignature.value && acceptedTerms.value)
+// Validasi: jika status true, startDate wajib diisi
+const isValid = computed(() => {
+  if (!hasSignature.value || !acceptedTerms.value) return false
+  if (scheduleStatus.value === true && !startDate.value) return false
+  return true
+})
 
 const handleConfirm = () => {
   if (!isValid.value || !canvasRef.value) return
-  // extract signature as data URL
   const dataUrl = canvasRef.value.toDataURL('image/png')
-  emit('confirmed', dataUrl)
+  // Kirim startAt hanya jika status true
+  let startAt: string | undefined
+  if (scheduleStatus.value === true && startDate.value) {
+    startAt = startDate.value.toISOString().split('T')[0] // format YYYY-MM-DD
+  }
+  emit('confirmed', dataUrl, startAt)
   emit('update:visible', false)
 }
 
@@ -106,8 +123,32 @@ watch(
   () => props.visible,
   async (val) => {
     if (val) {
+      // Reset semua state
       hasSignature.value = false
       acceptedTerms.value = false
+      scheduleStatus.value = null
+      membershipEndAt.value = null
+      startDate.value = null
+
+      // Hit API check schedule
+      if (props.membershipId) {
+        scheduleLoading.value = true
+        try {
+          const result = await checkPossibleSchedule(props.membershipId)
+          scheduleStatus.value = result.status
+          if (!result.status && result.membership_end_at) {
+            membershipEndAt.value = result.membership_end_at
+          }
+        } catch (err) {
+          console.warn('Failed to check schedule', err)
+          scheduleStatus.value = true // fallback: tampilkan input tanggal
+        } finally {
+          scheduleLoading.value = false
+        }
+      } else {
+        scheduleStatus.value = true // tidak ada id, default ke input tanggal
+      }
+
       await nextTick()
       initCanvas()
     }
@@ -161,6 +202,41 @@ watch(
             })
           }}</span>
         </div>
+
+        <!-- Loading check schedule -->
+        <template v-if="scheduleLoading">
+          <div class="flex justify-between text-sm animate-pulse">
+            <span class="text-(--text-muted)">Memeriksa jadwal...</span>
+            <span class="bg-white/10 rounded w-32 h-4"></span>
+          </div>
+        </template>
+
+        <!-- Status false: tampilkan membership_end_at sebagai teks biasa -->
+        <template v-else-if="scheduleStatus === false && membershipEndAt">
+          <div class="flex justify-between text-sm">
+            <span class="text-(--text-muted)">Membership sampai dengan</span>
+            <span class="text-white">{{ formatDate(membershipEndAt) }}</span>
+          </div>
+        </template>
+
+        <!-- Status true: tampilkan input Tanggal mulai + End date (teks) -->
+        <template v-else-if="scheduleStatus === true">
+          <div class="flex justify-between items-center text-sm gap-4">
+            <span class="text-(--text-muted) shrink-0">Tanggal Mulai</span>
+            <DatePicker
+              v-model="startDate"
+              :min-date="new Date()"
+              date-format="dd MM yy"
+              placeholder="Pilih tanggal"
+              show-icon
+              class="!text-sm flex-1 min-w-0"
+            />
+          </div>
+          <div v-if="endDateDisplay" class="flex justify-between text-sm">
+            <span class="text-(--text-muted)">Tanggal Berakhir</span>
+            <span class="text-white">{{ endDateDisplay }}</span>
+          </div>
+        </template>
       </div>
 
       <!-- Agreement Text -->
@@ -182,9 +258,9 @@ watch(
       <!-- Signature Pad -->
       <div>
         <div class="flex items-center justify-between mb-2">
-          <label class="text-sm font-medium text-white"
-            >Tanda Tangan <span class="text-red-400">*</span></label
-          >
+          <label class="text-sm font-medium text-white">
+            Tanda Tangan <span class="text-red-400">*</span>
+          </label>
           <Button
             v-if="hasSignature"
             label="Hapus"
@@ -237,7 +313,7 @@ watch(
           label="Konfirmasi & Bayar"
           icon="pi pi-check"
           class="btn"
-          :disabled="!isValid"
+          :disabled="!isValid || scheduleLoading"
           @click="handleConfirm"
         />
       </div>
@@ -250,7 +326,6 @@ watch(
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 1rem;
 }
-
 .signature-modal :deep(.p-dialog-content) {
   padding-top: 1rem;
 }

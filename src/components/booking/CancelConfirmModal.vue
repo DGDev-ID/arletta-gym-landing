@@ -193,7 +193,9 @@ const handleConfirm = () => {
 
       <!-- Double-verification: require typing CANCEL for regular class cancels -->
       <div v-if="!isWaitlist && !isPTSession" class="space-y-2">
-        <label class="text-sm text-(--text-secondary)">Type <strong>CANCEL</strong> to confirm cancellation</label>
+        <label class="text-sm text-(--text-secondary)"
+          >Type <strong>CANCEL</strong> to confirm cancellation</label
+        >
         <input
           v-model="verification"
           type="text"
@@ -216,7 +218,7 @@ const handleConfirm = () => {
 
         <Button
           v-if="!cannotCancelReason"
-          :disabled="(!isWaitlist && !isPTSession) && verification.toUpperCase() !== 'CANCEL'"
+          :disabled="!isWaitlist && !isPTSession && verification.toUpperCase() !== 'CANCEL'"
           label="Yes, Cancel"
           severity="danger"
           icon="pi pi-times"

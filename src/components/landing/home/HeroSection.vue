@@ -85,20 +85,7 @@ onUnmounted(() => {
           class="px-8 py-3.5 text-base font-semibold border-white/20 text-white hover:bg-white/10"
           @click="scrollToPrograms"
         />
-        <div class="relative inline-block w-full sm:w-auto">
-          <Button
-            label="Presale"
-            icon="pi pi-ticket"
-            class="px-8 py-3.5 text-base font-semibold bg-white/5 hover:bg-white/10 w-full sm:w-auto"
-            @click="goToMembership"
-          />
-          <!-- badge -->
-          <div
-            class="absolute -top-4 -right-3 w-8 h-8 rounded-full flex items-center justify-center gift-badge"
-          >
-            <i class="pi pi-gift text-white text-xs"></i>
-          </div>
-        </div>
+        <!-- Presale button removed -->
       </div>
 
       <div

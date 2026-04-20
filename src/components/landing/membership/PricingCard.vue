@@ -2,7 +2,10 @@
 import Button from 'primevue/button'
 import authState from '@/stores/auth'
 
-const props = defineProps({ plan: { type: Object, required: true } })
+const props = defineProps({
+  plan: { type: Object, required: true },
+  showCta: { type: Boolean, default: true },
+})
 const emit = defineEmits(['signup'])
 
 const formatPrice = (price: number) =>
@@ -49,6 +52,7 @@ const onSignup = () => {
 
     <div class="mt-auto">
       <Button
+        v-if="props.showCta"
         label="Daftar Sekarang"
         :disabled="authState.user?.role === 'pt'"
         :class="[authState.user?.role === 'pt' ? 'opacity-50 cursor-not-allowed' : '']"

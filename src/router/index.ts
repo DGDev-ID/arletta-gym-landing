@@ -129,47 +129,49 @@ function dashboardFor(role: 'member' | 'pt'): string {
   return role === 'pt' ? '/pt/profile' : '/member/profile'
 }
 
-router.beforeEach(async (
-  to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext,
-) => {
-  window.scrollTo(0, 0)
+router.beforeEach(
+  async (
+    to: RouteLocationNormalized,
+    _from: RouteLocationNormalized,
+    next: NavigationGuardNext,
+  ) => {
+    window.scrollTo(0, 0)
 
-  // ── Restore session once per app load ──────────────────────────
-  if (!sessionRestored) {
-    sessionRestored = true
-    const token = localStorage.getItem('auth_token')
-    if (token) {
-      // api.js auto-sets the token from localStorage on import;
-      // we just need to call fetchMe to populate the auth store.
-      await fetchMe()
+    // ── Restore session once per app load ──────────────────────────
+    if (!sessionRestored) {
+      sessionRestored = true
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        // api.js auto-sets the token from localStorage on import;
+        // we just need to call fetchMe to populate the auth store.
+        await fetchMe()
+      }
     }
-  }
 
-  const { isLoggedIn, user } = authState
-  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
-  const requiresGuest = to.matched.some((r) => r.meta.requiresGuest)
-  const allowedRoles = to.matched.flatMap((r) => (r.meta.roles as string[] | undefined) ?? [])
+    const { isLoggedIn, user } = authState
+    const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
+    const requiresGuest = to.matched.some((r) => r.meta.requiresGuest)
+    const allowedRoles = to.matched.flatMap((r) => (r.meta.roles as string[] | undefined) ?? [])
 
-  // ── 1. Protected route — user not logged in → /login ───────────
-  if (requiresAuth && !isLoggedIn) {
-    return next({ name: 'login', query: { redirect: to.fullPath } })
-  }
+    // ── 1. Protected route — user not logged in → /login ───────────
+    if (requiresAuth && !isLoggedIn) {
+      return next({ name: 'login', query: { redirect: to.fullPath } })
+    }
 
-  // ── 2. Protected route — user logged in but wrong role ─────────
-  if (requiresAuth && isLoggedIn && user && allowedRoles.length > 0) {
-    if (!allowedRoles.includes(user.role)) {
+    // ── 2. Protected route — user logged in but wrong role ─────────
+    if (requiresAuth && isLoggedIn && user && allowedRoles.length > 0) {
+      if (!allowedRoles.includes(user.role)) {
+        return next(dashboardFor(user.role))
+      }
+    }
+
+    // ── 3. Guest-only route — user already logged in → dashboard ───
+    if (requiresGuest && isLoggedIn && user) {
       return next(dashboardFor(user.role))
     }
-  }
 
-  // ── 3. Guest-only route — user already logged in → dashboard ───
-  if (requiresGuest && isLoggedIn && user) {
-    return next(dashboardFor(user.role))
-  }
-
-  next()
-})
+    next()
+  },
+)
 
 export default router

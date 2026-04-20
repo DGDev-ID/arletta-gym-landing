@@ -39,15 +39,28 @@ const goToSignUp = (plan?: ProcessedPlan) => {
 // After signature verification, call server to persist signature then show payment modal
 import { createSignature, createPayment } from '@/services/paymentService'
 
-const onSignatureConfirmed = async (signatureData?: string) => {
+// Tambah parameter startAt
+let pendingStartAt: string | undefined
+
+const onSignatureConfirmed = async (signatureData?: string, startAt?: string) => {
   try {
-  if (!signatureData) throw new Error('Signature missing')
-  const payloadSig: { signature_data: string; membership_plan_id?: number | string } = { signature_data: signatureData }
-  if (selectedPlan.value && selectedPlan.value.id) payloadSig.membership_plan_id = selectedPlan.value.id as number | string
-  const resp = await createSignature(payloadSig as unknown as { signature_data: string; membership_plan_id?: number })
-    // store created signature id for use in payment creation
+    if (!signatureData) throw new Error('Signature missing')
+    const payloadSig: { signature_data: string; membership_plan_id?: number | string } = {
+      signature_data: signatureData,
+    }
+    if (selectedPlan.value?.id)
+      payloadSig.membership_plan_id = selectedPlan.value.id as number | string
+    const resp = await createSignature(
+      payloadSig as unknown as { signature_data: string; membership_plan_id?: number },
+    )
     createdSignatureId = resp?.id ?? null
-    toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified successfully.', life: 3000 })
+    pendingStartAt = startAt // simpan untuk dipakai di proceedToPayment
+    toast.add({
+      severity: 'success',
+      summary: 'Signature saved',
+      detail: 'Signature verified successfully.',
+      life: 3000,
+    })
     showSignatureModal.value = false
     showPaymentModal.value = true
   } catch (err: unknown) {
@@ -65,7 +78,12 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
       throw new Error('Please select a gym branch first')
     }
 
-    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+    toast.add({
+      severity: 'info',
+      summary: 'Creating payment',
+      detail: 'Processing your payment...',
+      life: 3000,
+    })
 
     const payloadPayment: Record<string, unknown> = {
       gym_id: Number(selectedGymId.value),
@@ -73,8 +91,16 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
       type_id: Number(selectedPlan.value.id),
       payment_method: method,
     }
+    if (pendingStartAt) payloadPayment.start_at = pendingStartAt // ← tambah ini
     if (createdSignatureId) payloadPayment.signature_data = undefined // signature already saved separately
-    const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
+    const resp = await createPayment(
+      payloadPayment as unknown as {
+        membership_plan_id?: number
+        method?: string
+        amount?: number
+        signature_id?: number
+      },
+    )
     // Expecting resp.payment_url or resp.snap_token depending on backend
     if (resp.payment_url) {
       window.open(resp.payment_url, '_blank')
@@ -84,12 +110,22 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     } else if (resp.token) {
       window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
     } else {
-      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
+      toast.add({
+        severity: 'success',
+        summary: 'Payment created',
+        detail: 'Transaction has been created successfully.',
+        life: 3000,
+      })
     }
     showPaymentModal.value = false
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    toast.add({ severity: 'error', summary: 'Payment creation failed', detail: message, life: 5000 })
+    toast.add({
+      severity: 'error',
+      summary: 'Payment creation failed',
+      detail: message,
+      life: 5000,
+    })
   }
 }
 
@@ -98,6 +134,7 @@ interface ProcessedPlan {
   name: string
   price: number | string | undefined
   period: string | null
+  durationInDays: number | null // ← tambah ini
   description: string
   promo: string
   promos: unknown[]
@@ -151,16 +188,22 @@ const loadMemberships = async () => {
     membershipPlans.value = plans.map((p) => {
       const planRaw = p as Record<string, unknown>
       const rawPromos =
-        (planRaw['active_promos'] as unknown) || (planRaw['membershipPromos'] as unknown) ||
-        (planRaw['membership_promos'] as unknown) || (planRaw['promos'] as unknown) || []
+        (planRaw['active_promos'] as unknown) ||
+        (planRaw['membershipPromos'] as unknown) ||
+        (planRaw['membership_promos'] as unknown) ||
+        (planRaw['promos'] as unknown) ||
+        []
       const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr) => {
         const promoObj = pr as Record<string, unknown>
         const pivot = (promoObj['pivot'] as Record<string, unknown> | undefined) ?? undefined
-        const type = (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
-        const value = (promoObj['value'] as unknown) ?? (pivot && pivot['value']) ?? promoObj['amount'] ?? null
+        const type =
+          (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
+        const value =
+          (promoObj['value'] as unknown) ?? (pivot && pivot['value']) ?? promoObj['amount'] ?? null
         let label = ''
         if (type === 'percent') label = `${value}% off`
-        else if (type === 'fixed') label = `Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`
+        else if (type === 'fixed')
+          label = `Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`
         else label = String(value ?? '')
         return { ...(promoObj as object), type, value, label }
       })
@@ -169,7 +212,9 @@ const loadMemberships = async () => {
         console.debug('Unexpected promos shape for plan', p.id, rawPromos)
       }
 
-      const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
+      const promoLabel = promos.length
+        ? ((promos[0] as Record<string, unknown>)['label'] ?? '')
+        : ''
 
       const period = p.duration_in_days
         ? p.duration_in_days % 30 === 0
@@ -179,13 +224,21 @@ const loadMemberships = async () => {
 
       const durationDays = planRaw['duration_in_days'] as number | undefined
       const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
-      const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
+      const overlay =
+        months && staticPresaleByMonths[months]
+          ? staticPresaleByMonths[months]
+          : typeof period === 'string'
+            ? staticPresale[period]
+            : undefined
       return {
         id: planRaw['id'] as number | string | undefined,
         name: String(planRaw['name'] ?? ''),
         price: planRaw['price'] as number | string | undefined,
         period: period,
-        description: String(planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium'),
+        durationInDays: typeof durationDays === 'number' ? durationDays : null, // ← tambah ini
+        description: String(
+          planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium',
+        ),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
@@ -269,8 +322,16 @@ const benefits = [
     description: 'Berolahraga kapan saja sesuai jadwal Anda',
   },
   { icon: 'pi-shield', title: 'Tanpa Kontrak', description: 'Keanggotaan fleksibel per bulan' },
-  { icon: 'pi-users', title: 'Komunitas', description: 'Bergabung dengan komunitas kebugaran yang suportif' },
-  { icon: 'pi-mobile', title: 'Aplikasi Mobile', description: 'Lacak kemajuan dan pesan kelas dengan mudah' },
+  {
+    icon: 'pi-users',
+    title: 'Komunitas',
+    description: 'Bergabung dengan komunitas kebugaran yang suportif',
+  },
+  {
+    icon: 'pi-mobile',
+    title: 'Aplikasi Mobile',
+    description: 'Lacak kemajuan dan pesan kelas dengan mudah',
+  },
 ]
 </script>
 
@@ -304,14 +365,20 @@ const benefits = [
               :loading="gymsLoading"
               class="w-full"
             />
-            <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+            <p class="text-xs text-(--text-muted) mt-2 text-center">
+              Pastikan pilih cabang yang diinginkan sebelum membeli
+            </p>
           </div>
         </div>
 
         <div class="-mx-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Skeleton loading state -->
           <template v-if="membershipLoading">
-            <div v-for="i in 3" :key="i" class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6"
+            >
               <div class="text-center space-y-3">
                 <Skeleton width="60%" height="1.75rem" class="mx-auto" />
                 <Skeleton width="80%" height="0.875rem" class="mx-auto" />
@@ -367,12 +434,7 @@ const benefits = [
             class="btn"
             @click="proceedToPayment('va')"
           />
-          <Button
-            label="QRIS"
-            icon="pi pi-qrcode"
-            class="btn"
-            @click="proceedToPayment('qris')"
-          />
+          <Button label="QRIS" icon="pi pi-qrcode" class="btn" @click="proceedToPayment('qris')" />
           <Button
             label="Batal"
             class="p-button-text text-(--text-secondary)"
@@ -388,6 +450,8 @@ const benefits = [
       @update:visible="(v) => (showSignatureModal = v)"
       :member-name="authState.user?.name"
       :membership-plan="selectedPlan ? selectedPlan.name : 'Premium Membership'"
+      :membership-id="selectedPlan?.id ?? null"
+      :membership-duration-days="selectedPlan?.durationInDays ?? null"
       @confirmed="onSignatureConfirmed"
     />
   </div>

@@ -42,7 +42,8 @@ const values = [
   {
     icon: 'pi-chart-line',
     title: 'Berorientasi Hasil',
-    description: 'Kami mengukur keberhasilan kami dari kemajuan Anda. Tujuan Anda adalah tujuan kami.',
+    description:
+      'Kami mengukur keberhasilan kami dari kemajuan Anda. Tujuan Anda adalah tujuan kami.',
   },
 ]
 

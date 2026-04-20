@@ -30,8 +30,9 @@ const socialLinks = [
             <img src="/logo-gym-wtext.svg" alt="Arletta Gym" class="h-10 w-auto" />
           </RouterLink>
           <p class="text-(--text-secondary) max-w-md mb-6 leading-relaxed">
-            Transformasikan tubuh Anda dan tingkatkan kualitas hidup di Arletta Gym. Kami menyediakan fasilitas kelas dunia,
-            trainer ahli, dan komunitas yang suportif untuk membantu Anda mencapai tujuan kebugaran.
+            Transformasikan tubuh Anda dan tingkatkan kualitas hidup di Arletta Gym. Kami
+            menyediakan fasilitas kelas dunia, trainer ahli, dan komunitas yang suportif untuk
+            membantu Anda mencapai tujuan kebugaran.
           </p>
           <!-- Social Links -->
           <div class="flex gap-3">

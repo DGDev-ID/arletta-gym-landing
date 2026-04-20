@@ -38,7 +38,8 @@ const goToSignUp = () => {
         v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }"
         class="text-lg text-(--text-secondary) max-w-2xl mx-auto mb-10"
       >
-        Jangan tunda sampai besok. Ambil langkah pertama menuju diri yang lebih kuat dan lebih sehat. Bergabunglah dengan komunitas pecinta kebugaran kami sekarang.
+        Jangan tunda sampai besok. Ambil langkah pertama menuju diri yang lebih kuat dan lebih
+        sehat. Bergabunglah dengan komunitas pecinta kebugaran kami sekarang.
       </p>
       <div v-animateonscroll="{ enterClass: 'animate-fadeinup', leaveClass: 'animate-fadeout' }">
         <Button

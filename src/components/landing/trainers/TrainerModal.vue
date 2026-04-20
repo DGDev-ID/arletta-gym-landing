@@ -25,7 +25,7 @@ const handleBookSession = () => {
   const rawPhone = props.trainer?.phone_number ?? ''
   // Normalize phone: strip non-digits, ensure starts with country code
   const digits = rawPhone.replace(/\D/g, '')
-  const whatsappNumber = digits.startsWith('0') ? '62' + digits.slice(1) : (digits || '628123456789')
+  const whatsappNumber = digits.startsWith('0') ? '62' + digits.slice(1) : digits || '628123456789'
   const message = encodeURIComponent(
     `Hi ${props.trainer?.name ?? 'Trainer'}, I would like to book a personal training session with you.`,
   )

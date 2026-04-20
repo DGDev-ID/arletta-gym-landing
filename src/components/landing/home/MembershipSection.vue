@@ -46,11 +46,26 @@ const defaultFeatures = [
 
 // Static pre-sale overlays for certain plans (months-based, with period-string fallback)
 const staticPresaleByMonths: Record<number, { promo?: string; description?: string }> = {
-  24: { promo: 'Free 5 months (pre-sale)', description: 'Twenty-four month payment — equivalent to 200k/month.' },
-  18: { promo: 'Free 4 months (pre-sale)', description: 'Eighteen-month payment — equivalent to 220k/month.' },
-  12: { promo: 'Free 3 months (pre-sale)', description: 'Annual payment — equivalent to 240k/month.' },
-  6: { promo: 'Free 2 months (pre-sale)', description: 'Six-month payment — equivalent to 260k/month.' },
-  3: { promo: 'Free 1 month (pre-sale)', description: 'Three-month payment — equivalent to 280k/month.' },
+  24: {
+    promo: 'Free 5 months (pre-sale)',
+    description: 'Twenty-four month payment — equivalent to 200k/month.',
+  },
+  18: {
+    promo: 'Free 4 months (pre-sale)',
+    description: 'Eighteen-month payment — equivalent to 220k/month.',
+  },
+  12: {
+    promo: 'Free 3 months (pre-sale)',
+    description: 'Annual payment — equivalent to 240k/month.',
+  },
+  6: {
+    promo: 'Free 2 months (pre-sale)',
+    description: 'Six-month payment — equivalent to 260k/month.',
+  },
+  3: {
+    promo: 'Free 1 month (pre-sale)',
+    description: 'Three-month payment — equivalent to 280k/month.',
+  },
   1: { promo: '', description: 'One month membership. Full access to facilities and all classes.' },
 }
 
@@ -73,25 +88,37 @@ const loadMemberships = async () => {
     membershipPlans.value = plans.map((p: unknown) => {
       const planRaw = p as Record<string, unknown>
       const rawPromos =
-        (planRaw['active_promos'] as unknown) || (planRaw['membershipPromos'] as unknown) ||
-        (planRaw['membership_promos'] as unknown) || (planRaw['promos'] as unknown) || []
+        (planRaw['active_promos'] as unknown) ||
+        (planRaw['membershipPromos'] as unknown) ||
+        (planRaw['membership_promos'] as unknown) ||
+        (planRaw['promos'] as unknown) ||
+        []
       const promos = (Array.isArray(rawPromos) ? rawPromos : []).map((pr: unknown) => {
         const promoObj = pr as Record<string, unknown>
         const pivot = (promoObj['pivot'] as Record<string, unknown> | undefined) ?? undefined
-        const type = (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
-        const value = (promoObj['value'] as unknown) ?? (pivot && pivot['value']) ?? promoObj['amount'] ?? null
+        const type =
+          (promoObj['type'] as string | undefined) ?? (pivot && (pivot['type'] as string)) ?? null
+        const value =
+          (promoObj['value'] as unknown) ?? (pivot && pivot['value']) ?? promoObj['amount'] ?? null
         let label = ''
         if (type === 'percent') label = `${value}% off`
-        else if (type === 'fixed') label = `Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`
+        else if (type === 'fixed')
+          label = `Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`
         else label = String(value ?? '')
         return { ...(promoObj as object), type, value, label }
       })
 
       if (!promos.length && rawPromos && Object.keys(rawPromos).length) {
-        console.debug('Unexpected promos shape for plan', (planRaw as Record<string, unknown>)['id'], rawPromos)
+        console.debug(
+          'Unexpected promos shape for plan',
+          (planRaw as Record<string, unknown>)['id'],
+          rawPromos,
+        )
       }
 
-      const promoLabel = promos.length ? (promos[0] as Record<string, unknown>)['label'] ?? '' : ''
+      const promoLabel = promos.length
+        ? ((promos[0] as Record<string, unknown>)['label'] ?? '')
+        : ''
 
       const period = (planRaw['duration_in_days'] as number | undefined)
         ? (planRaw['duration_in_days'] as number) % 30 === 0
@@ -101,14 +128,21 @@ const loadMemberships = async () => {
 
       const durationDays = planRaw['duration_in_days'] as number | undefined
       const months = typeof durationDays === 'number' ? Math.round(durationDays / 30) : null
-      const overlay = months && staticPresaleByMonths[months] ? staticPresaleByMonths[months] : (typeof period === 'string' ? staticPresale[period] : undefined)
+      const overlay =
+        months && staticPresaleByMonths[months]
+          ? staticPresaleByMonths[months]
+          : typeof period === 'string'
+            ? staticPresale[period]
+            : undefined
 
       return {
         id: planRaw['id'] as number | string | undefined,
         name: String(planRaw['name'] ?? ''),
         price: planRaw['price'] as number | string | undefined,
         period: period,
-        description: String(planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium'),
+        description: String(
+          planRaw['description'] ?? overlay?.description ?? 'Paket keanggotaan premium',
+        ),
         promo: String(overlay?.promo ?? promoLabel ?? ''),
         promos: promos as unknown[],
         features: defaultFeatures,
@@ -163,11 +197,21 @@ const goToSignUp = (plan?: ProcessedPlan) => {
 const onSignatureConfirmed = async (signatureData?: string) => {
   try {
     if (!signatureData) throw new Error('Signature missing')
-    const payloadSig: { signature_data: string; membership_plan_id?: number | string } = { signature_data: signatureData }
-    if (selectedPlan.value && selectedPlan.value.id) payloadSig.membership_plan_id = selectedPlan.value.id as number | string
-    const resp = await createSignature(payloadSig as unknown as { signature_data: string; membership_plan_id?: number })
+    const payloadSig: { signature_data: string; membership_plan_id?: number | string } = {
+      signature_data: signatureData,
+    }
+    if (selectedPlan.value && selectedPlan.value.id)
+      payloadSig.membership_plan_id = selectedPlan.value.id as number | string
+    const resp = await createSignature(
+      payloadSig as unknown as { signature_data: string; membership_plan_id?: number },
+    )
     createdSignatureId = resp?.id ?? null
-    toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified successfully.', life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Signature saved',
+      detail: 'Signature verified successfully.',
+      life: 3000,
+    })
     showSignatureModal.value = false
     showPaymentModal.value = true
   } catch (err: unknown) {
@@ -185,7 +229,12 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
       throw new Error('Please select a gym branch first')
     }
 
-    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+    toast.add({
+      severity: 'info',
+      summary: 'Creating payment',
+      detail: 'Processing your payment...',
+      life: 3000,
+    })
 
     const payloadPayment: Record<string, unknown> = {
       gym_id: Number(selectedGymId.value),
@@ -194,7 +243,14 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
       payment_method: method,
     }
     if (createdSignatureId) payloadPayment.signature_data = undefined
-    const resp = await createPayment(payloadPayment as unknown as { membership_plan_id?: number; method?: string; amount?: number; signature_id?: number })
+    const resp = await createPayment(
+      payloadPayment as unknown as {
+        membership_plan_id?: number
+        method?: string
+        amount?: number
+        signature_id?: number
+      },
+    )
     if (resp.payment_url) {
       window.open(resp.payment_url, '_blank')
     } else if ((resp as Record<string, unknown>).snap_token) {
@@ -203,12 +259,22 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
     } else if (resp.token) {
       window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
     } else {
-      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
+      toast.add({
+        severity: 'success',
+        summary: 'Payment created',
+        detail: 'Transaction has been created successfully.',
+        life: 3000,
+      })
     }
     showPaymentModal.value = false
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    toast.add({ severity: 'error', summary: 'Payment creation failed', detail: message, life: 5000 })
+    toast.add({
+      severity: 'error',
+      summary: 'Payment creation failed',
+      detail: message,
+      life: 5000,
+    })
   }
 }
 </script>
@@ -226,7 +292,8 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
           Jadilah <span class="text-gradient">Member</span>
         </h2>
         <p class="text-(--text-secondary) max-w-xl mx-auto">
-          Satu keanggotaan, kemungkinan tak terbatas. Dapatkan akses penuh ke semua yang kami tawarkan.
+          Satu keanggotaan, kemungkinan tak terbatas. Dapatkan akses penuh ke semua yang kami
+          tawarkan.
         </p>
       </div>
 
@@ -242,7 +309,9 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
             :loading="gymsLoading"
             class="w-full"
           />
-          <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+          <p class="text-xs text-(--text-muted) mt-2 text-center">
+            Pastikan pilih cabang yang diinginkan sebelum membeli
+          </p>
         </div>
       </div>
 
@@ -250,7 +319,11 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
       <div class="-mx-10 sm:mx-0 px-4 sm:px-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <!-- Skeleton loading -->
         <template v-if="membershipLoading">
-          <div v-for="i in 3" :key="i" class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6">
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="glass-card p-6 md:p-8 rounded-2xl border-2 border-white/10 flex flex-col gap-6"
+          >
             <div class="text-center space-y-3">
               <Skeleton width="60%" height="1.75rem" class="mx-auto" />
               <Skeleton width="80%" height="0.875rem" class="mx-auto" />
@@ -270,6 +343,7 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
           v-for="plan in membershipPlans"
           :key="plan.name"
           :plan="plan"
+          :show-cta="false"
           @signup="goToSignUp"
         />
       </div>
@@ -294,12 +368,7 @@ const proceedToPayment = async (method: 'va' | 'qris') => {
             class="btn"
             @click="proceedToPayment('va')"
           />
-          <Button
-            label="QRIS"
-            icon="pi pi-qrcode"
-            class="btn"
-            @click="proceedToPayment('qris')"
-          />
+          <Button label="QRIS" icon="pi pi-qrcode" class="btn" @click="proceedToPayment('qris')" />
           <Button
             label="Batal"
             class="p-button-text text-(--text-secondary)"

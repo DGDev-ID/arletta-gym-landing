@@ -22,7 +22,7 @@ export async function fetchMe(): Promise<void> {
   try {
     const data = await apiMe()
     // backend GET /auth/me returns { id, name, email, roles: [{name: '...'}], userDetail, gyms }
-    const obj = (data && typeof data === 'object') ? (data as Record<string, unknown>) : null
+    const obj = data && typeof data === 'object' ? (data as Record<string, unknown>) : null
     if (!obj) {
       setUser(null)
       return
@@ -35,7 +35,8 @@ export async function fetchMe(): Promise<void> {
     const rolesArr = obj['roles']
     if (Array.isArray(rolesArr) && rolesArr.length > 0) {
       for (const r of rolesArr) {
-        const name = typeof r === 'string' ? r : String((r as Record<string, unknown>)['name'] ?? '')
+        const name =
+          typeof r === 'string' ? r : String((r as Record<string, unknown>)['name'] ?? '')
         if (name.toLowerCase().includes('personal trainer') || name.toLowerCase() === 'pt') {
           isPt = true
           break

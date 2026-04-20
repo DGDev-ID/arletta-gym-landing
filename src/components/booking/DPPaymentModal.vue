@@ -18,7 +18,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'confirm', data: { pkg: PackageInfo; paymentType: 'full' | 'dp'; dpAmount: number; dpPercent: number; paymentMethod: 'va' | 'qris' }): void
+  (
+    e: 'confirm',
+    data: {
+      pkg: PackageInfo
+      paymentType: 'full' | 'dp'
+      dpAmount: number
+      dpPercent: number
+      paymentMethod: 'va' | 'qris'
+    },
+  ): void
 }>()
 
 const dialogVisible = computed({
@@ -133,12 +142,8 @@ const handleClose = () => {
           </template>
         </h2>
         <p class="text-xs text-white/40 m-0">
-          <template v-if="step === 1">
-            Pilih bayar penuh atau Down Payment (DP)
-          </template>
-          <template v-else>
-            Pilih cara pembayaran yang sesuai dengan kenyamanan Anda
-          </template>
+          <template v-if="step === 1"> Pilih bayar penuh atau Down Payment (DP) </template>
+          <template v-else> Pilih cara pembayaran yang sesuai dengan kenyamanan Anda </template>
         </p>
       </div>
 
@@ -272,7 +277,9 @@ const handleClose = () => {
               </div>
               <div>
                 <div class="font-medium text-white text-sm">Virtual Account (Bank Transfer)</div>
-                <div class="text-xs text-(--text-muted)">Transfer via BCA, BNI, BRI, Mandiri, dll</div>
+                <div class="text-xs text-(--text-muted)">
+                  Transfer via BCA, BNI, BRI, Mandiri, dll
+                </div>
               </div>
             </div>
           </label>
@@ -292,7 +299,9 @@ const handleClose = () => {
               </div>
               <div>
                 <div class="font-medium text-white text-sm">QRIS</div>
-                <div class="text-xs text-(--text-muted)">Scan QR via GoPay, OVO, DANA, ShopeePay, dll</div>
+                <div class="text-xs text-(--text-muted)">
+                  Scan QR via GoPay, OVO, DANA, ShopeePay, dll
+                </div>
               </div>
             </div>
           </label>
@@ -320,13 +329,7 @@ const handleClose = () => {
           icon="pi pi-arrow-left"
           @click="goBackToTypeStep"
         />
-        <Button
-          v-else
-          label="Batal"
-          severity="secondary"
-          outlined
-          @click="handleClose"
-        />
+        <Button v-else label="Batal" severity="secondary" outlined @click="handleClose" />
         <Button
           v-if="step === 1"
           label="Lanjut Pilih Metode"

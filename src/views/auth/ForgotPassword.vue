@@ -204,7 +204,8 @@ const handleChangePassword = async () => {
           <div class="mb-8">
             <h1 class="text-3xl font-bold text-white mb-2">Lupa Kata Sandi?</h1>
             <p class="text-(--text-secondary)">
-              Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mereset kata sandi.
+              Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mereset kata
+              sandi.
             </p>
           </div>
 
@@ -333,9 +334,7 @@ const handleChangePassword = async () => {
               <i class="pi pi-lock text-3xl text-(--primary)"></i>
             </div>
             <h1 class="text-3xl font-bold text-white mb-2">Buat Kata Sandi Baru</h1>
-            <p class="text-(--text-secondary)">
-              Masukkan kata sandi baru untuk akun Anda.
-            </p>
+            <p class="text-(--text-secondary)">Masukkan kata sandi baru untuk akun Anda.</p>
           </div>
 
           <form @submit.prevent="handleChangePassword" class="space-y-6 animate-fadeinup">
@@ -358,9 +357,7 @@ const handleChangePassword = async () => {
 
             <!-- Token (disabled) -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-(--text-secondary)">
-                Kode Token
-              </label>
+              <label class="block text-sm font-medium text-(--text-secondary)"> Kode Token </label>
               <div class="relative">
                 <i
                   class="pi pi-key absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) z-10 pointer-events-none"

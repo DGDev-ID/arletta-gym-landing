@@ -52,15 +52,22 @@ onMounted(async () => {
     trainers.value = list.map((t) => ({
       id: Number((t && (t.id ?? 0)) ?? 0),
       name: String((t && t.name) ?? 'Unknown'),
-      image: Array.isArray(t?.images) && t.images.length ? String(t.images[0]) : String((t && (t.avatar ?? t.image)) ?? '/placeholder-trainer.jpg'),
-      images: Array.isArray(t?.images) ? (t.images as string[]) : (t?.image ? [String(t.image)] : []),
+      image:
+        Array.isArray(t?.images) && t.images.length
+          ? String(t.images[0])
+          : String((t && (t.avatar ?? t.image)) ?? '/placeholder-trainer.jpg'),
+      images: Array.isArray(t?.images) ? (t.images as string[]) : t?.image ? [String(t.image)] : [],
       role: String((t && (t.role ?? t.position ?? t.description)) ?? ''),
       rating: Number((t && (t.rating ?? 4.8)) ?? 4.8),
       clients: Number((t && (t.clients ?? t.clients_count ?? 0)) ?? 0),
-      specializations: Array.isArray(t?.specializations) ? t.specializations as string[] : (Array.isArray(t?.expertise) ? t.expertise as string[] : []),
+      specializations: Array.isArray(t?.specializations)
+        ? (t.specializations as string[])
+        : Array.isArray(t?.expertise)
+          ? (t.expertise as string[])
+          : [],
       bio: String((t && (t.bio ?? t.description)) ?? ''),
       experience: String((t && (t.experience ?? t.years ?? '')) ?? ''),
-      certifications: Array.isArray(t?.certifications) ? t.certifications as string[] : [],
+      certifications: Array.isArray(t?.certifications) ? (t.certifications as string[]) : [],
       instagram: String((t && (t.instagram ?? '')) ?? ''),
       phone_number: String((t && (t.phone_number ?? '')) ?? ''),
       gender: String((t && (t.gender ?? '')) ?? ''),
@@ -104,7 +111,7 @@ const loadPtPackages = async () => {
     const raw = await getPtPackages(params)
     const list = Array.isArray(raw) ? raw : []
     ptPackages.value = list.map((p) => {
-      const pr = (p as unknown) as Record<string, unknown>
+      const pr = p as unknown as Record<string, unknown>
       const sessions = Number(pr['duration_in_sessions'] ?? pr['sessions'] ?? 0)
       const price = Number(pr['price'] ?? 0)
       const perSession = sessions > 0 ? Math.round(price / sessions) : 0
@@ -114,7 +121,11 @@ const loadPtPackages = async () => {
       const promos = Array.isArray(rawPromos)
         ? rawPromos.map((x) => {
             const po = (x as Record<string, unknown>) ?? {}
-            return { type: po['type'] as string | undefined, value: po['value'] as number | undefined, unique_code: po['unique_code'] as string | undefined }
+            return {
+              type: po['type'] as string | undefined,
+              value: po['value'] as number | undefined,
+              unique_code: po['unique_code'] as string | undefined,
+            }
           })
         : []
 
@@ -126,7 +137,10 @@ const loadPtPackages = async () => {
         perSession,
         shareable: maxPerson > 1,
         features: Array.isArray(pr['features']) ? (pr['features'] as string[]) : [],
-        promo: promos.length > 0 && promos[0] ? `${promos[0].type ?? 'Promo'} ${promos[0].value ?? ''}`.trim() : undefined,
+        promo:
+          promos.length > 0 && promos[0]
+            ? `${promos[0].type ?? 'Promo'} ${promos[0].value ?? ''}`.trim()
+            : undefined,
         maxPerson: maxPerson > 1 ? maxPerson : undefined,
         promos,
       }
@@ -218,7 +232,12 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
     return
   }
   if (!selectedGymId.value) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Please select a gym branch first', life: 4000 })
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Please select a gym branch first',
+      life: 4000,
+    })
     return
   }
 
@@ -227,7 +246,12 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
 
   paymentLoading.value = true
   try {
-    toast.add({ severity: 'info', summary: 'Creating payment', detail: 'Processing your payment...', life: 3000 })
+    toast.add({
+      severity: 'info',
+      summary: 'Creating payment',
+      detail: 'Processing your payment...',
+      life: 3000,
+    })
 
     const payload: Record<string, unknown> = {
       gym_id: Number(selectedGymId.value),
@@ -242,7 +266,11 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
     }
 
     // Include promo code if package has one
-    if (selectedPackage.value.promos && selectedPackage.value.promos.length > 0 && selectedPackage.value.promos[0]?.unique_code) {
+    if (
+      selectedPackage.value.promos &&
+      selectedPackage.value.promos.length > 0 &&
+      selectedPackage.value.promos[0]?.unique_code
+    ) {
       payload.promo_code = selectedPackage.value.promos[0].unique_code
     }
 
@@ -257,7 +285,12 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
     } else if (resp.token) {
       window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${resp.token}`, '_blank')
     } else {
-      toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created successfully.', life: 3000 })
+      toast.add({
+        severity: 'success',
+        summary: 'Payment created',
+        detail: 'Transaction has been created successfully.',
+        life: 3000,
+      })
     }
 
     showDPModal.value = false
@@ -319,14 +352,21 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
               :loading="gymsLoading"
               class="w-full"
             />
-            <p class="text-xs text-(--text-muted) mt-2 text-center">Pastikan pilih cabang yang diinginkan sebelum membeli</p>
+            <p class="text-xs text-(--text-muted) mt-2 text-center">
+              Pastikan pilih cabang yang diinginkan sebelum membeli
+            </p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pb-12">
           <!-- Skeleton packages -->
           <template v-if="ptPackagesLoading">
-            <div v-for="i in 3" :key="i" class="rounded-2xl p-6 flex flex-col gap-5" style="background: linear-gradient(145deg, #1a1a1a 0%, #111 100%)">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="rounded-2xl p-6 flex flex-col gap-5"
+              style="background: linear-gradient(145deg, #1a1a1a 0%, #111 100%)"
+            >
               <div class="text-center space-y-2">
                 <Skeleton width="5rem" height="0.75rem" class="mx-auto" />
                 <Skeleton width="70%" height="1.5rem" class="mx-auto" />
@@ -399,7 +439,7 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
     <!-- DP Payment Modal -->
     <DPPaymentModal
       :visible="showDPModal"
-      @update:visible="val => (showDPModal = val)"
+      @update:visible="(val) => (showDPModal = val)"
       :pkg="selectedPackage"
       @confirm="confirmDPPayment"
     />

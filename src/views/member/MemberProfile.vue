@@ -83,12 +83,18 @@ const saveProfile = async () => {
     }
     const updated = await authService.updateUserMe(payload)
     // update local member with returned data (best-effort)
-  const mRec = ((updated && (updated.user as Record<string, unknown>)) || (updated as Record<string, unknown>)) as Record<string, unknown>
-  member.value.name = String(mRec.name ?? editMember.value.name)
-  member.value.email = String(mRec.email ?? editMember.value.email)
-  member.value.phone = String(mRec.phone_number ?? mRec.phone ?? editMember.value.phone)
-  member.value.avatar = String(mRec.avatar ?? editMember.value.avatar)
-    useToast().add({ severity: 'success', summary: 'Saved', detail: 'Profile updated.', life: 3000 })
+    const mRec = ((updated && (updated.user as Record<string, unknown>)) ||
+      (updated as Record<string, unknown>)) as Record<string, unknown>
+    member.value.name = String(mRec.name ?? editMember.value.name)
+    member.value.email = String(mRec.email ?? editMember.value.email)
+    member.value.phone = String(mRec.phone_number ?? mRec.phone ?? editMember.value.phone)
+    member.value.avatar = String(mRec.avatar ?? editMember.value.avatar)
+    useToast().add({
+      severity: 'success',
+      summary: 'Saved',
+      detail: 'Profile updated.',
+      life: 3000,
+    })
     showEdit.value = false
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -107,14 +113,28 @@ const onAvatarChange = async (e: Event) => {
   uploadingAvatar.value = true
   try {
     const res = await uploadFile(file)
-  const r = res as Record<string, unknown>
-  const maybeUrl = r['url'] ?? r['path'] ?? r['file_url'] ?? ((r['file'] as Record<string, unknown> | undefined)?.['url'])
-  const url = String(maybeUrl ?? '')
+    const r = res as Record<string, unknown>
+    const maybeUrl =
+      r['url'] ??
+      r['path'] ??
+      r['file_url'] ??
+      (r['file'] as Record<string, unknown> | undefined)?.['url']
+    const url = String(maybeUrl ?? '')
     if (url) {
       editMember.value.avatar = url
-      toast.add({ severity: 'success', summary: 'Uploaded', detail: 'Avatar uploaded.', life: 2500 })
+      toast.add({
+        severity: 'success',
+        summary: 'Uploaded',
+        detail: 'Avatar uploaded.',
+        life: 2500,
+      })
     } else {
-      toast.add({ severity: 'warn', summary: 'Upload', detail: 'Upload succeeded but no URL returned.', life: 4000 })
+      toast.add({
+        severity: 'warn',
+        summary: 'Upload',
+        detail: 'Upload succeeded but no URL returned.',
+        life: 4000,
+      })
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -141,24 +161,26 @@ const upcomingClasses = ref<Session[]>([])
 
 onMounted(async () => {
   try {
-  const data = (await authService.memberMe()) as MemberMeResponse
+    const data = (await authService.memberMe()) as MemberMeResponse
     // Expected shape: { member: { ... }, membership: {...}, upcomingClasses: [...] }
-  const m = data?.member ?? null
-  const membership = data?.membership ?? null
-  const upcoming = data?.upcomingClasses ?? []
+    const m = data?.member ?? null
+    const membership = data?.membership ?? null
+    const upcoming = data?.upcomingClasses ?? []
 
     if (m) {
       member.value.name = m.name ?? ''
       member.value.email = m.email ?? ''
       member.value.phone = m.phone ?? ''
       member.value.memberSince = m.memberSince ?? ''
-  member.value.avatar = (m.avatar ?? member.value.avatar) || ''
+      member.value.avatar = (m.avatar ?? member.value.avatar) || ''
       member.value.memberId = m.memberId ?? ''
     }
 
     if (membership) {
       const endDate = membership.membership_end_at ? new Date(membership.membership_end_at) : null
-      const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0
+      const daysRemaining = endDate
+        ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+        : 0
 
       membershipStatus.value = {
         status: membership.is_active ? 'Active' : 'Inactive',
@@ -184,7 +206,12 @@ onMounted(async () => {
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
-    useToast().add({ severity: 'error', summary: 'Failed to load profile', detail: msg, life: 4000 })
+    useToast().add({
+      severity: 'error',
+      summary: 'Failed to load profile',
+      detail: msg,
+      life: 4000,
+    })
   } finally {
     profileLoading.value = false
   }
@@ -245,8 +272,16 @@ const onRenewSignatureConfirmed = async (signatureData?: string) => {
 
   // Save signature first
   try {
-    await createSignature({ signature_data: signatureData, membership_plan_id: Number(selectedRenewPlan.value.id) } as unknown as { signature_data: string; membership_plan_id?: number })
-    toast.add({ severity: 'success', summary: 'Signature saved', detail: 'Signature verified.', life: 3000 })
+    await createSignature({
+      signature_data: signatureData,
+      membership_plan_id: Number(selectedRenewPlan.value.id),
+    } as unknown as { signature_data: string; membership_plan_id?: number })
+    toast.add({
+      severity: 'success',
+      summary: 'Signature saved',
+      detail: 'Signature verified.',
+      life: 3000,
+    })
     showRenewPayment.value = true
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -274,7 +309,12 @@ const processRenewPayment = async (method: 'va' | 'qris') => {
       const snapToken = (resp as Record<string, unknown>).snap_token as string
       window.open(`https://app.sandbox.midtrans.com/snap/v2/vtweb/${snapToken}`, '_blank')
     }
-    toast.add({ severity: 'success', summary: 'Payment created', detail: 'Transaction has been created.', life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Payment created',
+      detail: 'Transaction has been created.',
+      life: 3000,
+    })
     showRenewPayment.value = false
     selectedRenewPlan.value = null
   } catch (e: unknown) {
@@ -286,7 +326,11 @@ const processRenewPayment = async (method: 'va' | 'qris') => {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
+  new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(price)
 
 const formatDuration = (days?: number) => {
   if (!days) return ''
@@ -313,7 +357,14 @@ const formatDuration = (days?: number) => {
           <!-- Skeleton loading state -->
           <template v-if="profileLoading">
             <!-- Profile skeleton -->
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="flex flex-col items-center gap-4">
                   <Skeleton shape="circle" size="6rem" />
@@ -334,7 +385,14 @@ const formatDuration = (days?: number) => {
               </template>
             </Card>
             <!-- Membership skeleton -->
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
@@ -356,14 +414,25 @@ const formatDuration = (days?: number) => {
               </template>
             </Card>
             <!-- Schedule skeleton -->
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
                     <Skeleton width="40%" height="1.25rem" />
                     <Skeleton shape="circle" size="2rem" />
                   </div>
-                  <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                  <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                  >
                     <Skeleton width="2.5rem" height="2.5rem" borderRadius="8px" />
                     <div class="flex-1 space-y-1">
                       <Skeleton width="60%" height="0.875rem" />
@@ -377,14 +446,18 @@ const formatDuration = (days?: number) => {
 
           <!-- Actual cards -->
           <template v-else>
-          <!-- Profile Card -->
-          <ProfileCard :member="member" @edit="openEdit" />
+            <!-- Profile Card -->
+            <ProfileCard :member="member" @edit="openEdit" />
 
-          <!-- Membership Status -->
-          <MembershipCard :member="member" :membership-status="membershipStatus" @renew="openRenew" />
+            <!-- Membership Status -->
+            <MembershipCard
+              :member="member"
+              :membership-status="membershipStatus"
+              @renew="openRenew"
+            />
 
-          <!-- Upcoming Classes -->
-          <ScheduleCard :upcoming-classes="upcomingClasses" />
+            <!-- Upcoming Classes -->
+            <ScheduleCard :upcoming-classes="upcomingClasses" />
           </template>
         </div>
 
@@ -398,7 +471,6 @@ const formatDuration = (days?: number) => {
 
     <!-- Edit Profile Modal -->
     <Teleport to="body">
-
       <!-- ── Renew: Step 1 — Plan Picker ───────────────────────────── -->
       <Dialog
         :visible="showRenewDialog"
@@ -410,7 +482,9 @@ const formatDuration = (days?: number) => {
         :pt="{
           root: { class: 'rounded-2xl overflow-hidden border border-white/[0.08] bg-[#111114]' },
           mask: { class: 'backdrop-blur-md !bg-black/70' },
-          header: { class: '!px-6 !pt-5 !pb-3 border-b border-white/[0.07] bg-black/30 !rounded-none' },
+          header: {
+            class: '!px-6 !pt-5 !pb-3 border-b border-white/[0.07] bg-black/30 !rounded-none',
+          },
           content: { class: '!p-0 bg-transparent' },
         }"
       >
@@ -462,18 +536,26 @@ const formatDuration = (days?: number) => {
         :pt="{
           root: { class: 'rounded-2xl overflow-hidden border border-white/[0.08] bg-[#111114]' },
           mask: { class: 'backdrop-blur-md !bg-black/70' },
-          header: { class: '!px-6 !pt-5 !pb-3 border-b border-white/[0.07] bg-black/30 !rounded-none' },
+          header: {
+            class: '!px-6 !pt-5 !pb-3 border-b border-white/[0.07] bg-black/30 !rounded-none',
+          },
           content: { class: '!p-5 bg-transparent' },
         }"
       >
         <div v-if="selectedRenewPlan" class="space-y-4">
           <!-- Plan summary -->
-          <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div
+            class="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between"
+          >
             <div>
               <p class="text-white font-semibold text-sm">{{ selectedRenewPlan.name }}</p>
-              <p class="text-xs text-(--text-muted) mt-0.5">{{ formatDuration(selectedRenewPlan.duration_in_days) }}</p>
+              <p class="text-xs text-(--text-muted) mt-0.5">
+                {{ formatDuration(selectedRenewPlan.duration_in_days) }}
+              </p>
             </div>
-            <span class="text-(--primary) font-bold text-lg">{{ formatPrice(selectedRenewPlan.price) }}</span>
+            <span class="text-(--primary) font-bold text-lg">{{
+              formatPrice(selectedRenewPlan.price)
+            }}</span>
           </div>
 
           <!-- Payment buttons -->
@@ -504,15 +586,14 @@ const formatDuration = (days?: number) => {
       </Dialog>
 
       <Transition name="modal">
-        <div
-          v-if="showEdit"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
+        <div v-if="showEdit" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <!-- Backdrop -->
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showEdit = false" />
 
           <!-- Modal Panel -->
-          <div class="relative z-10 w-full max-w-lg bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          <div
+            class="relative z-10 w-full max-w-lg bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          >
             <!-- Modal Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <h2 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -532,7 +613,10 @@ const formatDuration = (days?: number) => {
               <!-- Avatar preview + upload -->
               <div class="flex items-center gap-4">
                 <img
-                  :src="editMember.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(editMember.name || 'member')}`"
+                  :src="
+                    editMember.avatar ||
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(editMember.name || 'member')}`
+                  "
                   alt="Avatar preview"
                   class="w-16 h-16 rounded-full border-2 border-(--primary) object-cover shrink-0"
                 />
@@ -541,13 +625,13 @@ const formatDuration = (days?: number) => {
                   <input
                     type="file"
                     accept="image/*"
-                    class="block w-full text-sm text-white/60
-                      file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
-                      file:text-sm file:font-medium file:bg-(--primary)/20 file:text-(--primary)
-                      hover:file:bg-(--primary)/30 cursor-pointer"
+                    class="block w-full text-sm text-white/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-(--primary)/20 file:text-(--primary) hover:file:bg-(--primary)/30 cursor-pointer"
                     @change="onAvatarChange"
                   />
-                  <div v-if="uploadingAvatar" class="text-xs text-(--text-muted) mt-1 flex items-center gap-1">
+                  <div
+                    v-if="uploadingAvatar"
+                    class="text-xs text-(--text-muted) mt-1 flex items-center gap-1"
+                  >
                     <i class="pi pi-spin pi-spinner text-xs" /> Uploading…
                   </div>
                 </div>
@@ -556,15 +640,25 @@ const formatDuration = (days?: number) => {
               <!-- Fields -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Full Name</label>
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Full Name</label
+                  >
                   <input v-model="editMember.name" class="input w-full" placeholder="Full name" />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Phone</label>
-                  <input v-model="editMember.phone" class="input w-full" placeholder="Phone number" />
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Phone</label
+                  >
+                  <input
+                    v-model="editMember.phone"
+                    class="input w-full"
+                    placeholder="Phone number"
+                  />
                 </div>
                 <div class="sm:col-span-2 space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Email</label>
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Email</label
+                  >
                   <input
                     v-model="editMember.email"
                     class="input w-full opacity-60 cursor-not-allowed"
@@ -577,7 +671,9 @@ const formatDuration = (days?: number) => {
             </div>
 
             <!-- Modal Footer -->
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-white/2">
+            <div
+              class="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-white/2"
+            >
               <button class="btn btn-ghost" :disabled="savingProfile" @click="showEdit = false">
                 Cancel
               </button>
@@ -600,7 +696,9 @@ const formatDuration = (days?: number) => {
 }
 .modal-enter-active .relative,
 .modal-leave-active .relative {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .modal-enter-from,
 .modal-leave-to {
@@ -615,4 +713,3 @@ const formatDuration = (days?: number) => {
   opacity: 0;
 }
 </style>
-

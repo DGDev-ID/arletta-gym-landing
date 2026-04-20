@@ -39,4 +39,11 @@ export async function rescheduleBooking(bookingId, payload) {
   return data.data
 }
 
-export default { getBookings, createBooking, joinWaitlist, getWaitlist, cancelBooking, rescheduleBooking }
+export default {
+  getBookings,
+  createBooking,
+  joinWaitlist,
+  getWaitlist,
+  cancelBooking,
+  rescheduleBooking,
+}

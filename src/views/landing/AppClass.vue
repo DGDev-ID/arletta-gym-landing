@@ -52,14 +52,28 @@ onMounted(async () => {
           id: Number((c && (c.id ?? 0)) ?? 0),
           name: String((c && (c.name ?? '')) ?? ''),
           description: String((c && (c.description ?? '')) ?? ''),
-          duration: c?.duration ? String(c.duration) : (c?.duration_minutes ? `${c.duration_minutes} min` : undefined),
+          duration: c?.duration
+            ? String(c.duration)
+            : c?.duration_minutes
+              ? `${c.duration_minutes} min`
+              : undefined,
           level: c?.level ? String(c.level) : undefined,
           trainer: c?.trainer ? String(c.trainer) : undefined,
           image: String((c && (c.image ?? c.image_url ?? c.avatar)) ?? '/placeholder-class.jpg'),
           category: String((c && (c.category ?? 'General')) ?? 'General'),
           benefits: Array.isArray(c?.benefits) ? c.benefits : [],
-          spotsLeft: c?.spotsLeft != null ? Number(c.spotsLeft) : (c?.spots_left != null ? Number(c.spots_left) : undefined),
-          totalSpots: c?.totalSpots != null ? Number(c.totalSpots) : (c?.total_spots != null ? Number(c.total_spots) : undefined),
+          spotsLeft:
+            c?.spotsLeft != null
+              ? Number(c.spotsLeft)
+              : c?.spots_left != null
+                ? Number(c.spots_left)
+                : undefined,
+          totalSpots:
+            c?.totalSpots != null
+              ? Number(c.totalSpots)
+              : c?.total_spots != null
+                ? Number(c.total_spots)
+                : undefined,
           location: c?.location ? String(c.location) : undefined,
         }))
       : []
@@ -71,7 +85,15 @@ onMounted(async () => {
     // Expect schedulesData to be an array; group by day-of-week derived from date
     if (schedulesData && typeof schedulesData === 'object') {
       if (Array.isArray(schedulesData)) {
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        const dayNames = [
+          'sunday',
+          'monday',
+          'tuesday',
+          'wednesday',
+          'thursday',
+          'friday',
+          'saturday',
+        ]
         const grouped: Record<string, ScheduleItem[]> = {}
         for (const item of schedulesData as Array<Record<string, unknown>>) {
           // BE returns { date, start_time, class: { name }, trainer: { name } }
@@ -97,7 +119,9 @@ onMounted(async () => {
             time: endTime ? `${startTime} - ${endTime}` : startTime,
             class: String(cls['name'] ?? item['class_name'] ?? item['name'] ?? ''),
             trainer: String(trainer['name'] ?? item['trainer_name'] ?? item['trainer'] ?? ''),
-            spotsLeft: Number(item['available_slots'] ?? item['spots_left'] ?? item['spotsLeft'] ?? 0),
+            spotsLeft: Number(
+              item['available_slots'] ?? item['spots_left'] ?? item['spotsLeft'] ?? 0,
+            ),
             totalSpots: Number(item['capacity'] ?? item['total_spots'] ?? item['totalSpots'] ?? 20),
           })
         }
@@ -118,7 +142,7 @@ onMounted(async () => {
     const list = Array.isArray(rawCats) ? rawCats : []
     if (list.length > 0) {
       const names = list.map((c) => {
-        const obj = (c as unknown) as Record<string, unknown>
+        const obj = c as unknown as Record<string, unknown>
         return String(obj['name'] ?? obj['label'] ?? c)
       })
       // Ensure 'All' is always first

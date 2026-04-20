@@ -12,4 +12,10 @@ export async function getMembership(id: string | number) {
   return data.data
 }
 
-export default { getMemberships, getMembership }
+export async function checkPossibleSchedule(membershipId: number | string) {
+  const { data } = await api.get(`/check-possible-schedule/${membershipId}`)
+  if (!data.success) throw new Error(data.message ?? 'Failed to check schedule')
+  return data.data as { status: boolean; membership_end_at?: string }
+}
+
+export default { getMemberships, getMembership, checkPossibleSchedule }

@@ -54,14 +54,15 @@ const saveProfile = async () => {
       phone_number: editTrainer.value.phone,
     }
     const updated = await authService.updateUserMe(payload)
-    const tRec = ((updated && (updated.user as Record<string, unknown>)) || (updated as Record<string, unknown>)) as Record<string, unknown>
+    const tRec = ((updated && (updated.user as Record<string, unknown>)) ||
+      (updated as Record<string, unknown>)) as Record<string, unknown>
     // Merge API response back into trainer, keeping avatar from editTrainer if not returned
     trainer.value = {
       ...trainer.value,
-      name:   String(tRec.name         ?? editTrainer.value.name   ?? ''),
-      email:  String(tRec.email        ?? editTrainer.value.email  ?? ''),
-      phone:  String(tRec.phone_number ?? tRec.phone ?? editTrainer.value.phone ?? ''),
-      avatar: String(tRec.photo         ?? tRec.photo_url    ?? tRec.avatar ?? editTrainer.value.avatar ?? ''),
+      name: String(tRec.name ?? editTrainer.value.name ?? ''),
+      email: String(tRec.email ?? editTrainer.value.email ?? ''),
+      phone: String(tRec.phone_number ?? tRec.phone ?? editTrainer.value.phone ?? ''),
+      avatar: String(tRec.photo ?? tRec.photo_url ?? tRec.avatar ?? editTrainer.value.avatar ?? ''),
     }
     toast.add({ severity: 'success', summary: 'Saved', detail: 'Profile updated.', life: 3000 })
     showEdit.value = false
@@ -81,13 +82,27 @@ const onAvatarChange = async (e: Event) => {
   try {
     const res = await uploadFile(file)
     const r = res as Record<string, unknown>
-    const maybeUrl = r['url'] ?? r['path'] ?? r['file_url'] ?? ((r['file'] as Record<string, unknown> | undefined)?.['url'])
+    const maybeUrl =
+      r['url'] ??
+      r['path'] ??
+      r['file_url'] ??
+      (r['file'] as Record<string, unknown> | undefined)?.['url']
     const url = String(maybeUrl ?? '')
     if (url) {
       editTrainer.value.avatar = url
-      toast.add({ severity: 'success', summary: 'Uploaded', detail: 'Avatar uploaded.', life: 2500 })
+      toast.add({
+        severity: 'success',
+        summary: 'Uploaded',
+        detail: 'Avatar uploaded.',
+        life: 2500,
+      })
     } else {
-      toast.add({ severity: 'warn', summary: 'Upload', detail: 'Upload succeeded but no URL returned.', life: 4000 })
+      toast.add({
+        severity: 'warn',
+        summary: 'Upload',
+        detail: 'Upload succeeded but no URL returned.',
+        life: 4000,
+      })
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -108,41 +123,54 @@ onMounted(async () => {
 
     // Normalise the trainer object — BE sends phone_number, photo_url, etc.
     trainer.value = {
-      name:               String(raw['name']               ?? ''),
-      email:              String(raw['email']              ?? ''),
-      phone:              String(raw['phone']              ?? raw['phone_number'] ?? ''),
-      specialty:          String(raw['specialty']          ?? ''),
-      avatar:             String(raw['avatar']             ?? raw['photo']       ?? raw['photo_url']   ?? ''),
-      rating:             Number(raw['rating']             ?? 0),
-      totalClients:       Number(raw['totalClients']       ?? raw['total_clients']      ?? 0),
-      completedSessions:  Number(raw['completedSessions']  ?? raw['completed_sessions'] ?? 0),
-      joinedAt:           String(raw['joinedAt']           ?? raw['joined_at']   ?? ''),
-      memberId:           String(raw['memberId']           ?? raw['member_id']   ?? ''),
+      name: String(raw['name'] ?? ''),
+      email: String(raw['email'] ?? ''),
+      phone: String(raw['phone'] ?? raw['phone_number'] ?? ''),
+      specialty: String(raw['specialty'] ?? ''),
+      avatar: String(raw['avatar'] ?? raw['photo'] ?? raw['photo_url'] ?? ''),
+      rating: Number(raw['rating'] ?? 0),
+      totalClients: Number(raw['totalClients'] ?? raw['total_clients'] ?? 0),
+      completedSessions: Number(raw['completedSessions'] ?? raw['completed_sessions'] ?? 0),
+      joinedAt: String(raw['joinedAt'] ?? raw['joined_at'] ?? ''),
+      memberId: String(raw['memberId'] ?? raw['member_id'] ?? ''),
     }
 
     const todayRaw = t['todaySchedule'] ?? t['today_schedule'] ?? t['today'] ?? []
     if (Array.isArray(todayRaw)) {
-      todaySchedule.value = (todayRaw as Array<Record<string, unknown>>).map((s: Record<string, unknown>) => ({
-        id: Number(s.id ?? s.schedule_id ?? 0),
-        clientName: String(s.client_name ?? s.client ?? s.clientName ?? ''),
-        time: String(s.time ?? (s.start_time ? `${s.start_time}${s.end_time ? ' - ' + s.end_time : ''}` : '')),
-        name: String(s.name ?? s.class_name ?? s.title ?? ''),
-        status: String(s.status ?? s.state ?? 'scheduled'),
-        type: String(s.type ?? s.session_type ?? 'pt-session'),
-        date: String(s.date ?? s.start_date ?? s.session_date ?? ''),
-        location: String(s.location ?? s.room ?? s.venue ?? ''),
-        clientAvatar: String(s.client_avatar ?? s.avatar ?? s.photo ?? ''),
-      } as SessionItem))
+      todaySchedule.value = (todayRaw as Array<Record<string, unknown>>).map(
+        (s: Record<string, unknown>) =>
+          ({
+            id: Number(s.id ?? s.schedule_id ?? 0),
+            clientName: String(s.client_name ?? s.client ?? s.clientName ?? ''),
+            time: String(
+              s.time ??
+                (s.start_time ? `${s.start_time}${s.end_time ? ' - ' + s.end_time : ''}` : ''),
+            ),
+            name: String(s.name ?? s.class_name ?? s.title ?? ''),
+            status: String(s.status ?? s.state ?? 'scheduled'),
+            type: String(s.type ?? s.session_type ?? 'pt-session'),
+            date: String(s.date ?? s.start_date ?? s.session_date ?? ''),
+            location: String(s.location ?? s.room ?? s.venue ?? ''),
+            clientAvatar: String(s.client_avatar ?? s.avatar ?? s.photo ?? ''),
+          }) as SessionItem,
+      )
     }
 
     const clientsRaw = t['recentClients'] ?? t['recent_clients'] ?? t['clients'] ?? []
     if (Array.isArray(clientsRaw)) {
-      recentClients.value = (clientsRaw as Array<Record<string, unknown>>).map((c: Record<string, unknown>) => ({
-        name: String(c.name ?? c.full_name ?? c.client_name ?? ''),
-        sessions: Number(c.sessions ?? c.total_sessions ?? c.sessions_count ?? 0),
-        progress: Number(c.progress ?? c.completion ?? 0),
-        avatar: String(c.avatar ?? c.photo ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'client'))}`),
-      } as RecentClientItem))
+      recentClients.value = (clientsRaw as Array<Record<string, unknown>>).map(
+        (c: Record<string, unknown>) =>
+          ({
+            name: String(c.name ?? c.full_name ?? c.client_name ?? ''),
+            sessions: Number(c.sessions ?? c.total_sessions ?? c.sessions_count ?? 0),
+            progress: Number(c.progress ?? c.completion ?? 0),
+            avatar: String(
+              c.avatar ??
+                c.photo ??
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(c.name ?? 'client'))}`,
+            ),
+          }) as RecentClientItem,
+      )
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -157,13 +185,16 @@ const trainerCardData = computed(() => {
   const get = (key: string) => (t ? (t[key] ?? '') : '') as unknown
 
   return {
-    name:              String(get('name')),
-    email:             String(get('email')),
-    phone:             String(get('phone')),
-    specialty:         String(get('specialty')),
-    avatar:            String(get('avatar') || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(get('name') || 'pt'))}`),
-    rating:            Number(get('rating')  || 0),
-    totalClients:      Number(get('totalClients')      || 0),
+    name: String(get('name')),
+    email: String(get('email')),
+    phone: String(get('phone')),
+    specialty: String(get('specialty')),
+    avatar: String(
+      get('avatar') ||
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(String(get('name') || 'pt'))}`,
+    ),
+    rating: Number(get('rating') || 0),
+    totalClients: Number(get('totalClients') || 0),
     completedSessions: Number(get('completedSessions') || 0),
   }
 })
@@ -186,7 +217,14 @@ const recentClients = ref<RecentClientItem[]>([])
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Profile Card skeleton while loading -->
           <template v-if="trainerLoading">
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="flex flex-col items-center gap-4">
                   <Skeleton shape="circle" size="6rem" />
@@ -203,11 +241,22 @@ const recentClients = ref<RecentClientItem[]>([])
               </template>
             </Card>
             <!-- Today's Schedule skeleton -->
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="space-y-4">
                   <Skeleton width="50%" height="1.25rem" />
-                  <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                  <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                  >
                     <Skeleton shape="circle" size="2.5rem" />
                     <div class="flex-1 space-y-1">
                       <Skeleton width="55%" height="0.875rem" />
@@ -219,11 +268,22 @@ const recentClients = ref<RecentClientItem[]>([])
               </template>
             </Card>
             <!-- Clients skeleton -->
-            <Card class="glass-card" :pt="{ root: { class: 'bg-transparent border-0' }, body: { class: 'p-6' }, content: { class: 'p-0' } }">
+            <Card
+              class="glass-card"
+              :pt="{
+                root: { class: 'bg-transparent border-0' },
+                body: { class: 'p-6' },
+                content: { class: 'p-0' },
+              }"
+            >
               <template #content>
                 <div class="space-y-4">
                   <Skeleton width="40%" height="1.25rem" />
-                  <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                  <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                  >
                     <Skeleton shape="circle" size="2.5rem" />
                     <div class="flex-1 space-y-1">
                       <Skeleton width="50%" height="0.875rem" />
@@ -240,12 +300,12 @@ const recentClients = ref<RecentClientItem[]>([])
 
           <!-- Today's Schedule -->
           <template v-if="!trainerLoading">
-          <TodayScheduleCard :today-schedule="todaySchedule" />
+            <TodayScheduleCard :today-schedule="todaySchedule" />
           </template>
 
           <!-- My Clients -->
           <template v-if="!trainerLoading">
-          <ClientsCard :recent-clients="recentClients" />
+            <ClientsCard :recent-clients="recentClients" />
           </template>
         </div>
       </div>
@@ -254,15 +314,14 @@ const recentClients = ref<RecentClientItem[]>([])
     <!-- Edit Profile Modal -->
     <Teleport to="body">
       <Transition name="modal">
-        <div
-          v-if="showEdit"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
+        <div v-if="showEdit" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <!-- Backdrop -->
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showEdit = false" />
 
           <!-- Modal Panel -->
-          <div class="relative z-10 w-full max-w-lg bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          <div
+            class="relative z-10 w-full max-w-lg bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          >
             <!-- Modal Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <h2 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -282,7 +341,11 @@ const recentClients = ref<RecentClientItem[]>([])
               <!-- Avatar preview + upload -->
               <div class="flex items-center gap-4">
                 <img
-                  :src="String(editTrainer.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=pt')"
+                  :src="
+                    String(
+                      editTrainer.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=pt',
+                    )
+                  "
                   alt="Avatar preview"
                   class="w-16 h-16 rounded-full border-2 border-(--primary) object-cover shrink-0"
                 />
@@ -291,13 +354,13 @@ const recentClients = ref<RecentClientItem[]>([])
                   <input
                     type="file"
                     accept="image/*"
-                    class="block w-full text-sm text-white/60
-                      file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
-                      file:text-sm file:font-medium file:bg-(--primary)/20 file:text-(--primary)
-                      hover:file:bg-(--primary)/30 cursor-pointer"
+                    class="block w-full text-sm text-white/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-(--primary)/20 file:text-(--primary) hover:file:bg-(--primary)/30 cursor-pointer"
                     @change="onAvatarChange"
                   />
-                  <div v-if="uploadingAvatar" class="text-xs text-(--text-muted) mt-1 flex items-center gap-1">
+                  <div
+                    v-if="uploadingAvatar"
+                    class="text-xs text-(--text-muted) mt-1 flex items-center gap-1"
+                  >
                     <i class="pi pi-spin pi-spinner text-xs" /> Uploading…
                   </div>
                 </div>
@@ -306,15 +369,25 @@ const recentClients = ref<RecentClientItem[]>([])
               <!-- Fields -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Full Name</label>
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Full Name</label
+                  >
                   <input v-model="editTrainer.name" class="input w-full" placeholder="Full name" />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Phone</label>
-                  <input v-model="editTrainer.phone" class="input w-full" placeholder="Phone number" />
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Phone</label
+                  >
+                  <input
+                    v-model="editTrainer.phone"
+                    class="input w-full"
+                    placeholder="Phone number"
+                  />
                 </div>
                 <div class="sm:col-span-2 space-y-1">
-                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide">Email</label>
+                  <label class="text-xs text-(--text-muted) font-medium uppercase tracking-wide"
+                    >Email</label
+                  >
                   <input
                     v-model="editTrainer.email"
                     class="input w-full opacity-60 cursor-not-allowed"
@@ -327,7 +400,9 @@ const recentClients = ref<RecentClientItem[]>([])
             </div>
 
             <!-- Modal Footer -->
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-white/2">
+            <div
+              class="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-white/2"
+            >
               <button class="btn btn-ghost" :disabled="savingProfile" @click="showEdit = false">
                 Cancel
               </button>
@@ -351,7 +426,9 @@ const recentClients = ref<RecentClientItem[]>([])
 }
 .modal-enter-active .relative,
 .modal-leave-active .relative {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .modal-enter-from,
 .modal-leave-to {
