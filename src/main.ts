@@ -14,9 +14,14 @@ import './assets/main.css'
 
 const app = createApp(App)
 
+document.documentElement.classList.add('dark')
+
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    options: {
+      darkModeSelector: '.dark', // ← ini yang paling penting
+    },
   },
 })
 app.directive('animateonscroll', AnimateOnScroll)
