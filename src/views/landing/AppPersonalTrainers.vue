@@ -207,6 +207,7 @@ const closeModal = () => {
 // Book Now → go straight to DPPaymentModal (no trainer selector)
 const showDPModal = ref(false)
 const selectedPackage = ref<PtPackageUI | null>(null)
+const selectedTrainer = ref<Trainer | null>(null)
 
 const openBooking = (pkg: PtPackageUI) => {
   if (!authState.isLoggedIn) {
@@ -259,6 +260,7 @@ const confirmDPPayment = async (data: PaymentConfirm) => {
       type_id: Number(selectedPackage.value.id),
       payment_method: method,
       payment_type: ptPaymentType,
+      trainer_id: selectedTrainer.value?.id ?? undefined,
     }
 
     if (ptPaymentType === 'dp_payment' && data.dpPercent) {
