@@ -11,6 +11,9 @@ const goToMembership = () => router.push('/membership')
 const scrollToPrograms = () => {
   document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })
 }
+const goToParentSite = () => {
+  window.open('https://arlettaluxury.com/', '_blank')
+}
 
 const { count: membersCount, observe: observeMembers } = useCountUp(500)
 const { count: trainersCount, observe: observeTrainers } = useCountUp(15)
@@ -84,6 +87,13 @@ onUnmounted(() => {
           outlined
           class="px-8 py-3.5 text-base font-semibold border-white/20 text-white hover:bg-white/10"
           @click="scrollToPrograms"
+        />
+        <Button
+          label="Back to Main Site"
+          icon="pi pi-external-link"
+          outlined
+          class="px-8 py-3.5 text-base font-semibold border-white/20 text-white hover:bg-white/10"
+          @click="goToParentSite"
         />
         <!-- Presale button removed -->
       </div>
